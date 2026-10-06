@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useState, useMemo, useCallback } from 'react';
-import { DataTable } from '@autional-cn/ui/antd';
+import { DataTable } from '@autional/ui/antd';
 import { Input, Button, Skeleton } from 'antd';
 import { EyeOutlined, EyeInvisibleOutlined, SearchOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
-import { usePageTitle } from '@autional-cn/shared';
-import { adminEnvVars } from '@autional-cn/shared/generated/api';
-import { ConsolePageHeader, EmptyState } from '@autional-cn/ui';
+import { usePageTitle } from '@autional/shared';
+import { adminEnvVars } from '@autional/shared/generated/api';
+import { ConsolePageHeader, EmptyState } from '@autional/ui';
 import { ApiErrorState } from '@/components/ApiErrorState';
 import { queryKeys } from '@/lib/query-keys';
 

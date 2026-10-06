@@ -5,14 +5,14 @@ import {
 	usePortalCatalog,
 	useTenantSlug,
 	getPortalUrl,
-} from '@autional-cn/shared';
+} from '@autional/shared';
 import {
 	LanguageSwitcher,
 	PortalSwitcher,
 	ThemeToggle,
 	UserMenu,
 	type PortalLink,
-} from '@autional-cn/ui';
+} from '@autional/ui';
 
 // HeaderActions —— 顶栏**右侧**那组控件。
 //

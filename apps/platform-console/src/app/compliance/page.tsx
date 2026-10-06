@@ -24,9 +24,9 @@ import {
 	useRevokeConsent,
 } from '@/hooks/use-compliance';
 import { handleApiError } from '@/lib/error-handler';
-import { DataTable, Drawer, PageError } from '@autional-cn/ui/antd';
-import { useAuthStore, useTenantSlug } from '@autional-cn/shared';
-import { ConsolePageHeader } from '@autional-cn/ui';
+import { DataTable, Drawer, PageError } from '@autional/ui/antd';
+import { useAuthStore, useTenantSlug } from '@autional/shared';
+import { ConsolePageHeader } from '@autional/ui';
 import { useNavigate } from 'react-router';
 import { useTenants } from '@/hooks/use-tenants';
 import { ROUTE } from '@/lib/route-paths';
@@ -123,7 +123,7 @@ export default function CompliancePage() {
 		(async () => {
 			try {
 				const { adminComplianceTenantsScoreByTenants, adminComplianceTenantsPolicyByTenants } =
-					await import('@autional-cn/shared/generated/api');
+					await import('@autional/shared/generated/api');
 				const scoreRes = (await adminComplianceTenantsScoreByTenants(currentTenantId)) as any;
 				const scorePayload = scoreRes?.data ?? scoreRes;
 				setComplianceScore(scorePayload?.overallScore ?? scorePayload?.overall_score ?? null);

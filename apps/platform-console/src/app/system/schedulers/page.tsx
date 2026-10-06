@@ -8,9 +8,9 @@ import {
 	MinusCircleFilled,
 	ClockCircleOutlined,
 } from '@ant-design/icons';
-import { ConsolePageHeader } from '@autional-cn/ui';
+import { ConsolePageHeader } from '@autional/ui';
 import { useTranslation } from 'react-i18next';
-import { PageLoading, DataTable } from '@autional-cn/ui/antd';
+import { PageLoading, DataTable } from '@autional/ui/antd';
 import { useSchedulers } from '@/hooks/use-schedulers';
 import { ApiErrorState } from '@/components/ApiErrorState';
 

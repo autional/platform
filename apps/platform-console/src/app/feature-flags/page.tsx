@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { DataTable } from '@autional-cn/ui/antd';
+import { DataTable } from '@autional/ui/antd';
 import { Card, Statistic, Tag, Row, Col, Spin } from 'antd';
 import {
 	CheckCircleOutlined,
@@ -10,9 +10,9 @@ import {
 	SettingOutlined,
 	MinusOutlined,
 } from '@ant-design/icons';
-import { usePageTitle } from '@autional-cn/shared';
-import { Alert, ConsolePageHeader } from '@autional-cn/ui';
-import { adminFeatureFlags } from '@autional-cn/shared/generated/api';
+import { usePageTitle } from '@autional/shared';
+import { Alert, ConsolePageHeader } from '@autional/ui';
+import { adminFeatureFlags } from '@autional/shared/generated/api';
 import { useQuery } from '@tanstack/react-query';
 import { ApiErrorState } from '@/components/ApiErrorState';
 

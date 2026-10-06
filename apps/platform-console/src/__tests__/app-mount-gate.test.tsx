@@ -22,8 +22,8 @@ vi.mock('react-i18next', () => ({
 	initReactI18next: { type: '3rdParty', init: () => {} },
 }));
 
-vi.mock('@autional-cn/shared', async (importOriginal) => {
-	const actual = await importOriginal<typeof import('@autional-cn/shared')>();
+vi.mock('@autional/shared', async (importOriginal) => {
+	const actual = await importOriginal<typeof import('@autional/shared')>();
 	return {
 		...actual,
 		// 仅替换渲染结果：RequireAuth 只打标记、不渲染 children —— 让断言聚焦

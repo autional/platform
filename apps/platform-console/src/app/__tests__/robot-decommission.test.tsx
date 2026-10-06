@@ -18,7 +18,7 @@ const mocks = vi.hoisted(() => ({
 	intent: vi.fn(),
 }));
 
-vi.mock('@autional-cn/shared/generated/api', () => ({
+vi.mock('@autional/shared/generated/api', () => ({
 	adminRobotsByRobots: (...args: unknown[]) => mocks.getRobot(...args),
 	adminRobotsByRobotsPut: (...args: unknown[]) => mocks.updateRobot(...args),
 	adminRobotsCommissionByRobotsPost: (...args: unknown[]) => mocks.commission(...args),
@@ -26,7 +26,7 @@ vi.mock('@autional-cn/shared/generated/api', () => ({
 	adminRobotsIntentByRobotsPost: (...args: unknown[]) => mocks.intent(...args),
 }));
 
-vi.mock('@autional-cn/shared', () => ({
+vi.mock('@autional/shared', () => ({
 	usePageTitle: vi.fn(),
 	useTenantSlug: () => 'demo',
 }));

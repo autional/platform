@@ -3,7 +3,7 @@ import { Routes, Route, Outlet, Navigate, useParams, useLocation } from 'react-r
 import { Spin } from 'antd';
 import { LoadingOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { AppShell, ErrorBoundary } from '@autional-cn/ui';
+import { AppShell, ErrorBoundary } from '@autional/ui';
 import { NavMenu } from './components/layout/NavMenu';
 import { HeaderActions } from './components/layout/HeaderActions';
 import { Breadcrumb } from './components/layout/Breadcrumb';
@@ -17,7 +17,7 @@ import {
 	useTenantSlug,
 	TenantSlugProvider,
 	extractSlugFromPath,
-} from '@autional-cn/shared';
+} from '@autional/shared';
 import { ROUTE } from './lib/route-paths';
 
 /**

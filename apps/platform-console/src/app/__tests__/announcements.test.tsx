@@ -40,7 +40,7 @@ vi.mock('@/lib/error-handler', () => ({
 	handleApiError: vi.fn(),
 }));
 
-vi.mock('@autional-cn/shared', () => ({
+vi.mock('@autional/shared', () => ({
 	extractItem: (res: any) => res?.data ?? res ?? null,
 	usePageTitle: vi.fn(),
 }));

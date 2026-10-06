@@ -1,4 +1,4 @@
-import { apiClient } from '@autional-cn/shared';
+import { apiClient } from '@autional/shared';
 
 export const api = apiClient;
 

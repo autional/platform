@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { DataTable } from '@autional-cn/ui/antd';
-import { Alert, ConsolePageHeader } from '@autional-cn/ui';
+import { DataTable } from '@autional/ui/antd';
+import { Alert, ConsolePageHeader } from '@autional/ui';
 import { Card, Tabs, Tag, Input, Tooltip, Badge } from 'antd';
 import {
 	CloudServerOutlined,

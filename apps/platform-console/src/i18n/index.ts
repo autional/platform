@@ -3,7 +3,7 @@ import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
-import { registerUiI18n } from '@autional-cn/ui/i18n';
+import { registerUiI18n } from '@autional/ui/i18n';
 import zhCN from './locales/zh-CN.json';
 import enUS from './locales/en-US.json';
 

@@ -15,8 +15,8 @@ import {
 import type { IncidentRecord } from '@/hooks/use-status';
 import { handleApiError } from '@/lib/error-handler';
 import { formatDateTime } from '@/lib/format';
-import { DataTable, Drawer, PageError } from '@autional-cn/ui/antd';
-import { ConsolePageHeader, StatusBadge } from '@autional-cn/ui';
+import { DataTable, Drawer, PageError } from '@autional/ui/antd';
+import { ConsolePageHeader, StatusBadge } from '@autional/ui';
 import { severityBadge, severityLabels, statusBadge, statusLabels } from '@/lib/incident-meta';
 
 const { Option } = Select;

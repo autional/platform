@@ -22,8 +22,8 @@ import {
 	LoadingOutlined,
 	CopyOutlined,
 } from '@ant-design/icons';
-import { PageLoading, PageError, DataTable } from '@autional-cn/ui/antd';
-import { Alert, ConsolePageHeader } from '@autional-cn/ui';
+import { PageLoading, PageError, DataTable } from '@autional/ui/antd';
+import { Alert, ConsolePageHeader } from '@autional/ui';
 import {
 	useSecretsInventoryOverview,
 	useSecretsInventoryKV,

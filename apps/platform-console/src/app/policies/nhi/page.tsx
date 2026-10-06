@@ -3,10 +3,10 @@
 import React, { useEffect } from 'react';
 import { Form, InputNumber, Select, Button, Skeleton } from 'antd';
 import { SaveOutlined } from '@ant-design/icons';
-import { usePageTitle } from '@autional-cn/shared';
-import { ConsolePageHeader, ErrorState, SectionCard } from '@autional-cn/ui';
+import { usePageTitle } from '@autional/shared';
+import { ConsolePageHeader, ErrorState, SectionCard } from '@autional/ui';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { adminPoliciesNhi, adminPoliciesNhiPut } from '@autional-cn/shared/generated/api';
+import { adminPoliciesNhi, adminPoliciesNhiPut } from '@autional/shared/generated/api';
 import { message, modal } from '@/lib/antd-app';
 import { handleApiError } from '@/lib/error-handler';
 import { queryKeys } from '@/lib/query-keys';

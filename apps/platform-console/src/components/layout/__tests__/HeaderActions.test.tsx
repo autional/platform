@@ -23,7 +23,7 @@ const mockCatalog = vi.hoisted(() => ({
 
 vi.mock('react-i18next', () => ({
 	useTranslation: () => ({
-		// 忠实模拟 i18next：key 未命中时回落 defaultValue（@autional-cn/ui 组件内置文案走此路径）
+		// 忠实模拟 i18next：key 未命中时回落 defaultValue（@autional/ui 组件内置文案走此路径）
 		t: (key: string, options?: { defaultValue?: string }) =>
 			typeof options?.defaultValue === 'string' ? options.defaultValue : key,
 		i18n: {
@@ -37,7 +37,7 @@ vi.mock('react-i18next', () => ({
 	},
 }));
 
-vi.mock('@autional-cn/shared', () => ({
+vi.mock('@autional/shared', () => ({
 	useAuth: () => ({ user: mockUser, currentTenantId: 'platform-tenant', isAuthenticated: true }),
 	useTenantSlug: () => mockSlug.value,
 	getPortalUrl: mockGetPortalUrl,

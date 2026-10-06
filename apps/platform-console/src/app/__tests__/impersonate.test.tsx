@@ -28,7 +28,7 @@ const mocks = vi.hoisted(() => ({
 	handleApiError: vi.fn(),
 }));
 
-vi.mock('@autional-cn/shared/generated/api', () => ({
+vi.mock('@autional/shared/generated/api', () => ({
 	adminUsersImpersonateByUsersPost: (...args: unknown[]) => mocks.impersonatePost(...args),
 }));
 
@@ -36,7 +36,7 @@ vi.mock('@/lib/api.generated', () => ({
 	getUsers: (...args: unknown[]) => mocks.getUsers(...args),
 }));
 
-vi.mock('@autional-cn/shared', () => ({
+vi.mock('@autional/shared', () => ({
 	usePageTitle: vi.fn(),
 	useTenantSlug: () => 'that-slug',
 	getPortalUrl: () => 'https://admin.example.test/that-slug',
@@ -74,7 +74,7 @@ vi.mock('@/lib/error-handler', () => ({
 	handleApiError: (...args: unknown[]) => mocks.handleApiError(...args),
 }));
 
-vi.mock('@autional-cn/ui', () => ({
+vi.mock('@autional/ui', () => ({
 	ConsolePageHeader: ({ title, description }: { title: string; description?: string }) => (
 		<div data-testid="page-header">
 			<h3>{title}</h3>

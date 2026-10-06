@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { DataTable } from '@autional-cn/ui/antd';
+import { DataTable } from '@autional/ui/antd';
 import { Button, Space, Modal, Form, Input, Select, Popconfirm, Skeleton } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import {
@@ -10,10 +10,10 @@ import {
 	fromPageResult,
 	toPageParams,
 	type PageResult,
-} from '@autional-cn/shared';
-import { ConsolePageHeader, EmptyState, ErrorState, StatusBadge } from '@autional-cn/ui';
+} from '@autional/shared';
+import { ConsolePageHeader, EmptyState, ErrorState, StatusBadge } from '@autional/ui';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { adminIots, adminIotsPost, adminIotsByIotsDelete } from '@autional-cn/shared/generated/api';
+import { adminIots, adminIotsPost, adminIotsByIotsDelete } from '@autional/shared/generated/api';
 import { useNavigate } from 'react-router';
 import { message } from '@/lib/antd-app';
 import { handleApiError } from '@/lib/error-handler';

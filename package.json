@@ -1,15 +1,15 @@
 {
-  "name": "@autional-cn/platform",
+  "name": "@autional/platform",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "pnpm --filter @autional-cn/platform-console dev",
-    "build": "pnpm --filter @autional-cn/platform-console... build",
-    "preview": "pnpm --filter @autional-cn/platform-console preview",
-    "typecheck": "pnpm --filter @autional-cn/platform-console typecheck",
-    "lint": "pnpm --filter @autional-cn/platform-console lint",
-    "test": "pnpm --filter @autional-cn/platform-console test"
+    "dev": "pnpm --filter @autional/platform-console dev",
+    "build": "pnpm --filter @autional/platform-console... build",
+    "preview": "pnpm --filter @autional/platform-console preview",
+    "typecheck": "pnpm --filter @autional/platform-console typecheck",
+    "lint": "pnpm --filter @autional/platform-console lint",
+    "test": "pnpm --filter @autional/platform-console test"
   },
   "packageManager": "pnpm@11.0.8",
   "engines": {

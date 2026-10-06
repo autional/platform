@@ -14,7 +14,7 @@ vi.mock('react-router', async () => {
 	};
 });
 
-vi.mock('@autional-cn/shared', () => ({
+vi.mock('@autional/shared', () => ({
 	usePageTitle: vi.fn(),
 	useTenantSlug: () => mockSlug.value,
 }));

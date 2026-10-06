@@ -1,18 +1,18 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { DataTable } from '@autional-cn/ui/antd';
+import { DataTable } from '@autional/ui/antd';
 import { Button, Select, Popconfirm, Modal, Empty } from 'antd';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient, usePageTitle } from '@autional-cn/shared';
-import { Alert, ConsolePageHeader, EmptyState, SectionCard, StatusBadge } from '@autional-cn/ui';
+import { apiClient, usePageTitle } from '@autional/shared';
+import { Alert, ConsolePageHeader, EmptyState, SectionCard, StatusBadge } from '@autional/ui';
 import {
 	adminComplianceGdprRightToErasure,
 	adminComplianceGdprRightToErasurePost,
-} from '@autional-cn/shared/generated/api';
+} from '@autional/shared/generated/api';
 import { message } from '@/lib/antd-app';
 import { handleApiError } from '@/lib/error-handler';
-import type { StatusVariant } from '@autional-cn/ui';
+import type { StatusVariant } from '@autional/ui';
 
 interface ErasureRequest {
 	id: string;

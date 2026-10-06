@@ -18,7 +18,7 @@ vi.mock('@/lib/api.generated', () => ({
 	updateInvitationConfig: (...args: unknown[]) => mocks.updateInvitationConfig(...args),
 }));
 
-vi.mock('@autional-cn/shared', () => ({
+vi.mock('@autional/shared', () => ({
 	// 与真实实现同形的信封解包（页面读 extractItem）
 	extractItem: (res: any) => res?.data ?? res ?? null,
 	usePageTitle: vi.fn(),

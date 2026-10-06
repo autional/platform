@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { DataTable } from '@autional-cn/ui/antd';
+import { DataTable } from '@autional/ui/antd';
 import {
 	Card,
 	Form,
@@ -26,15 +26,15 @@ import {
 	UserOutlined,
 } from '@ant-design/icons';
 import { handleApiError } from '@/lib/error-handler';
-import { AuthService, fromPageResult, toPageParams } from '@autional-cn/shared';
+import { AuthService, fromPageResult, toPageParams } from '@autional/shared';
 import {
 	adminTenantsMinorsProtectionByTenants,
 	adminTenantsMinorsProtectionByTenantsPut,
 	adminUsers,
 	adminConsents,
-} from '@autional-cn/shared/generated/api';
-import type { UpdateMinorsProtectionConfigRequest } from '@autional-cn/shared/generated/types';
-import { ConsolePageHeader, SectionCard } from '@autional-cn/ui';
+} from '@autional/shared/generated/api';
+import type { UpdateMinorsProtectionConfigRequest } from '@autional/shared/generated/types';
+import { ConsolePageHeader, SectionCard } from '@autional/ui';
 import { ApiErrorState } from '@/components/ApiErrorState';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';

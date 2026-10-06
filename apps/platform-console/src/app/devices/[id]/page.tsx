@@ -4,17 +4,17 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { Button, Tag, Modal, Form, Input, Select, Skeleton, Descriptions } from 'antd';
 import { EditOutlined, ArrowLeftOutlined } from '@ant-design/icons';
-import { usePageTitle, useTenantSlug } from '@autional-cn/shared';
-import { ConsolePageHeader, EmptyState, ErrorState, SectionCard, StatusBadge } from '@autional-cn/ui';
+import { usePageTitle, useTenantSlug } from '@autional/shared';
+import { ConsolePageHeader, EmptyState, ErrorState, SectionCard, StatusBadge } from '@autional/ui';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient, extractItem } from '@autional-cn/shared';
-import { adminIotsByIots } from '@autional-cn/shared/generated/api';
+import { apiClient, extractItem } from '@autional/shared';
+import { adminIotsByIots } from '@autional/shared/generated/api';
 import { message } from '@/lib/antd-app';
 import { ROUTE } from '@/lib/route-paths';
 import { buildNavHref } from '@/lib/nav';
 import { handleApiError } from '@/lib/error-handler';
 import { queryKeys } from '@/lib/query-keys';
-import type { DeviceInfo } from '@autional-cn/shared/generated/types';
+import type { DeviceInfo } from '@autional/shared/generated/types';
 
 const STATUS_VARIANT: Record<string, 'success' | 'warning' | 'danger' | 'info' | 'neutral'> = {
 	active: 'success',

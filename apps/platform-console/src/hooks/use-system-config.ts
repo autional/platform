@@ -1,8 +1,8 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { extractItem } from '@autional-cn/shared';
-import { adminEnvVars, adminFeatureFlags } from '@autional-cn/shared/generated/api';
+import { extractItem } from '@autional/shared';
+import { adminEnvVars, adminFeatureFlags } from '@autional/shared/generated/api';
 import {
 	CATEGORY_LABELS,
 	useSystemServices,

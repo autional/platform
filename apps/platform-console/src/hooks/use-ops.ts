@@ -1,6 +1,6 @@
 'use client';
 
-import { extractItem } from '@autional-cn/shared';
+import { extractItem } from '@autional/shared';
 import { queryKeys } from '@/lib/query-keys';
 import { useQuery } from '@tanstack/react-query';
 import { ops, statusOverview } from '@/lib/api.generated';
@@ -8,7 +8,7 @@ import {
 	developerStatus,
 	statusMetricsUptime,
 	statusMetricsLatency,
-} from '@autional-cn/shared/generated/api';
+} from '@autional/shared/generated/api';
 
 export interface OpsStatus {
 	topology?: unknown;

@@ -1,4 +1,4 @@
-import { ErrorState } from '@autional-cn/ui';
+import { ErrorState } from '@autional/ui';
 import { apiErrorCopy, classifyApiError, extractApiErrorMessage } from '@/lib/error-handler';
 
 interface ApiErrorStateProps {

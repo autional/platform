@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { extractList, extractItem } from '@autional-cn/shared';
+import { extractList, extractItem } from '@autional/shared';
 import {
 	adminSecrets,
 	adminSecretsEncryptionKeys,
@@ -11,7 +11,7 @@ import {
 	adminAuthApiKeys,
 	adminOauthClients,
 	adminOauthClientsRotateSecretByClientsPost,
-} from '@autional-cn/shared/generated/api';
+} from '@autional/shared/generated/api';
 import { queryKeys } from '@/lib/query-keys';
 
 export interface SecretKVRecord {

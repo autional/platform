@@ -1,8 +1,8 @@
 'use client';
 import { useMemo } from 'react';
-import { useCurrentTenantId } from '@autional-cn/shared';
-import { DataTable } from '@autional-cn/ui/antd';
-import { Alert } from '@autional-cn/ui';
+import { useCurrentTenantId } from '@autional/shared';
+import { DataTable } from '@autional/ui/antd';
+import { Alert } from '@autional/ui';
 import { Card, Switch, Space, App, Typography, Spin, Tag } from 'antd';
 import { LockOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -10,7 +10,7 @@ import {
 	adminBillingFeatureGates,
 	adminBillingFeatureGatesOverrides,
 	adminBillingFeatureGatesOverridesPut,
-} from '@autional-cn/shared/generated/api';
+} from '@autional/shared/generated/api';
 
 
 const { Title } = Typography;

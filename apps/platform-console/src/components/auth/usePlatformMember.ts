@@ -4,7 +4,7 @@ import {
 	useTenantsQuery,
 	PLATFORM_TENANT_ID,
 	decodeJwtPayload,
-} from '@autional-cn/shared';
+} from '@autional/shared';
 
 /**
  * 平台成员判定（PL-77）：当前会话是否平台租户成员。供路由门（PlatformMemberGuard）与

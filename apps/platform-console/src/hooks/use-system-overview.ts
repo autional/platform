@@ -1,8 +1,8 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { extractItem } from '@autional-cn/shared';
-import { adminSystemRuntime, developerStatus } from '@autional-cn/shared/generated/api';
+import { extractItem } from '@autional/shared';
+import { adminSystemRuntime, developerStatus } from '@autional/shared/generated/api';
 import { getTenantStats } from '@/lib/api.generated';
 import { queryKeys } from '@/lib/query-keys';
 

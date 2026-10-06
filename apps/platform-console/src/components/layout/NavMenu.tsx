@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router';
-import { useTenantSlug } from '@autional-cn/shared';
+import { useTenantSlug } from '@autional/shared';
 import { usePlatformMember } from '@/components/auth/usePlatformMember';
 import { ROUTE } from '@/lib/route-paths';
 import { buildNavHref, stripTenantPrefix } from '@/lib/nav';

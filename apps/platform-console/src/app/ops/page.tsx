@@ -11,8 +11,8 @@ import {
 } from '@ant-design/icons';
 import { useOpsStatus, useHealth, useServiceHealth, type ServiceHealthItem } from '@/hooks/use-ops';
 import { ops, isGrafanaConfigured } from '@/lib/api.generated';
-import { PageError } from '@autional-cn/ui/antd';
-import { Alert, ConsolePageHeader } from '@autional-cn/ui';
+import { PageError } from '@autional/ui/antd';
+import { Alert, ConsolePageHeader } from '@autional/ui';
 
 interface ServiceHealth {
 	name: string;

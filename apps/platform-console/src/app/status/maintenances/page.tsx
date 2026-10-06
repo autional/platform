@@ -13,8 +13,8 @@ import {
 } from '@/hooks/use-status';
 import type { MaintenanceRecord } from '@/hooks/use-status';
 import { handleApiError } from '@/lib/error-handler';
-import { PageError, DataTable } from '@autional-cn/ui/antd';
-import { ConsolePageHeader, StatusBadge, type StatusVariant } from '@autional-cn/ui';
+import { PageError, DataTable } from '@autional/ui/antd';
+import { ConsolePageHeader, StatusBadge, type StatusVariant } from '@autional/ui';
 
 const { Option } = Select;
 const { TextArea } = Input;

@@ -18,7 +18,7 @@ vi.mock('react-i18next', () => ({
 	initReactI18next: { type: '3rdParty', init: () => {} },
 }));
 
-vi.mock('@autional-cn/shared', () => ({
+vi.mock('@autional/shared', () => ({
 	useAuthStore: (selector?: (s: unknown) => unknown) => {
 		const state = {
 			user: { email: 'platform-admin@autional.dev', username: 'root' },
@@ -69,7 +69,7 @@ vi.mock('@/hooks/use-platform-stats', () => ({
 	}),
 }));
 
-vi.mock('@autional-cn/ui', () => ({
+vi.mock('@autional/ui', () => ({
 	useTheme: () => ({ theme: 'light', toggle: vi.fn() }),
 	ThemeProvider: ({ children }: { children: React.ReactNode }) => children,
 	EmptyState: ({ title, description }: { title: string; description?: string }) => (

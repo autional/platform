@@ -1,4 +1,4 @@
-import type { StatusVariant } from '@autional-cn/ui';
+import type { StatusVariant } from '@autional/ui';
 
 // 事故严重级别 / 状态的呈现字典 —— incidents 页与仪表盘「最近事故」共用同一份，防两处漂移。
 export const severityBadge: Record<string, StatusVariant> = {

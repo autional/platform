@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { PlatformGuard } from '@autional-cn/shared';
+import { PlatformGuard } from '@autional/shared';
 import { usePlatformMember } from './usePlatformMember';
 
 interface PlatformMemberGuardProps {

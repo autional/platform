@@ -17,8 +17,8 @@ const mocks = vi.hoisted(() => ({
 	token: null as string | null,
 }));
 
-vi.mock('@autional-cn/shared', async (importOriginal) => {
-	const actual = await importOriginal<typeof import('@autional-cn/shared')>();
+vi.mock('@autional/shared', async (importOriginal) => {
+	const actual = await importOriginal<typeof import('@autional/shared')>();
 	return {
 		...actual,
 		PLATFORM_TENANT_ID: '01KSQCBNVMS6SX64PJS937CE33',

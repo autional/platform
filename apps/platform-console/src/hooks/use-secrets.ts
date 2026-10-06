@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import type * as GeneratedTypes from '@autional-cn/shared/generated/types';
+import type * as GeneratedTypes from '@autional/shared/generated/types';
 import {
 	adminSecrets,
 	adminSecretsDetail,
@@ -15,7 +15,7 @@ import {
 	adminSecretsBatchRevokePost,
 	adminSecretsBatchDeletePost,
 	adminSecretsEncryptionKeys,
-} from '@autional-cn/shared/generated/api';
+} from '@autional/shared/generated/api';
 import { queryKeys } from '@/lib/query-keys';
 
 export type SecretRecord = GeneratedTypes.SecretResponse;

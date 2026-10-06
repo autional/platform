@@ -1,11 +1,11 @@
 'use client';
 
-import { extractItem } from '@autional-cn/shared';
+import { extractItem } from '@autional/shared';
 import { queryKeys } from '@/lib/query-keys';
 import type {
 	CommunicationDashboardResponse,
 	NotificationStatsResponse,
-} from '@autional-cn/shared/generated/types';
+} from '@autional/shared/generated/types';
 import { useQuery } from '@tanstack/react-query';
 import { getPlatformCommunicationStats, getPlatformNotificationStats } from '@/lib/api.generated';
 

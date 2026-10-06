@@ -16,14 +16,14 @@ const mocks = vi.hoisted(() => ({
 	adminConsents: vi.fn(),
 }));
 
-vi.mock('@autional-cn/shared/generated/api', () => ({
+vi.mock('@autional/shared/generated/api', () => ({
 	adminTenantsMinorsProtectionByTenants: (...args: unknown[]) => mocks.getConfig(...args),
 	adminTenantsMinorsProtectionByTenantsPut: (...args: unknown[]) => mocks.putConfig(...args),
 	adminUsers: (...args: unknown[]) => mocks.adminUsers(...args),
 	adminConsents: (...args: unknown[]) => mocks.adminConsents(...args),
 }));
 
-vi.mock('@autional-cn/shared', () => ({
+vi.mock('@autional/shared', () => ({
 	AuthService: { getCurrentTenantId: () => 't-1' },
 	fromPageResult: (d: any) => ({ items: d?.items ?? [], total: d?.total ?? 0 }),
 	toPageParams: (p: any) => p,

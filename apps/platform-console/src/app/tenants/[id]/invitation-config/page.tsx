@@ -5,11 +5,11 @@ import { useParams } from 'react-router';
 import { Form, InputNumber, Select, Button, Card, Spin } from 'antd';
 import { message } from '@/lib/antd-app';
 import { SaveOutlined, ReloadOutlined } from '@ant-design/icons';
-import { extractItem, usePageTitle } from '@autional-cn/shared';
+import { extractItem, usePageTitle } from '@autional/shared';
 import { getInvitationConfig, updateInvitationConfig } from '@/lib/api.generated';
 import { handleApiError } from '@/lib/error-handler';
-import { PageError } from '@autional-cn/ui/antd';
-import { Alert, ConsolePageHeader } from '@autional-cn/ui';
+import { PageError } from '@autional/ui/antd';
+import { Alert, ConsolePageHeader } from '@autional/ui';
 import { useTenant } from '@/hooks/use-tenants';
 
 interface InvitationConfigData {

@@ -20,9 +20,9 @@ import {
 	type AnnouncementRecord,
 } from '@/hooks/use-announcements';
 import { handleApiError } from '@/lib/error-handler';
-import { extractItem } from '@autional-cn/shared';
-import { PageError, DataTable } from '@autional-cn/ui/antd';
-import { ConsolePageHeader } from '@autional-cn/ui';
+import { extractItem } from '@autional/shared';
+import { PageError, DataTable } from '@autional/ui/antd';
+import { ConsolePageHeader } from '@autional/ui';
 
 const { Option } = Select;
 const { TextArea } = Input;

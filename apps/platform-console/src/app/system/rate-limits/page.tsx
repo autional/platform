@@ -8,11 +8,11 @@ import {
 	CloseCircleOutlined,
 	QuestionCircleOutlined,
 } from '@ant-design/icons';
-import { ConsolePageHeader } from '@autional-cn/ui';
+import { ConsolePageHeader } from '@autional/ui';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { ops } from '@/lib/api.generated';
-import { PageLoading } from '@autional-cn/ui/antd';
+import { PageLoading } from '@autional/ui/antd';
 import { ApiErrorState } from '@/components/ApiErrorState';
 
 interface RateLimitData {

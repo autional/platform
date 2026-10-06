@@ -2,7 +2,7 @@ import type { ReactElement } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router';
 import { render, type RenderOptions } from '@testing-library/react';
-import { ThemeProvider } from '@autional-cn/ui';
+import { ThemeProvider } from '@autional/ui';
 
 interface CustomRenderOptions extends Omit<RenderOptions, 'wrapper'> {
 	route?: string;

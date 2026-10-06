@@ -10,9 +10,9 @@ import {
 	getPortalUrl,
 	usePageTitle,
 	useTenantSlug,
-} from '@autional-cn/shared';
-import { adminUsersImpersonateByUsersPost } from '@autional-cn/shared/generated/api';
-import { Alert, ConsolePageHeader, Result, SectionCard } from '@autional-cn/ui';
+} from '@autional/shared';
+import { adminUsersImpersonateByUsersPost } from '@autional/shared/generated/api';
+import { Alert, ConsolePageHeader, Result, SectionCard } from '@autional/ui';
 import { getUsers } from '@/lib/api.generated';
 import { message, modal } from '@/lib/antd-app';
 import { handleApiError } from '@/lib/error-handler';

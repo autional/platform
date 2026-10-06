@@ -12,8 +12,8 @@ import {
 	DeleteOutlined,
 } from '@ant-design/icons';
 import { handleApiError } from '@/lib/error-handler';
-import { useAuthStore, extractItem } from '@autional-cn/shared';
-import { PageError, DataTable } from '@autional-cn/ui/antd';
+import { useAuthStore, extractItem } from '@autional/shared';
+import { PageError, DataTable } from '@autional/ui/antd';
 import { useTenants } from '@/hooks/use-tenants';
 
 const API_BASE = '/compliance/api/v1/admin/compliance';
@@ -151,7 +151,7 @@ export default function CompliancePolicyPage() {
 		try {
 			setLoading(true);
 			const { adminComplianceStandards, adminComplianceTenantsPolicyByTenants } =
-				await import('@autional-cn/shared/generated/api');
+				await import('@autional/shared/generated/api');
 			const res = await adminComplianceStandards();
 			const items = (res as any)?.data || res || [];
 			setStandards(items);
@@ -174,7 +174,7 @@ export default function CompliancePolicyPage() {
 
 	const fetchOverrides = async () => {
 		try {
-			const { apiClient: api } = await import('@autional-cn/shared');
+			const { apiClient: api } = await import('@autional/shared');
 			const res = await api.get(`${API_BASE}/tenants/self/overrides`); // @generated-api-exempt — no generated endpoint
 			setOverrides(extractItem<{ overrides: any[] }>(res.data)?.overrides || []);
 		} catch {
@@ -185,7 +185,7 @@ export default function CompliancePolicyPage() {
 	const fetchScore = async () => {
 		try {
 			if (!currentTenantId) return;
-			const { adminComplianceTenantsScoreByTenants } = await import('@autional-cn/shared/generated/api');
+			const { adminComplianceTenantsScoreByTenants } = await import('@autional/shared/generated/api');
 			const res = (await adminComplianceTenantsScoreByTenants(currentTenantId)) as any;
 			const payload = res?.data ?? res;
 			setScore(payload?.overallScore ?? payload?.overall_score ?? null);
@@ -199,7 +199,7 @@ export default function CompliancePolicyPage() {
 			setLoading(true);
 			if (!currentTenantId) return;
 			const { adminComplianceTenantsStandardsByTenantsPut, adminComplianceTenantsPolicyByTenants } =
-				await import('@autional-cn/shared/generated/api');
+				await import('@autional/shared/generated/api');
 			await adminComplianceTenantsStandardsByTenantsPut(currentTenantId, { standards: selectedIds } as any);
 			const res = await adminComplianceTenantsPolicyByTenants(currentTenantId);
 			const policy = (res as any)?.data || res;
@@ -220,7 +220,7 @@ export default function CompliancePolicyPage() {
 			setLoading(true);
 			if (!currentTenantId) return;
 			const { adminComplianceTenantsGapAnalysisByTenantsPost } =
-				await import('@autional-cn/shared/generated/api');
+				await import('@autional/shared/generated/api');
 			const res = (await adminComplianceTenantsGapAnalysisByTenantsPost(currentTenantId, {} as any)) as any;
 			const payload = res?.data ?? res;
 			setGapItems(payload?.parameters ?? []);
@@ -237,7 +237,7 @@ export default function CompliancePolicyPage() {
 			setLoading(true);
 			if (!currentTenantId) return;
 			const { adminComplianceTenantsReadinessByTenantsByReadinessPost } =
-				await import('@autional-cn/shared/generated/api');
+				await import('@autional/shared/generated/api');
 			const res = (await adminComplianceTenantsReadinessByTenantsByReadinessPost(
 				currentTenantId,
 				stdId,
@@ -254,7 +254,7 @@ export default function CompliancePolicyPage() {
 	const handleAddOverride = async (values: any) => {
 		try {
 			const { adminComplianceTenantsSelfOverridesPost } =
-				await import('@autional-cn/shared/generated/api');
+				await import('@autional/shared/generated/api');
 			await adminComplianceTenantsSelfOverridesPost({
 				parameter: values.parameter,
 				value: values.value,
@@ -271,7 +271,7 @@ export default function CompliancePolicyPage() {
 
 	const handleRemoveOverride = async (param: string) => {
 		try {
-			const { apiClient: api } = await import('@autional-cn/shared');
+			const { apiClient: api } = await import('@autional/shared');
 			await api.delete(`${API_BASE}/tenants/self/overrides/${param}`); // @generated-api-exempt — no generated endpoint
 			message.success('覆盖已移除');
 			fetchOverrides();

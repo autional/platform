@@ -1,5 +1,5 @@
 import { message } from '@/lib/antd-app';
-import { extractApiError } from '@autional-cn/shared';
+import { extractApiError } from '@autional/shared';
 
 const notify = (msg: string) => message.error(msg);
 

@@ -1,8 +1,8 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { extractList } from '@autional-cn/shared';
-import { adminSchedulers } from '@autional-cn/shared/generated/api';
+import { extractList } from '@autional/shared';
+import { adminSchedulers } from '@autional/shared/generated/api';
 import { queryKeys } from '@/lib/query-keys';
 
 export type SchedulerStatus = 'running' | 'paused' | 'failed' | 'disabled';

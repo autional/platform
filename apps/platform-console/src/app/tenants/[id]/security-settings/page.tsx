@@ -5,11 +5,11 @@ import { useParams } from 'react-router';
 import { Form, Select, Button, Card, Spin, Descriptions, Tag } from 'antd';
 import { message } from '@/lib/antd-app';
 import { SaveOutlined, ReloadOutlined } from '@ant-design/icons';
-import { extractItem, usePageTitle } from '@autional-cn/shared';
-import { apiClient, API_PATHS } from '@autional-cn/shared';
+import { extractItem, usePageTitle } from '@autional/shared';
+import { apiClient, API_PATHS } from '@autional/shared';
 import { handleApiError } from '@/lib/error-handler';
-import { PageError } from '@autional-cn/ui/antd';
-import { ConsolePageHeader } from '@autional-cn/ui';
+import { PageError } from '@autional/ui/antd';
+import { ConsolePageHeader } from '@autional/ui';
 
 interface SodConfigData {
 	sod_mode: 'single' | 'strict';
