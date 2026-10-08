@@ -48,6 +48,10 @@ describe('区域字面量回归锁', () => {
 		expect(findOffenders([resolve(APP_ROOT, 'index.html')])).toEqual([]);
 	});
 
+	it('harness/index.html 无区域字面量（占位符 {{CDN_ASSET_BASE}} 由 vite.harness.config.ts 注入）', () => {
+		expect(findOffenders([resolve(SRC_ROOT, 'harness', 'index.html')])).toEqual([]);
+	});
+
 	it('src 源码无区域字面量（唯一例外 = site-env 白名单）', () => {
 		expect(findOffenders(collectSourceFiles(SRC_ROOT))).toEqual([]);
 	});
