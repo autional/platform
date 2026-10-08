@@ -22,7 +22,7 @@ import {
 import { handleApiError } from '@/lib/error-handler';
 import { extractItem } from '@autional/shared';
 import { PageError, DataTable } from '@autional/ui/antd';
-import { ConsolePageHeader } from '@autional/ui';
+import { AppPageHeader } from '@autional/ui';
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -224,7 +224,7 @@ export default function AnnouncementsPage() {
 
 	return (
 		<div>
-			<ConsolePageHeader
+			<AppPageHeader
 				title="平台公告"
 				actions={
 					<>

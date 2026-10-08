@@ -4,7 +4,7 @@ import React, { useEffect } from 'react';
 import { Form, InputNumber, Select, Button, Skeleton } from 'antd';
 import { SaveOutlined } from '@ant-design/icons';
 import { usePageTitle } from '@autional/shared';
-import { ConsolePageHeader, ErrorState, SectionCard } from '@autional/ui';
+import { AppPageHeader, ErrorState, SectionCard } from '@autional/ui';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminPoliciesNhi, adminPoliciesNhiPut } from '@autional/shared/generated/api';
 import { message, modal } from '@/lib/antd-app';
@@ -108,7 +108,7 @@ export default function NhiPolicyPage() {
 	return (
 		<div>
 			<div className="mb-6">
-				<ConsolePageHeader
+				<AppPageHeader
 					title="NHI 策略配置"
 					description="配置租户级的非人类身份（NHI）生命周期管理默认值。"
 				/>

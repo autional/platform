@@ -5,7 +5,7 @@ import { DataTable } from '@autional/ui/antd';
 import { Button, Select, Popconfirm, Modal, Empty } from 'antd';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient, usePageTitle } from '@autional/shared';
-import { Alert, ConsolePageHeader, EmptyState, SectionCard, StatusBadge } from '@autional/ui';
+import { Alert, AppPageHeader, EmptyState, SectionCard, StatusBadge } from '@autional/ui';
 import {
 	adminComplianceGdprRightToErasure,
 	adminComplianceGdprRightToErasurePost,
@@ -155,7 +155,7 @@ export default function GdprErasurePage() {
 
 	return (
 		<div>
-			<ConsolePageHeader title="GDPR 被遗忘权" />
+			<AppPageHeader title="GDPR 被遗忘权" />
 
 			<SectionCard className="mt-6">
 				<Alert

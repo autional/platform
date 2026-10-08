@@ -13,7 +13,7 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { usePageTitle } from '@autional/shared';
 import { adminInfraCredentials } from '@autional/shared/generated/api';
-import { ConsolePageHeader, EmptyState, SectionCard } from '@autional/ui';
+import { AppPageHeader, EmptyState, SectionCard } from '@autional/ui';
 import { ApiErrorState } from '@/components/ApiErrorState';
 import { queryKeys } from '@/lib/query-keys';
 
@@ -119,7 +119,7 @@ export default function InfraCredentialsPage() {
 
 	return (
 		<div>
-			<ConsolePageHeader
+			<AppPageHeader
 				title="基础设施凭据"
 				description="数据库、缓存、消息队列、存储与 API 服务的基础设施凭据总览。"
 			/>

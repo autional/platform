@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { DataTable } from '@autional/ui/antd';
-import { Alert, ConsolePageHeader } from '@autional/ui';
+import { Alert, AppPageHeader } from '@autional/ui';
 import { Card, Tabs, Tag, Input, Tooltip, Badge } from 'antd';
 import {
 	CloudServerOutlined,
@@ -406,7 +406,7 @@ export default function SystemConfigPage() {
 
 	return (
 		<div>
-			<ConsolePageHeader
+			<AppPageHeader
 				title="系统配置"
 				actions={
 					<>

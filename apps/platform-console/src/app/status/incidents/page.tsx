@@ -16,7 +16,7 @@ import type { IncidentRecord } from '@/hooks/use-status';
 import { handleApiError } from '@/lib/error-handler';
 import { formatDateTime } from '@/lib/format';
 import { DataTable, Drawer, PageError } from '@autional/ui/antd';
-import { ConsolePageHeader, StatusBadge } from '@autional/ui';
+import { AppPageHeader, StatusBadge } from '@autional/ui';
 import { severityBadge, severityLabels, statusBadge, statusLabels } from '@/lib/incident-meta';
 
 const { Option } = Select;
@@ -178,7 +178,7 @@ export default function IncidentsPage() {
 
 	return (
 		<div>
-			<ConsolePageHeader
+			<AppPageHeader
 				title="事件管理"
 				actions={
 					<>

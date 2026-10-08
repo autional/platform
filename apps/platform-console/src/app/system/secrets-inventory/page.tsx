@@ -23,7 +23,7 @@ import {
 	CopyOutlined,
 } from '@ant-design/icons';
 import { PageLoading, PageError, DataTable } from '@autional/ui/antd';
-import { Alert, ConsolePageHeader } from '@autional/ui';
+import { Alert, AppPageHeader } from '@autional/ui';
 import {
 	useSecretsInventoryOverview,
 	useSecretsInventoryKV,
@@ -836,7 +836,7 @@ export default function SystemSecretsInventoryPage() {
 
 	return (
 		<div>
-			<ConsolePageHeader
+			<AppPageHeader
 				title="密钥清单"
 				description="平台级密钥总览与管理"
 			/>

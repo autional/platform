@@ -11,7 +11,7 @@ import {
 	toPageParams,
 	type PageResult,
 } from '@autional/shared';
-import { ConsolePageHeader, EmptyState, ErrorState, StatusBadge } from '@autional/ui';
+import { AppPageHeader, EmptyState, ErrorState, StatusBadge } from '@autional/ui';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
 	adminRobots,
@@ -227,7 +227,7 @@ export default function RobotsPage() {
 
 	return (
 		<div>
-			<ConsolePageHeader
+			<AppPageHeader
 				title="Robot 管理"
 				description="管理物理机器人身份与工作负载凭证。"
 				actions={

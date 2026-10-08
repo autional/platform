@@ -155,7 +155,7 @@ export default function PlatformNotificationsPage() {
 							<Statistic
 								title="通知总数（累计）"
 								value={notif?.totalSent ?? 0}
-								prefix={<BellOutlined className="text-purple-500" />}
+								prefix={<BellOutlined className="text-chart-7" />}
 							/>
 						)}
 					</Card>

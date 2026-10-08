@@ -9,7 +9,7 @@ import { extractItem, usePageTitle } from '@autional/shared';
 import { apiClient, API_PATHS } from '@autional/shared';
 import { handleApiError } from '@/lib/error-handler';
 import { PageError } from '@autional/ui/antd';
-import { ConsolePageHeader } from '@autional/ui';
+import { AppPageHeader } from '@autional/ui';
 
 interface SodConfigData {
 	sod_mode: 'single' | 'strict';
@@ -65,7 +65,7 @@ export default function SecuritySettingsPage() {
 
 	return (
 		<div className="max-w-2xl">
-			<ConsolePageHeader
+			<AppPageHeader
 				title="职责分离配置 (SoD)"
 				actions={
 					<>

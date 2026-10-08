@@ -26,7 +26,7 @@ import {
 import { handleApiError } from '@/lib/error-handler';
 import { DataTable, Drawer, PageError } from '@autional/ui/antd';
 import { useAuthStore, useTenantSlug } from '@autional/shared';
-import { ConsolePageHeader } from '@autional/ui';
+import { AppPageHeader } from '@autional/ui';
 import { useNavigate } from 'react-router';
 import { useTenants } from '@/hooks/use-tenants';
 import { ROUTE } from '@/lib/route-paths';
@@ -356,7 +356,7 @@ export default function CompliancePage() {
 
 	return (
 		<div>
-			<ConsolePageHeader
+			<AppPageHeader
 				title="合规中心"
 				actions={
 					<>

@@ -9,7 +9,7 @@ import { extractItem, usePageTitle } from '@autional/shared';
 import { getInvitationConfig, updateInvitationConfig } from '@/lib/api.generated';
 import { handleApiError } from '@/lib/error-handler';
 import { PageError } from '@autional/ui/antd';
-import { Alert, ConsolePageHeader } from '@autional/ui';
+import { Alert, AppPageHeader } from '@autional/ui';
 import { useTenant } from '@/hooks/use-tenants';
 
 interface InvitationConfigData {
@@ -70,7 +70,7 @@ export default function InvitationConfigPage() {
 
 	return (
 		<div>
-			<ConsolePageHeader
+			<AppPageHeader
 				title="邀请配置"
 				description={tenantName ? `租户：${tenantName}` : tenantId ? `租户 ID：${tenantId}` : undefined}
 				actions={

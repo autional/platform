@@ -14,7 +14,7 @@ import {
 import type { MaintenanceRecord } from '@/hooks/use-status';
 import { handleApiError } from '@/lib/error-handler';
 import { PageError, DataTable } from '@autional/ui/antd';
-import { ConsolePageHeader, StatusBadge, type StatusVariant } from '@autional/ui';
+import { AppPageHeader, StatusBadge, type StatusVariant } from '@autional/ui';
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -156,7 +156,7 @@ export default function MaintenancesPage() {
 
 	return (
 		<div>
-			<ConsolePageHeader
+			<AppPageHeader
 				title="计划维护"
 				actions={
 					<>

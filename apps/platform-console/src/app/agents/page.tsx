@@ -11,7 +11,7 @@ import {
 	toPageParams,
 	type PageResult,
 } from '@autional/shared';
-import { ConsolePageHeader, EmptyState, ErrorState, StatusBadge } from '@autional/ui';
+import { AppPageHeader, EmptyState, ErrorState, StatusBadge } from '@autional/ui';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
 	adminAgents,
@@ -248,7 +248,7 @@ export default function AgentsPage() {
 
 	return (
 		<div>
-			<ConsolePageHeader
+			<AppPageHeader
 				title="AI 智能体"
 				description="管理机器身份与工作负载凭证。"
 				actions={

@@ -22,7 +22,7 @@ import {
 } from '@/hooks/use-tenants';
 import { handleApiError } from '@/lib/error-handler';
 import { DataTable, Drawer, PageError } from '@autional/ui/antd';
-import { Alert, ConsolePageHeader } from '@autional/ui';
+import { Alert, AppPageHeader } from '@autional/ui';
 import { useMembers } from '@/hooks/use-members';
 import { useApplications } from '@/hooks/use-applications';
 import { useNavigate } from 'react-router';
@@ -217,7 +217,7 @@ export default function TenantsPage() {
 
 	return (
 		<div>
-			<ConsolePageHeader
+			<AppPageHeader
 				title="租户管理"
 				actions={
 					<>

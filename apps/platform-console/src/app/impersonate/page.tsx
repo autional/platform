@@ -12,7 +12,7 @@ import {
 	useTenantSlug,
 } from '@autional/shared';
 import { adminUsersImpersonateByUsersPost } from '@autional/shared/generated/api';
-import { Alert, ConsolePageHeader, Result, SectionCard } from '@autional/ui';
+import { Alert, AppPageHeader, Result, SectionCard } from '@autional/ui';
 import { getUsers } from '@/lib/api.generated';
 import { message, modal } from '@/lib/antd-app';
 import { handleApiError } from '@/lib/error-handler';
@@ -136,7 +136,7 @@ export default function ImpersonatePage() {
 		return (
 			<div>
 				<div className="mb-6">
-					<ConsolePageHeader title="管理员模拟登录" description="模拟其他用户登录系统" />
+					<AppPageHeader title="管理员模拟登录" description="模拟其他用户登录系统" />
 				</div>
 				<SectionCard padding="lg">
 					<Result
@@ -184,7 +184,7 @@ export default function ImpersonatePage() {
 	return (
 		<div>
 			<div className="mb-6">
-				<ConsolePageHeader title="管理员模拟登录" description="以其他用户身份登录系统进行操作" />
+				<AppPageHeader title="管理员模拟登录" description="以其他用户身份登录系统进行操作" />
 			</div>
 
 			<Alert

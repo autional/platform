@@ -75,7 +75,7 @@ vi.mock('@/lib/error-handler', () => ({
 }));
 
 vi.mock('@autional/ui', () => ({
-	ConsolePageHeader: ({ title, description }: { title: string; description?: string }) => (
+	AppPageHeader: ({ title, description }: { title: string; description?: string }) => (
 		<div data-testid="page-header">
 			<h3>{title}</h3>
 			{description && <p>{description}</p>}

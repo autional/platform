@@ -10,7 +10,7 @@ import { usePageTitle } from '@autional/shared';
 import { updateTenantQuota } from '@/lib/api.generated';
 import { handleApiError } from '@/lib/error-handler';
 import { PageError } from '@autional/ui/antd';
-import { ConsolePageHeader } from '@autional/ui';
+import { AppPageHeader } from '@autional/ui';
 import { useTenant } from '@/hooks/use-tenants';
 import { queryKeys } from '@/lib/query-keys';
 import { gbFromBytes, resolveMaxStorageBytes } from '@/lib/quota';
@@ -71,7 +71,7 @@ export default function QuotaPage() {
 
 	return (
 		<div>
-			<ConsolePageHeader
+			<AppPageHeader
 				title="资源配额"
 				// PL-13：此前页面只暴露路由里的原始 ULID，看不出在给哪个租户配置
 				description={detail?.name ? `租户：${detail.name}` : tenantId ? `租户 ID：${tenantId}` : undefined}

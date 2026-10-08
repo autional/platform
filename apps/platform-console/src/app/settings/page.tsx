@@ -1,6 +1,6 @@
 import { Card, Descriptions } from 'antd';
 import { useAuth, usePageTitle } from '@autional/shared';
-import { ConsolePageHeader, LanguageSwitcher, ThemeToggle } from '@autional/ui';
+import { AppPageHeader, LanguageSwitcher, ThemeToggle } from '@autional/ui';
 
 // PL-71：此前整页只有 <h3>设置</h3>（常驻死链）。实装最小设置面：
 // 账户信息（只读）+ 偏好（语言 / 主题）—— 改密/个人资料属 auth 侧自助流程，另立专项。
@@ -10,7 +10,7 @@ export default function SettingsPage() {
 
 	return (
 		<div>
-			<ConsolePageHeader title="设置" />
+			<AppPageHeader title="设置" />
 
 			<Card title="账户信息" className="max-w-2xl">
 				<Descriptions column={1} size="small">

@@ -8,7 +8,7 @@ import {
 	MinusCircleFilled,
 	ClockCircleOutlined,
 } from '@ant-design/icons';
-import { ConsolePageHeader } from '@autional/ui';
+import { AppPageHeader } from '@autional/ui';
 import { useTranslation } from 'react-i18next';
 import { PageLoading, DataTable } from '@autional/ui/antd';
 import { useSchedulers } from '@/hooks/use-schedulers';
@@ -84,7 +84,7 @@ export default function SystemSchedulersPage() {
 
 	return (
 		<div>
-			<ConsolePageHeader
+			<AppPageHeader
 				title={t('schedulers.title', '系统作业')}
 				description={t('schedulers.subtitle', '各服务后台调度器的运行状态（只读）。')}
 			/>

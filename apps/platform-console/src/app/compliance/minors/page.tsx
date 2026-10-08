@@ -34,7 +34,7 @@ import {
 	adminConsents,
 } from '@autional/shared/generated/api';
 import type { UpdateMinorsProtectionConfigRequest } from '@autional/shared/generated/types';
-import { ConsolePageHeader, SectionCard } from '@autional/ui';
+import { AppPageHeader, SectionCard } from '@autional/ui';
 import { ApiErrorState } from '@/components/ApiErrorState';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
@@ -279,7 +279,7 @@ export default function MinorsProtectionPage() {
 
 	return (
 		<div style={{ padding: 24 }}>
-			<ConsolePageHeader title="未成年人保护" description="配置防沉迷策略、查看未成年用户、管理家长同意" />
+			<AppPageHeader title="未成年人保护" description="配置防沉迷策略、查看未成年用户、管理家长同意" />
 
 			<Row gutter={16} style={{ marginBottom: 24 }}>
 				<Col span={8}>

@@ -12,7 +12,7 @@ import {
 import { useOpsStatus, useHealth, useServiceHealth, type ServiceHealthItem } from '@/hooks/use-ops';
 import { ops, isGrafanaConfigured } from '@/lib/api.generated';
 import { PageError } from '@autional/ui/antd';
-import { Alert, ConsolePageHeader } from '@autional/ui';
+import { Alert, AppPageHeader } from '@autional/ui';
 
 interface ServiceHealth {
 	name: string;
@@ -67,7 +67,7 @@ export default function OpsPage() {
 		<div>
 			{error && <PageError message="加载运维状态失败" retry={refetch} className="mb-4" />}
 
-			<ConsolePageHeader
+			<AppPageHeader
 				title="运维视图"
 			/>
 

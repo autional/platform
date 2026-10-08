@@ -11,7 +11,7 @@ import {
 	toPageParams,
 	type PageResult,
 } from '@autional/shared';
-import { ConsolePageHeader, EmptyState, ErrorState, StatusBadge } from '@autional/ui';
+import { AppPageHeader, EmptyState, ErrorState, StatusBadge } from '@autional/ui';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminIots, adminIotsPost, adminIotsByIotsDelete } from '@autional/shared/generated/api';
 import { useNavigate } from 'react-router';
@@ -236,7 +236,7 @@ export default function DevicesPage() {
 
 	return (
 		<div>
-			<ConsolePageHeader
+			<AppPageHeader
 				title="Device 管理"
 				description="管理 IoT 与边缘设备身份。"
 				actions={
