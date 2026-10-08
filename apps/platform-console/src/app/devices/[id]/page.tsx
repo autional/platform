@@ -2,9 +2,11 @@
 
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
-import { Button, Tag, Modal, Form, Input, Select, Skeleton, Descriptions } from 'antd';
-import { EditOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import { Button, Tag, Form, Input, Select, Skeleton, Descriptions } from 'antd';
+import { Modal } from '@autional/ui/antd';
+import { ArrowLeft, Pencil } from 'lucide-react';
 import { usePageTitle, useTenantSlug } from '@autional/shared';
+import { ApiErrorState } from '@/components/ApiErrorState';
 import { AppPageHeader, EmptyState, ErrorState, SectionCard, StatusBadge } from '@autional/ui';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient, extractItem } from '@autional/shared';
@@ -121,7 +123,7 @@ export default function DeviceDetailPage() {
 			<div className="mb-6">
 				<Button
 					type="text"
-					icon={<ArrowLeftOutlined />}
+					icon={<ArrowLeft size="1em" />}
 					onClick={() => navigate(buildNavHref(ROUTE.DEVICES, tenantSlug))}
 					className="mb-4 pl-0"
 				>
@@ -130,10 +132,16 @@ export default function DeviceDetailPage() {
 				<div className="flex items-center justify-between">
 					<AppPageHeader
 						title={device?.name || 'Device 详情'}
-						description={device?.manufacturer ? `制造商：${device.manufacturer}` : '加载中…'}
+						description={
+							device?.manufacturer
+								? `制造商：${device.manufacturer}`
+								: isLoading
+									? '加载中…'
+									: ''
+						}
 					/>
 					{device && (
-						<Button icon={<EditOutlined />} onClick={openEdit}>
+						<Button icon={<Pencil size="1em" />} onClick={openEdit}>
 							编辑 Device
 						</Button>
 					)}
@@ -147,9 +155,9 @@ export default function DeviceDetailPage() {
 			)}
 
 			{!isLoading && error && (
-				<ErrorState
+				<ApiErrorState
+					error={error}
 					title="加载 Device 详情失败"
-					message="请重试。"
 					onRetry={() => refetch()}
 				/>
 			)}
@@ -203,6 +211,8 @@ export default function DeviceDetailPage() {
 				onOk={() => form.submit()}
 				confirmLoading={updateMut.isPending}
 				destroyOnHidden
+				// U412①：destroyOnHidden 弹窗首开前不渲染子树，forceRender 让表单随页挂载（消「未挂载即调用」告警）
+				forceRender
 			>
 				<Form form={form} layout="vertical" onFinish={handleEdit}>
 					<Form.Item name="name" label="名称" rules={[{ required: true }]}>

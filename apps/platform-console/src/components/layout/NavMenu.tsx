@@ -6,19 +6,19 @@ import { usePlatformMember } from '@/components/auth/usePlatformMember';
 import { ROUTE } from '@/lib/route-paths';
 import { buildNavHref, stripTenantPrefix } from '@/lib/nav';
 import {
-	DashboardOutlined,
-	TeamOutlined,
-	NotificationOutlined,
-	WarningOutlined,
-	RobotOutlined,
-	ControlOutlined,
-	SafetyOutlined,
-	CloudServerOutlined,
-	SettingOutlined,
-	DesktopOutlined,
-	ApiOutlined,
-	KeyOutlined,
-} from '@ant-design/icons';
+	AlertTriangle,
+	Bot,
+	Cloud,
+	KeyRound,
+	LayoutDashboard,
+	Megaphone,
+	Monitor,
+	Plug,
+	Settings,
+	ShieldCheck,
+	SlidersHorizontal,
+	Users,
+} from 'lucide-react';
 import { Menu } from 'antd';
 import type { MenuProps } from 'antd';
 
@@ -54,17 +54,17 @@ export function NavMenu() {
 
 	const allMenuItems: MenuItem[] = useMemo(
 		() => [
-			{ key: ROUTE.DASHBOARD, icon: <DashboardOutlined />, label: t('nav.dashboard') },
+			{ key: ROUTE.DASHBOARD, icon: <LayoutDashboard size="1em" />, label: t('nav.dashboard') },
 			{
 				key: 'tenants-section',
-				icon: <TeamOutlined />,
+				icon: <Users size="1em" />,
 				label: t('nav.tenants'),
 				children: [{ key: ROUTE.TENANTS, label: t('nav.tenants') }],
 			},
-			{ key: ROUTE.ANNOUNCEMENTS, icon: <NotificationOutlined />, label: t('nav.announcements') },
+			{ key: ROUTE.ANNOUNCEMENTS, icon: <Megaphone size="1em" />, label: t('nav.announcements') },
 			{
 				key: 'status-section',
-				icon: <WarningOutlined />,
+				icon: <AlertTriangle size="1em" />,
 				label: t('nav.status'),
 				children: [
 					{ key: ROUTE.INCIDENTS, label: t('nav.incidents') },
@@ -73,7 +73,7 @@ export function NavMenu() {
 			},
 			{
 				key: 'nhi-section',
-				icon: <RobotOutlined />,
+				icon: <Bot size="1em" />,
 				label: t('nav.nhiSection'),
 				children: [
 					{ key: ROUTE.AGENTS, label: t('nav.agents') },
@@ -84,12 +84,12 @@ export function NavMenu() {
 			},
 			{
 				key: ROUTE.PLATFORM_NOTIFICATIONS,
-				icon: <DesktopOutlined />,
+				icon: <Monitor size="1em" />,
 				label: t('nav.platformNotifications'),
 			},
 			{
 				key: 'features-section',
-				icon: <ControlOutlined />,
+				icon: <SlidersHorizontal size="1em" />,
 				label: t('nav.featureManagement', '功能管理'),
 				children: [
 					{ key: ROUTE.FEATURE_GATES, label: t('nav.featureGates') },
@@ -98,7 +98,7 @@ export function NavMenu() {
 			},
 			{
 				key: 'compliance-section',
-				icon: <SafetyOutlined />,
+				icon: <ShieldCheck size="1em" />,
 				label: t('nav.complianceSection'),
 				children: [
 					{ key: ROUTE.COMPLIANCE_POLICY, label: t('nav.compliancePolicy') },
@@ -108,21 +108,21 @@ export function NavMenu() {
 			},
 			{
 				key: 'system-section',
-				icon: <CloudServerOutlined />,
+				icon: <Cloud size="1em" />,
 				label: t('nav.systemSection'),
 				children: [
 					{ key: ROUTE.OPS, label: t('nav.ops') },
 					{ key: ROUTE.SYSTEM_OVERVIEW, label: t('nav.systemOverview') },
 					{ key: ROUTE.SYSTEM_CONFIG, label: t('nav.systemConfig') },
 					{ key: ROUTE.SYSTEM_SCHEDULERS, label: t('nav.systemSchedulers') },
-					{ key: ROUTE.SECRETS_INVENTORY, icon: <KeyOutlined />, label: t('nav.secretsInventory') },
-					{ key: ROUTE.RATE_LIMITS, icon: <ApiOutlined />, label: t('nav.rateLimits') },
+					{ key: ROUTE.SECRETS_INVENTORY, icon: <KeyRound size="1em" />, label: t('nav.secretsInventory') },
+					{ key: ROUTE.RATE_LIMITS, icon: <Plug size="1em" />, label: t('nav.rateLimits') },
 					{ key: ROUTE.ENV_VARS, label: t('nav.envVars') },
 					{ key: ROUTE.INFRA_CREDENTIALS, label: t('nav.infraCredentials') },
 					{ key: ROUTE.IMPERSONATE, label: t('nav.impersonate') },
 				],
 			},
-			{ key: ROUTE.SETTINGS, icon: <SettingOutlined />, label: t('nav.settings') },
+			{ key: ROUTE.SETTINGS, icon: <Settings size="1em" />, label: t('nav.settings') },
 		],
 		[t],
 	);

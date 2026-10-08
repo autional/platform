@@ -4,13 +4,14 @@ import React, { useMemo } from 'react';
 import { DataTable } from '@autional/ui/antd';
 import { Tag, Skeleton } from 'antd';
 import {
-	DatabaseOutlined,
-	CloudServerOutlined,
-	HddOutlined,
-	GlobalOutlined,
-	SafetyOutlined,
-} from '@ant-design/icons';
+	Cloud,
+	Database,
+	Globe,
+	HardDrive,
+	ShieldCheck,
+} from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { usePageTitle } from '@autional/shared';
 import { adminInfraCredentials } from '@autional/shared/generated/api';
 import { AppPageHeader, EmptyState, SectionCard } from '@autional/ui';
@@ -39,12 +40,12 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 const TYPE_ICONS: Record<string, React.ReactNode> = {
-	database: <DatabaseOutlined />,
-	cache: <HddOutlined />,
-	mq: <CloudServerOutlined />,
-	storage: <CloudServerOutlined />,
-	monitoring: <CloudServerOutlined />,
-	security: <SafetyOutlined />,
+	database: <Database size="1em" />,
+	cache: <HardDrive size="1em" />,
+	mq: <Cloud size="1em" />,
+	storage: <Cloud size="1em" />,
+	monitoring: <Cloud size="1em" />,
+	security: <ShieldCheck size="1em" />,
 };
 
 const TYPE_COLORS: Record<string, string> = {
@@ -65,30 +66,9 @@ async function fetchInfraCredentials(): Promise<CredentialRecord[]> {
 	return [];
 }
 
-const columns = [
-	{
-		title: '名称',
-		dataIndex: 'name',
-		key: 'name',
-		render: (v: string) => (
-			<code className="text-xs font-mono bg-neutral-200 dark:bg-neutral-900 px-2 py-0.5 rounded">
-				{v}
-			</code>
-		),
-	},
-	{
-		title: '位置',
-		key: 'location',
-		render: (_: unknown, r: CredentialRecord) => (
-			<code className="text-xs font-mono text-neutral-600">
-				{r.container || r.location || '—'}
-			</code>
-		),
-	},
-];
-
 export default function InfraCredentialsPage() {
-	usePageTitle('基础设施凭据');
+	const { t } = useTranslation();
+	usePageTitle(t('infraCredentials.title', '基础设施凭证'));
 
 	const {
 		data = [],
@@ -112,16 +92,41 @@ export default function InfraCredentialsPage() {
 
 	const sortedTypes = useMemo(() => {
 		const present = Object.keys(groupedByType);
-		return TYPE_ORDER.filter((t) => present.includes(t)).concat(
-			present.filter((t) => !TYPE_ORDER.includes(t)),
+		return TYPE_ORDER.filter((tp) => present.includes(tp)).concat(
+			present.filter((tp) => !TYPE_ORDER.includes(tp)),
 		);
 	}, [groupedByType]);
+
+	const columns = [
+		{
+			title: t('infraCredentials.colName', '名称'),
+			dataIndex: 'name',
+			key: 'name',
+			render: (v: string) => (
+				<code className="text-xs font-mono bg-neutral-200 dark:bg-neutral-900 px-2 py-0.5 rounded-xs">
+					{v}
+				</code>
+			),
+		},
+		{
+			title: t('infraCredentials.colLocation', '位置'),
+			key: 'location',
+			render: (_: unknown, r: CredentialRecord) => (
+				<code className="text-xs font-mono text-neutral-600">
+					{r.container || r.location || '—'}
+				</code>
+			),
+		},
+	];
 
 	return (
 		<div>
 			<AppPageHeader
-				title="基础设施凭据"
-				description="数据库、缓存、消息队列、存储与 API 服务的基础设施凭据总览。"
+				title={t('infraCredentials.title', '基础设施凭证')}
+				description={t(
+					'infraCredentials.description',
+					'数据库、缓存、消息队列、存储与 API 服务的基础设施凭证总览。',
+				)}
 			/>
 
 			<div className="mt-6">
@@ -134,13 +139,17 @@ export default function InfraCredentialsPage() {
 				)}
 
 				{!isLoading && error && (
-					<ApiErrorState error={error} title="加载基础设施凭据失败" onRetry={() => refetch()} />
+					<ApiErrorState
+						error={error}
+						title={t('infraCredentials.loadError', '加载基础设施凭证失败')}
+						onRetry={() => refetch()}
+					/>
 				)}
 
 				{!isLoading && !error && data.length === 0 && (
 					<EmptyState
-						title="暂无基础设施凭据"
-						description="当前尚未配置任何基础设施凭据。"
+						title={t('infraCredentials.emptyTitle', '暂无基础设施凭证')}
+						description={t('infraCredentials.emptyDesc', '当前尚未配置任何基础设施凭证。')}
 					/>
 				)}
 
@@ -148,8 +157,8 @@ export default function InfraCredentialsPage() {
 					<div className="space-y-6">
 						{sortedTypes.map((type) => {
 							const items = groupedByType[type];
-							const label = TYPE_LABELS[type] || type;
-							const icon = TYPE_ICONS[type] || <GlobalOutlined />;
+							const label = t(`infraCredentials.type.${type}`, TYPE_LABELS[type] || type);
+							const icon = TYPE_ICONS[type] || <Globe size="1em" />;
 							const color = TYPE_COLORS[type] || 'default';
 
 							return (

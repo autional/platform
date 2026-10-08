@@ -1,16 +1,18 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
+import { usePageTitle } from '@autional/shared';
 import { DataTable } from '@autional/ui/antd';
 import { Alert, AppPageHeader } from '@autional/ui';
 import { Card, Tabs, Tag, Input, Tooltip, Badge } from 'antd';
 import {
-	CloudServerOutlined,
-	DatabaseOutlined,
-	EnvironmentOutlined,
-	ExperimentOutlined,
-	SearchOutlined,
-} from '@ant-design/icons';
+	Cloud,
+	Database,
+	FlaskConical,
+	MapPin,
+	Search,
+} from 'lucide-react';
 import { ApiErrorState } from '@/components/ApiErrorState';
 import {
 	useServiceList,
@@ -26,7 +28,7 @@ import {
 	type FeatureStatus,
 } from '@/hooks/use-system-config';
 
-const { Search } = Input;
+const { Search: SearchInput } = Input;
 
 function ServicesTab() {
 	const { data: serviceList, isLoading, error, refetch } = useServiceList();
@@ -105,11 +107,11 @@ function InfrastructureTab() {
 			width: 140,
 			render: (text: string, record: InfraComponent) => {
 				const icons: Record<string, React.ReactNode> = {
-					postgres: <DatabaseOutlined className="mr-2 text-info" />,
-					redis: <DatabaseOutlined className="mr-2 text-danger" />,
-					rabbitmq: <CloudServerOutlined className="mr-2 text-warning" />,
-					mongodb: <DatabaseOutlined className="mr-2 text-success" />,
-					minio: <CloudServerOutlined className="mr-2 text-info" />,
+					postgres: <Database size="1em" className="mr-2 text-info" />,
+					redis: <Database size="1em" className="mr-2 text-danger" />,
+					rabbitmq: <Cloud size="1em" className="mr-2 text-warning" />,
+					mongodb: <Database size="1em" className="mr-2 text-success" />,
+					minio: <Cloud size="1em" className="mr-2 text-info" />,
 				};
 				return (
 					<span>
@@ -158,7 +160,7 @@ function InfrastructureTab() {
 				title="未接入"
 				className="mb-4"
 			>
-				"中间件健康数据源尚未接入；下表为静态配置参考，非实时状态。"
+				中间件健康数据源尚未接入；下表为静态配置参考，非实时状态。
 			</Alert>
 			<DataTable
 				rowKey="key"
@@ -238,12 +240,12 @@ function EnvironmentVariablesTab() {
 	return (
 		<div>
 			<div className="mb-4">
-				<Search
+				<SearchInput
 					placeholder="搜索环境变量名称、来源或分类..."
 					allowClear
 					onChange={(e) => setSearchText(e.target.value)}
 					value={searchText}
-					prefix={<SearchOutlined />}
+					prefix={<Search size="1em" />}
 					style={{ maxWidth: 480 }}
 				/>
 			</div>
@@ -361,12 +363,14 @@ function FeatureFlagsTab() {
 }
 
 export default function SystemConfigPage() {
+	const { t } = useTranslation();
+	usePageTitle(t('systemConfig.title', '系统配置'));
 	const tabItems = [
 		{
 			key: 'services',
 			label: (
 				<span>
-					<CloudServerOutlined />
+					<Cloud size="1em" />
 					服务列表
 				</span>
 			),
@@ -376,7 +380,7 @@ export default function SystemConfigPage() {
 			key: 'infrastructure',
 			label: (
 				<span>
-					<DatabaseOutlined />
+					<Database size="1em" />
 					基础设施
 				</span>
 			),
@@ -386,7 +390,7 @@ export default function SystemConfigPage() {
 			key: 'env-vars',
 			label: (
 				<span>
-					<EnvironmentOutlined />
+					<MapPin size="1em" />
 					环境变量
 				</span>
 			),
@@ -396,7 +400,7 @@ export default function SystemConfigPage() {
 			key: 'feature-flags',
 			label: (
 				<span>
-					<ExperimentOutlined />
+					<FlaskConical size="1em" />
 					功能标志
 				</span>
 			),
@@ -406,16 +410,10 @@ export default function SystemConfigPage() {
 
 	return (
 		<div>
-			<AppPageHeader
-				title="系统配置"
-				actions={
-					<>
-						<Tag color="red" className="text-xs">
-							仅超级管理员可访问
-						</Tag>
-					</>
-				}
-			/>
+			{/* PL-66：此前的「仅超级管理员可访问」红标与实际门禁不符
+			    （PlatformMemberGuard 对 super_admin 与 admin 均放行），与 URL/环境变量/调度器等
+			    同级页对齐后移除 */}
+			<AppPageHeader title={t('systemConfig.title', '系统配置')} />
 			<Card>
 				<Tabs defaultActiveKey="services" items={tabItems} />
 			</Card>

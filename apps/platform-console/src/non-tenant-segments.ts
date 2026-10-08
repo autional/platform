@@ -31,7 +31,6 @@ export const NON_TENANT_SEGMENTS = [
 	'ops',
 	'policies',
 	'robots',
-	'security',
 	'settings',
 	'status',
 	'system',

@@ -1,7 +1,7 @@
 import { lazy } from 'react';
 import { Routes, Route, Outlet, Navigate, useParams, useLocation } from 'react-router';
 import { Spin } from 'antd';
-import { LoadingOutlined } from '@ant-design/icons';
+import { Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { AppShell, ErrorBoundary } from '@autional/ui';
 import { NavMenu } from './components/layout/NavMenu';
@@ -95,7 +95,7 @@ function LayoutWrapper() {
 			>
 				{bootstrap === 'loading' ? (
 					<div className="flex h-64 items-center justify-center">
-						<Spin indicator={<LoadingOutlined spin />} size="large" />
+						<Spin indicator={<Loader2 size="1em" className="animate-spin" />} size="large" />
 					</div>
 				) : (
 					// 页面级边界：单页渲染崩溃时保留导航壳（PL-26 伴修——此前由外层

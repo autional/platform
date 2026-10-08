@@ -27,6 +27,14 @@ vi.mock('@autional/shared', () => ({
 	AuthService: { getCurrentTenantId: () => 't-1' },
 	fromPageResult: (d: any) => ({ items: d?.items ?? [], total: d?.total ?? 0 }),
 	toPageParams: (p: any) => p,
+	usePageTitle: vi.fn(),
+}));
+
+// U412②：页面 message 已改走 '@/lib/antd-app'（消费 App 上下文），测试须桩掉避免真实调用
+vi.mock('@/lib/antd-app', () => ({
+	message: { success: vi.fn(), error: vi.fn(), warning: vi.fn(), info: vi.fn() },
+	modal: { confirm: vi.fn() },
+	notification: { success: vi.fn(), error: vi.fn() },
 }));
 
 import MinorsProtectionPage from '@/app/compliance/minors/page';
@@ -68,7 +76,9 @@ describe('MinorsProtectionPage (PL-55a 保存二次确认)', () => {
 		await waitFor(() => {
 			expect(mocks.putConfig).toHaveBeenCalledWith(
 				't-1',
-				expect.objectContaining({ dailyUsageLimitMin: 60 }),
+				// U407 回归锁：liveStream 开关必须全链贯通（回显 true → validateFields → payload）。
+				// 修前该键三重静默断链（表单键 typo + wire 键错位），payload 恒缺失/恒 false；任一环回归即红。
+				expect.objectContaining({ dailyUsageLimitMin: 60, liveStreamBlockedUnder16: true }),
 			);
 		});
 	}, 20000);

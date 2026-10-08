@@ -6,7 +6,6 @@ import {
 	Button,
 	Tag,
 	Space,
-	Modal,
 	Form,
 	Input,
 	Select,
@@ -15,15 +14,17 @@ import {
 	Typography,
 	Popconfirm,
 } from 'antd';
+import { Modal } from '@autional/ui/antd';
 import {
-	EditOutlined,
-	ArrowLeftOutlined,
-	PlayCircleOutlined,
-	PauseCircleOutlined,
-	KeyOutlined,
-} from '@ant-design/icons';
+	ArrowLeft,
+	KeyRound,
+	PauseCircle,
+	Pencil,
+	Play,
+} from 'lucide-react';
 import { usePageTitle, useTenantSlug } from '@autional/shared';
-import { AppPageHeader, EmptyState, ErrorState, SectionCard, StatusBadge } from '@autional/ui';
+import { AppPageHeader, ErrorState, SectionCard, StatusBadge } from '@autional/ui';
+import { ApiErrorState } from '@/components/ApiErrorState';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { message } from '@/lib/antd-app';
 import {
@@ -37,22 +38,10 @@ import { handleApiError } from '@/lib/error-handler';
 import { queryKeys } from '@/lib/query-keys';
 import { ROUTE } from '@/lib/route-paths';
 import { buildNavHref } from '@/lib/nav';
+import { operationHint, statusLabel, statusVariant } from '@/lib/robot-status';
 import type { RobotInfo } from '@autional/shared/generated/types';
 
 const { Paragraph, Text } = Typography;
-
-const STATUS_VARIANT: Record<string, 'success' | 'warning' | 'danger' | 'info' | 'neutral'> = {
-	active: 'success',
-	commissioning: 'info',
-	degraded: 'warning',
-	decommissioned: 'neutral',
-	maintenance: 'warning',
-	provisioning: 'info',
-};
-
-function statusVariant(s: string): 'success' | 'warning' | 'danger' | 'info' | 'neutral' {
-	return STATUS_VARIANT[s] || 'neutral';
-}
 
 const SUBTYPE_LABELS: Record<string, string> = {
 	industrial: '工业',
@@ -197,9 +186,11 @@ export default function RobotDetailPage() {
 		}
 	};
 
-	const canCommission = robot?.status === 'decommissioned' || robot?.status === 'provisioning';
-	const canDecommission = robot?.status === 'active';
-	const canIssueIntent = robot?.status === 'active';
+	// U408：动作门与后端状态机对齐（CanCommission 仅认 commissioning；停用/签发 = active∪degraded）。
+	const canCommission = robot?.status === 'commissioning';
+	const canDecommission = robot?.status === 'active' || robot?.status === 'degraded';
+	const canIssueIntent = robot?.status === 'active' || robot?.status === 'degraded';
+	const statusHint = operationHint(robot?.status);
 
 	if (!id) {
 		return (
@@ -214,7 +205,7 @@ export default function RobotDetailPage() {
 			<div className="mb-6">
 				<Button
 					type="text"
-					icon={<ArrowLeftOutlined />}
+					icon={<ArrowLeft size="1em" />}
 					onClick={() => navigate(buildNavHref(ROUTE.ROBOTS, tenantSlug))}
 					className="mb-4 pl-0"
 				>
@@ -223,13 +214,13 @@ export default function RobotDetailPage() {
 				<div className="flex items-center justify-between">
 					<AppPageHeader
 						title={robot?.name || 'Robot 详情'}
-						description={robot?.model ? `型号：${robot.model}` : '加载中…'}
+						description={robot?.model ? `型号：${robot.model}` : isLoading ? '加载中…' : ''}
 					/>
 					{robot && (
 						<Space>
 							{canCommission && (
 								<Button
-									icon={<PlayCircleOutlined />}
+									icon={<Play size="1em" />}
 									style={{ color: 'var(--color-success)', borderColor: 'var(--color-success)' }}
 									onClick={handleCommission}
 									loading={commissionMut.isPending}
@@ -246,7 +237,7 @@ export default function RobotDetailPage() {
 									onConfirm={handleDecommission}
 								>
 									<Button
-										icon={<PauseCircleOutlined />}
+										icon={<PauseCircle size="1em" />}
 										danger
 										loading={decommissionMut.isPending}
 									>
@@ -256,7 +247,7 @@ export default function RobotDetailPage() {
 							)}
 							{canIssueIntent && (
 								<Button
-									icon={<KeyOutlined />}
+									icon={<KeyRound size="1em" />}
 									onClick={() => {
 										intentForm.resetFields();
 										setIntentResult(null);
@@ -266,7 +257,7 @@ export default function RobotDetailPage() {
 									签发 Intent
 								</Button>
 							)}
-							<Button icon={<EditOutlined />} onClick={openEdit}>
+							<Button icon={<Pencil size="1em" />} onClick={openEdit}>
 								编辑 Robot
 							</Button>
 						</Space>
@@ -282,9 +273,9 @@ export default function RobotDetailPage() {
 			)}
 
 			{!isLoading && error && (
-				<ErrorState
+				<ApiErrorState
+					error={error}
 					title="加载 Robot 详情失败"
-					message="请重试。"
 					onRetry={() => refetch()}
 				/>
 			)}
@@ -295,8 +286,8 @@ export default function RobotDetailPage() {
 						<Descriptions column={2} bordered size="small">
 							<Descriptions.Item label="名称">{robot.name}</Descriptions.Item>
 							<Descriptions.Item label="状态">
-								<StatusBadge variant={statusVariant(robot.status || '')}>
-									{robot.status || '-'}
+								<StatusBadge variant={statusVariant(robot.status)}>
+									{statusLabel(robot.status)}
 								</StatusBadge>
 							</Descriptions.Item>
 							<Descriptions.Item label="型号">{robot.model || '-'}</Descriptions.Item>
@@ -328,21 +319,18 @@ export default function RobotDetailPage() {
 						<div className="space-y-4">
 							<div>
 								<Text strong>启用状态：</Text>
-								{canCommission && <Text type="success">可启用</Text>}
-								{canDecommission && <Text type="warning">活跃 —— 可停用</Text>}
-								{robot.status === 'decommissioned' && <Text type="secondary">已停用</Text>}
-								{robot.status === 'degraded' && (
-									<Text type="warning">运行于降级模式</Text>
+								<Text type={statusHint.type}>{statusHint.text}</Text>
+							</div>
+							<div>
+								<Text strong>Intent 令牌：</Text>
+								{canIssueIntent ? (
+									<Text>可用 —— 点击「签发 Intent」生成一次性操作令牌。</Text>
+								) : (
+									<Text type="secondary">
+										不可用 —— 仅活跃或降级运行的 Robot 可签发。
+									</Text>
 								)}
 							</div>
-							{canIssueIntent && (
-								<div>
-									<Text strong>Intent 令牌：</Text>
-									<Text>
-										可用 —— 点击「签发 Intent」生成一次性操作令牌。
-									</Text>
-								</div>
-							)}
 						</div>
 					</SectionCard>
 				</>
@@ -358,6 +346,8 @@ export default function RobotDetailPage() {
 				onOk={() => form.submit()}
 				confirmLoading={updateMut.isPending}
 				destroyOnHidden
+				// U412①：destroyOnHidden 弹窗首开前不渲染子树，forceRender 让表单随页挂载（消「未挂载即调用」告警）
+				forceRender
 			>
 				<Form form={form} layout="vertical" onFinish={handleEdit}>
 					<Form.Item name="name" label="名称" rules={[{ required: true }]}>
@@ -420,11 +410,13 @@ export default function RobotDetailPage() {
 							]
 				}
 				destroyOnHidden
+				// U412①：destroyOnHidden 弹窗首开前不渲染子树，forceRender 让表单随页挂载（消「未挂载即调用」告警）
+				forceRender
 			>
 				{intentResult ? (
 					<div className="space-y-3">
 						<Text strong>已生成的 Intent 令牌：</Text>
-						<Paragraph copyable code className="break-all text-xs bg-neutral-50 p-3 rounded border">
+						<Paragraph copyable code className="break-all text-xs bg-neutral-50 p-3 rounded-xs border">
 							{intentResult}
 						</Paragraph>
 						<Text type="secondary" className="text-xs">

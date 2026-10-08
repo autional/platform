@@ -1,16 +1,16 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Button, Space, Tag, Modal, Form, Input, Select, Card, Descriptions, Tabs, Popconfirm, Row, Col } from 'antd';
+import { Button, Space, Tag, Form, Input, Select, Card, Descriptions, Tabs, Popconfirm, Row, Col } from 'antd';
 import { message } from '@/lib/antd-app';
 import {
-	PlusOutlined,
-	EyeOutlined,
-	PauseCircleOutlined,
-	PlayCircleOutlined,
-	DeleteOutlined,
-	EditOutlined,
-} from '@ant-design/icons';
+	Eye,
+	PauseCircle,
+	Pencil,
+	Play,
+	Plus,
+	Trash2,
+} from 'lucide-react';
 import {
 	useTenants,
 	useCreateTenant,
@@ -21,18 +21,33 @@ import {
 	type TenantRecord,
 } from '@/hooks/use-tenants';
 import { handleApiError } from '@/lib/error-handler';
-import { DataTable, Drawer, PageError } from '@autional/ui/antd';
+import { formatDateTime } from '@/lib/format';
+import { DataTable, Drawer, Modal, PageError } from '@autional/ui/antd';
 import { Alert, AppPageHeader } from '@autional/ui';
 import { useMembers } from '@/hooks/use-members';
 import { useApplications } from '@/hooks/use-applications';
 import { useNavigate } from 'react-router';
-import { useTenantSlug } from '@autional/shared';
+import { usePageTitle, useTenantSlug } from '@autional/shared';
+import { useTranslation } from 'react-i18next';
 import { buildNavHref } from '@/lib/nav';
 import { ROUTE } from '@/lib/route-paths';
 
 const { Option } = Select;
 
+const TENANT_STATUS_MAP: Record<string, { label: string; color: string }> = {
+	active: { label: '正常', color: 'success' },
+	suspended: { label: '已暂停', color: 'error' },
+	pending: { label: '待激活', color: 'warning' },
+};
+
+const renderTenantStatus = (status?: string) => {
+	const meta = TENANT_STATUS_MAP[status ?? ''] ?? { label: status || '-', color: 'default' };
+	return <Tag color={meta.color}>{meta.label}</Tag>;
+};
+
 export default function TenantsPage() {
+	const { t } = useTranslation();
+	usePageTitle(t('tenants.title', '租户管理'));
 	const navigate = useNavigate();
 	const tenantSlug = useTenantSlug();
 	const [modalVisible, setModalVisible] = useState(false);
@@ -41,6 +56,8 @@ export default function TenantsPage() {
 	const [selectedTenant, setSelectedTenant] = useState<TenantRecord | null>(null);
 	const [detailData, setDetailData] = useState<any>({});
 	const detailTenantId = selectedTenant?.id || '';
+	const detailCreatedAt: string | undefined =
+		detailData.info?.createdAt || selectedTenant?.createdAt;
 	const {
 		data: detailMembers = [],
 		isLoading: detailMembersLoading,
@@ -134,17 +151,15 @@ export default function TenantsPage() {
 
 	const columns = [
 		{ title: '租户 ID', dataIndex: 'id', key: 'id', ellipsis: true },
-		{ title: '租户名称', dataIndex: 'name', key: 'name' },
+		// U414②：name 是租户标识（URL slug，见创建表单「租户标识」口径），显示名称单列展示
+		{ title: '租户标识', dataIndex: 'name', key: 'name' },
+		{ title: '显示名称', dataIndex: 'displayName', key: 'displayName', render: (v?: string) => v || '-' },
 		{ title: '域名', dataIndex: 'domain', key: 'domain', render: (v?: string) => v || '-' },
 		{
 			title: '状态',
 			dataIndex: 'status',
 			key: 'status',
-			render: (status: string) => (
-				<Tag color={status === 'active' ? 'success' : 'error'}>
-					{status === 'active' ? '正常' : '已暂停'}
-				</Tag>
-			),
+			render: (status: string) => renderTenantStatus(status),
 		},
 		{ title: '套餐', dataIndex: 'plan', key: 'plan', render: (v?: string) => v || '-' },
 		{
@@ -153,16 +168,25 @@ export default function TenantsPage() {
 			key: 'memberCount',
 			render: (v?: number) => v ?? '-',
 		},
-		{ title: '创建时间', dataIndex: 'createdAt', key: 'createdAt' },
+		{
+			title: '创建时间',
+			dataIndex: 'createdAt',
+			key: 'createdAt',
+			render: (v?: string) => (v ? formatDateTime(v) : '-'),
+		},
 		{
 			title: '操作',
 			key: 'action',
+			// PL-07：操作列固定到右侧 + 显式宽度不可省——table-layout:fixed 下
+			// pinned 列只分到均摊的 150px，装不下四个按钮（实测内容需 309px）
+			width: 320,
+			fixed: 'right' as const,
 			render: (_: any, record: TenantRecord) => (
 				<Space size="small">
 					<Button
 						type="text"
 						size="small"
-						icon={<EyeOutlined />}
+						icon={<Eye size="1em" />}
 						onClick={() => openDetail(record)}
 					>
 						详情
@@ -171,7 +195,7 @@ export default function TenantsPage() {
 						<Button
 							type="text"
 							size="small"
-							icon={<PauseCircleOutlined />}
+							icon={<PauseCircle size="1em" />}
 							onClick={() => handleSuspend(record.id)}
 						>
 							暂停
@@ -180,7 +204,7 @@ export default function TenantsPage() {
 						<Button
 							type="text"
 							size="small"
-							icon={<PlayCircleOutlined />}
+							icon={<Play size="1em" />}
 							onClick={() => handleActivate(record.id)}
 						>
 							激活
@@ -189,11 +213,12 @@ export default function TenantsPage() {
 					<Button
 						type="text"
 						size="small"
-						icon={<EditOutlined />}
+						icon={<Pencil size="1em" />}
 						onClick={() => {
 							setEditing(record);
 							form.setFieldsValue({
 								name: record.name,
+								displayName: record.displayName || record.name,
 								domain: record.domain,
 								plan: record.plan,
 							});
@@ -206,7 +231,7 @@ export default function TenantsPage() {
 						title="确认删除租户？此操作不可恢复！"
 						onConfirm={() => handleDelete(record.id)}
 					>
-						<Button type="text" danger size="small" icon={<DeleteOutlined />}>
+						<Button type="text" danger size="small" icon={<Trash2 size="1em" />}>
 							删除
 						</Button>
 					</Popconfirm>
@@ -218,12 +243,12 @@ export default function TenantsPage() {
 	return (
 		<div>
 			<AppPageHeader
-				title="租户管理"
+				title={t('tenants.title', '租户管理')}
 				actions={
 					<>
 						<Button
 							type="primary"
-							icon={<PlusOutlined />}
+							icon={<Plus size="1em" />}
 							onClick={() => {
 								setEditing(null);
 								form.resetFields();
@@ -259,12 +284,14 @@ export default function TenantsPage() {
 				columns={columns}
 				dataSource={tenants}
 				loading={isLoading}
+				/* PL-07：配合操作列 fixed:'right' 提供横向滚动容器 */
+				scroll={{ x: 1200 }}
 				pagination={{
 					current: page,
 					pageSize,
 					total,
 					showSizeChanger: true,
-					showTotal: (t: number) => `共 ${t} 条租户`,
+					showTotal: (n: number) => `共 ${n} 条租户`,
 					onChange: (p: number, ps: number) => {
 						setPage(p);
 						setPageSize(ps);
@@ -283,21 +310,26 @@ export default function TenantsPage() {
 				}}
 				onOk={() => form.submit()}
 				destroyOnHidden
+				// U412①：destroyOnHidden 弹窗首开前不渲染子树，forceRender 让表单随页挂载（消「未挂载即调用」告警）
+				forceRender
 			>
 				<Form form={form} layout="vertical" onFinish={handleSave}>
-					<Form.Item name="name" label="租户名称" rules={[{ required: true }]}>
-						<Input placeholder="如：Acme Corp" />
+					<Form.Item name="name" label="租户标识" rules={[{ required: true }]} extra="创建后不可修改">
+						<Input placeholder="如：acme-corp" disabled={!!editing} />
+					</Form.Item>
+					<Form.Item name="displayName" label="显示名称" rules={[{ required: true }]}>
+						<Input placeholder="如：ACME Corp" />
 					</Form.Item>
 					<Form.Item name="domain" label="域名">
 						<Input placeholder="如：acme.example.com" />
 					</Form.Item>
 					{!editing && (
 						<Form.Item
-							name="adminEmail"
-							label="初始管理员邮箱"
-							rules={[{ required: true, type: 'email' }]}
+							name="ownerId"
+							label="所有者用户 ID"
+							rules={[{ required: true }, { pattern: /^[0-9A-HJKMNP-TV-Z]{26}$/, message: '请输入 26 位用户 ULID' }]}
 						>
-							<Input placeholder="admin@example.com" />
+							<Input placeholder="如：01KTKJF63A4RDHHJSHTY1ACP2F" />
 						</Form.Item>
 					)}
 					<Form.Item name="plan" label="套餐" rules={[{ required: true }]} initialValue="free">
@@ -346,27 +378,20 @@ export default function TenantsPage() {
 										<Descriptions.Item label="名称">
 											{detailData.info?.name || selectedTenant?.name}
 										</Descriptions.Item>
+										<Descriptions.Item label="显示名称">
+											{detailData.info?.displayName || selectedTenant?.displayName || '-'}
+										</Descriptions.Item>
 										<Descriptions.Item label="域名">
 											{detailData.info?.domain || selectedTenant?.domain || '-'}
 										</Descriptions.Item>
 										<Descriptions.Item label="状态">
-											<Tag
-												color={
-													(detailData.info?.status || selectedTenant?.status) === 'active'
-														? 'success'
-														: 'error'
-												}
-											>
-												{(detailData.info?.status || selectedTenant?.status) === 'active'
-													? '正常'
-													: '已暂停'}
-											</Tag>
+											{renderTenantStatus(detailData.info?.status || selectedTenant?.status)}
 										</Descriptions.Item>
 										<Descriptions.Item label="套餐">
 											{detailData.info?.plan || selectedTenant?.plan || '-'}
 										</Descriptions.Item>
 										<Descriptions.Item label="创建时间">
-											{detailData.info?.createdAt || selectedTenant?.createdAt}
+											{detailCreatedAt ? formatDateTime(detailCreatedAt) : '-'}
 										</Descriptions.Item>
 									</Descriptions>
 								</Card>

@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import { DataTable } from '@autional/ui/antd';
+import { DataTable, Modal } from '@autional/ui/antd';
 import { useParams, useNavigate } from 'react-router';
-import { Button, Tag, Modal, Form, Input, Select, Skeleton, Descriptions } from 'antd';
-import { EditOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import { Button, Tag, Form, Input, Select, Skeleton, Descriptions } from 'antd';
+import { ArrowLeft, Pencil } from 'lucide-react';
 import { usePageTitle, useTenantSlug } from '@autional/shared';
+import { ApiErrorState } from '@/components/ApiErrorState';
 import { ROUTE } from '@/lib/route-paths';
 import { buildNavHref } from '@/lib/nav';
 import { AppPageHeader, EmptyState, ErrorState, SectionCard, StatusBadge } from '@autional/ui';
@@ -15,6 +16,7 @@ import { adminAgentsByAgents, adminAgentsByAgentsPut } from '@autional/shared/ge
 import { message } from '@/lib/antd-app';
 import { handleApiError } from '@/lib/error-handler';
 import { queryKeys } from '@/lib/query-keys';
+import { statusLabel, statusVariant } from '@/lib/agent-status';
 
 interface AgentDetail {
 	identityId?: string;
@@ -38,26 +40,31 @@ interface AgentDetail {
 	updated_at?: string;
 }
 
+// 三接口 = 后端 DTO 真形状（camelCaseKeys 管道后）：
+// internal/agent/domain.AgentCredentialInfo / AgentActivityInfo / AgentPermissionInfo
 interface CredentialRecord {
 	id: string;
+	agentId?: string;
 	name: string;
-	type: string;
+	credType?: string;
+	keyPrefix?: string;
 	status: string;
-	last_used_at: string;
-	expires_at: string;
+	createdAt?: string;
 }
 
 interface ActivityRecord {
-	id: string;
 	action: string;
-	detail: string;
-	timestamp: string;
+	detail?: string;
+	operatorId?: string;
+	createdAt?: string;
 }
 
 interface PermissionRecord {
-	id: string;
+	code?: string;
+	name?: string;
 	resource: string;
 	action: string;
+	effect?: string;
 }
 
 const SUBTYPE_LABELS: Record<string, string> = {
@@ -71,17 +78,6 @@ const SUBTYPE_COLORS: Record<string, string> = {
 	service_account: 'green',
 	automation: 'orange',
 };
-
-const STATUS_VARIANT: Record<string, 'success' | 'warning' | 'danger' | 'info' | 'neutral'> = {
-	active: 'success',
-	disabled: 'danger',
-	suspended: 'warning',
-	provisioning: 'info',
-};
-
-function statusVariant(s: string): 'success' | 'warning' | 'danger' | 'info' | 'neutral' {
-	return STATUS_VARIANT[s] || 'neutral';
-}
 
 function formatDate(iso: string): string {
 	if (!iso) return '-';
@@ -210,12 +206,19 @@ export default function AgentDetailPage() {
 	const rotationDays = agent?.rotationDays ?? agent?.rotation_days;
 	const jitTtl = agent?.jitTtl ?? agent?.jit_ttl;
 
+	// 列绑定后端真字段（旧版绑 type/last_used_at/expires_at/timestamp —— 后端不存在，整列恒 '-'）
 	const credentialColumns = [
 		{ title: '名称', dataIndex: 'name', key: 'name' },
 		{
+			title: '前缀',
+			dataIndex: 'keyPrefix',
+			key: 'keyPrefix',
+			render: (v: string) => (v ? <code className="text-xs">{v}</code> : '-'),
+		},
+		{
 			title: '类型',
-			dataIndex: 'type',
-			key: 'type',
+			dataIndex: 'credType',
+			key: 'credType',
 			render: (v: string) => <Tag>{v || '-'}</Tag>,
 		},
 		{
@@ -223,20 +226,14 @@ export default function AgentDetailPage() {
 			dataIndex: 'status',
 			key: 'status',
 			render: (v: string) => (
-				<StatusBadge variant={v === 'active' ? 'success' : 'neutral'}>{v || '-'}</StatusBadge>
+				<StatusBadge variant={statusVariant(v)}>{statusLabel(v)}</StatusBadge>
 			),
 		},
 		{
-			title: '最后使用',
-			key: 'last_used',
-			render: (_: unknown, r: any) =>
-				formatDate((r.lastUsedAt as string) ?? (r.last_used_at as string) ?? ''),
-		},
-		{
-			title: '过期时间',
-			key: 'expires',
-			render: (_: unknown, r: any) =>
-				formatDate((r.expiresAt as string) ?? (r.expires_at as string) ?? ''),
+			title: '创建时间',
+			dataIndex: 'createdAt',
+			key: 'createdAt',
+			render: (v: string) => formatDate(v),
 		},
 	];
 
@@ -245,8 +242,8 @@ export default function AgentDetailPage() {
 		{ title: '详情', dataIndex: 'detail', key: 'detail', ellipsis: true },
 		{
 			title: '时间',
-			dataIndex: 'timestamp',
-			key: 'timestamp',
+			dataIndex: 'createdAt',
+			key: 'createdAt',
 			render: (v: string) => formatDate(v),
 		},
 	];
@@ -274,7 +271,7 @@ export default function AgentDetailPage() {
 			<div className="mb-6">
 				<Button
 					type="text"
-					icon={<ArrowLeftOutlined />}
+					icon={<ArrowLeft size="1em" />}
 					onClick={() => navigate(buildNavHref(ROUTE.AGENTS, tenantSlug))}
 					className="mb-4 pl-0"
 				>
@@ -283,10 +280,10 @@ export default function AgentDetailPage() {
 				<div className="flex items-center justify-between">
 					<AppPageHeader
 						title={agent?.name || 'Agent 详情'}
-						description={agent?.description || '加载中…'}
+						description={agent?.description || (isLoading ? '加载中…' : '')}
 					/>
 					{agent && (
-						<Button icon={<EditOutlined />} onClick={openEdit}>
+						<Button icon={<Pencil size="1em" />} onClick={openEdit}>
 							编辑 Agent
 						</Button>
 					)}
@@ -302,9 +299,9 @@ export default function AgentDetailPage() {
 			)}
 
 			{!isLoading && error && (
-				<ErrorState
+				<ApiErrorState
+					error={error}
 					title="加载 Agent 详情失败"
-					message="请重试。"
 					onRetry={() => refetch()}
 				/>
 			)}
@@ -315,7 +312,9 @@ export default function AgentDetailPage() {
 						<Descriptions column={2} bordered size="small">
 							<Descriptions.Item label="名称">{agent.name}</Descriptions.Item>
 							<Descriptions.Item label="状态">
-								<StatusBadge variant={statusVariant(agent.status)}>{agent.status}</StatusBadge>
+								<StatusBadge variant={statusVariant(agent.status)}>
+								{statusLabel(agent.status)}
+							</StatusBadge>
 							</Descriptions.Item>
 							<Descriptions.Item label="工作负载子类型">
 								<Tag color={SUBTYPE_COLORS[subtype] || 'default'}>
@@ -364,7 +363,10 @@ export default function AgentDetailPage() {
 							<EmptyState title="暂无活动" description="该 Agent 近期没有活动。" />
 						) : (
 							<DataTable
-								rowKey="id"
+								// 后端 AgentActivityInfo 无 id —— 复合键防 React key 塌陷
+								rowKey={(r: ActivityRecord) =>
+									`${r.action}|${r.createdAt ?? ''}|${r.detail ?? ''}`
+								}
 								columns={activityColumns}
 								dataSource={activity}
 								pagination={false}
@@ -383,7 +385,10 @@ export default function AgentDetailPage() {
 							/>
 						) : (
 							<DataTable
-								rowKey="id"
+								// 后端 AgentPermissionInfo 无 id —— 复合键防 React key 塌陷
+								rowKey={(r: PermissionRecord) =>
+									`${r.code ?? ''}|${r.resource}|${r.action}`
+								}
 								columns={permissionColumns}
 								dataSource={permissions}
 								pagination={false}
@@ -404,6 +409,8 @@ export default function AgentDetailPage() {
 				onOk={() => form.submit()}
 				confirmLoading={updateMut.isPending}
 				destroyOnHidden
+				// U412①：destroyOnHidden 弹窗首开前不渲染子树，forceRender 让表单随页挂载（消「未挂载即调用」告警）
+				forceRender
 			>
 				<Form form={form} layout="vertical" onFinish={handleEdit}>
 					<Form.Item name="name" label="名称" rules={[{ required: true }]}>

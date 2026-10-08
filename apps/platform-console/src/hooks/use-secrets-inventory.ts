@@ -51,6 +51,7 @@ export interface InfrastructureRecord {
 }
 
 export interface ApiKeySummaryRecord {
+	id: string;
 	prefix: string;
 	tenantId: string;
 	type: 'user' | 'service' | 'system';
@@ -114,6 +115,7 @@ interface EncryptionKeyApiItem {
 }
 
 interface ApiKeyApiItem {
+	id?: string;
 	keyPrefix?: string;
 	key_prefix?: string;
 	prefix?: string;
@@ -202,6 +204,7 @@ function mapEncryptionKey(item: EncryptionKeyApiItem): EncryptionKeyRecord {
 
 function mapApiKeyRecord(item: ApiKeyApiItem): ApiKeySummaryRecord {
 	return {
+		id: item.id ?? '',
 		prefix: pickField<string>(item, 'keyPrefix', 'key_prefix') ?? item.prefix ?? '',
 		tenantId: pickField<string>(item, 'tenantId', 'tenant_id') ?? '',
 		type: (item.type === 'user' || item.type === 'service' || item.type === 'system'
@@ -291,6 +294,10 @@ export function useSecretsInventoryOverview() {
 		oauth.refetch();
 	};
 
+	// U413 收口：透传子查询原始错误（含 response 信封），供 ApiErrorState 分类器识别；
+	// 旧实现合成固定文案的新 Error 丢信封，403 在密钥清单页只显示英文原文（n21 线上复核实证）
+	const firstError = kv.error ?? encKeys.error ?? jwtKeys.error ?? infra.error ?? apiKeys.error ?? oauth.error;
+
 	const data = useMemo<SecretsInventoryOverview | undefined>(() => {
 		const kvData = kv.data ?? [];
 		const encData = encKeys.data ?? [];
@@ -344,7 +351,7 @@ export function useSecretsInventoryOverview() {
 	return {
 		data,
 		isLoading,
-		error: (isError ? new Error('Failed to load overview') : null) as unknown as Error | null,
+		error: (isError ? firstError : null) as unknown as Error | null,
 		refetch,
 	};
 }

@@ -1,15 +1,16 @@
 import { useMemo, type ReactNode } from 'react';
-import { Button, Card, Col, Row, Skeleton, Statistic, Typography } from 'antd';
+import { Button, Card, Col, Row, Skeleton, Statistic } from 'antd';
 import {
-	TeamOutlined,
-	NotificationOutlined,
-	CloudServerOutlined,
-	WarningOutlined,
-	ArrowRightOutlined,
-} from '@ant-design/icons';
+	AlertTriangle,
+	ArrowRight,
+	Cloud,
+	Megaphone,
+	Users,
+} from 'lucide-react';
 import { useNavigate } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { usePageTitle, useTenantSlug } from '@autional/shared';
-import { StatusBadge } from '@autional/ui';
+import { AppPageHeader, StatusBadge } from '@autional/ui';
 import { useSystemTenants } from '@/hooks/use-system-overview';
 import { useIncidents, useOverview } from '@/hooks/use-status';
 import { usePlatformNotificationStats } from '@/hooks/use-platform-stats';
@@ -17,8 +18,6 @@ import { ROUTE } from '@/lib/route-paths';
 import { buildNavHref } from '@/lib/nav';
 import { formatDateTime } from '@/lib/format';
 import { severityBadge, severityLabels } from '@/lib/incident-meta';
-
-const { Title } = Typography;
 
 interface KpiItem {
 	title: string;
@@ -31,7 +30,8 @@ interface KpiItem {
 }
 
 export default function DashboardPage() {
-	usePageTitle('平台仪表盘');
+	const { t } = useTranslation();
+	usePageTitle(t('dashboard.title', '平台仪表盘'));
 	const navigate = useNavigate();
 	const tenantSlug = useTenantSlug();
 
@@ -55,55 +55,55 @@ export default function DashboardPage() {
 	// PL-02/04：KPI 卡补下钻与口径注解；趋势图不补（平台侧无时序数据源，不伪造历史曲线）
 	const kpis: KpiItem[] = [
 		{
-			title: '租户总数',
+			title: t('dashboard.kpi.tenants', '租户总数'),
 			value: tenants?.total ?? '—',
-			icon: <TeamOutlined />,
-			note: '点击下钻 · 租户管理',
+			icon: <Users size="1em" />,
+			note: t('dashboard.kpi.tenantsNote', '点击下钻 · 租户管理'),
 			route: ROUTE.TENANTS,
 			warning: !!tenantsError,
 		},
 		{
-			title: '活跃事故',
+			title: t('dashboard.kpi.incidents', '活跃事故'),
 			value: overview?.activeIncidents ?? '—',
-			icon: <WarningOutlined />,
-			note: '公开状态页口径 · 点击下钻',
+			icon: <AlertTriangle size="1em" />,
+			note: t('dashboard.note.publicStatus', '公开状态页口径 · 点击下钻'),
 			route: ROUTE.INCIDENTS,
 			warning: !!overviewError,
 		},
 		{
-			title: '健康服务',
+			title: t('dashboard.kpi.healthy', '健康服务'),
 			value: overview?.servicesHealthy ?? '—',
 			suffix: overview?.servicesTotal != null ? `/ ${overview.servicesTotal}` : undefined,
-			icon: <CloudServerOutlined />,
-			note: '公开状态页口径 · 点击下钻',
+			icon: <Cloud size="1em" />,
+			note: t('dashboard.note.publicStatus', '公开状态页口径 · 点击下钻'),
 			route: ROUTE.OPS,
 			warning: !!overviewError,
 		},
 		{
-			title: '平台通知',
+			title: t('dashboard.kpi.notifications', '平台通知'),
 			value: stats?.totalSent ?? '—',
-			icon: <NotificationOutlined />,
-			note: '站内通知全量累计 · 点击下钻',
+			icon: <Megaphone size="1em" />,
+			note: t('dashboard.kpi.notificationsNote', '站内通知全量累计 · 点击下钻'),
 			route: ROUTE.PLATFORM_NOTIFICATIONS,
 			warning: !!statsError,
 		},
 	];
 
 	const quickLinks = [
-		{ label: '租户管理', route: ROUTE.TENANTS },
-		{ label: '事故管理', route: ROUTE.INCIDENTS },
-		{ label: '维护窗口', route: ROUTE.MAINTENANCES },
-		{ label: '运维视图', route: ROUTE.OPS },
-		{ label: '平台通知', route: ROUTE.PLATFORM_NOTIFICATIONS },
-		{ label: '公告管理', route: ROUTE.ANNOUNCEMENTS },
+		{ label: t('dashboard.quick.tenants', '租户管理'), route: ROUTE.TENANTS },
+		{ label: t('dashboard.quick.incidents', '事故管理'), route: ROUTE.INCIDENTS },
+		{ label: t('dashboard.quick.maintenances', '维护窗口'), route: ROUTE.MAINTENANCES },
+		{ label: t('dashboard.quick.ops', '运维视图'), route: ROUTE.OPS },
+		{ label: t('dashboard.quick.notifications', '平台通知'), route: ROUTE.PLATFORM_NOTIFICATIONS },
+		{ label: t('dashboard.quick.announcements', '公告管理'), route: ROUTE.ANNOUNCEMENTS },
 	];
 
 	return (
 		<div>
-			<Title level={3}>平台仪表盘</Title>
+			<AppPageHeader title={t('dashboard.title', '平台仪表盘')} />
 			<Row gutter={[16, 16]} className="mt-4">
 				{kpis.map((kpi) => (
-					<Col xs={24} sm={12} lg={6} key={kpi.title}>
+					<Col xs={24} sm={12} lg={6} key={kpi.route}>
 						<Card hoverable onClick={() => go(kpi.route)}>
 							{loading ? (
 								<Skeleton active paragraph={{ rows: 1 }} title={{ width: '60%' }} />
@@ -114,8 +114,8 @@ export default function DashboardPage() {
 										value={kpi.value}
 										suffix={kpi.suffix}
 										prefix={kpi.icon}
-										valueStyle={
-											kpi.warning ? { color: 'var(--color-warning)' } : undefined
+										styles={
+											kpi.warning ? { content: { color: 'var(--color-warning)' } } : undefined
 										}
 									/>
 									<div className="mt-2 text-xs text-neutral-600">{kpi.note}</div>
@@ -129,17 +129,19 @@ export default function DashboardPage() {
 			<Row gutter={[16, 16]} className="mt-6">
 				<Col xs={24} lg={12}>
 					<Card
-						title="最近事故"
+						title={t('dashboard.recentIncidents', '最近事故')}
 						extra={
 							<Button type="link" size="small" onClick={() => go(ROUTE.INCIDENTS)}>
-								全部事故
+								{t('dashboard.allIncidents', '全部事故')}
 							</Button>
 						}
 					>
 						{incidentsLoading ? (
 							<Skeleton active paragraph={{ rows: 4 }} />
 						) : recentIncidents.length === 0 ? (
-							<div className="py-8 text-center text-neutral-600">暂无事故记录</div>
+							<div className="py-8 text-center text-neutral-600">
+								{t('dashboard.noIncidents', '暂无事故记录')}
+							</div>
 						) : (
 							<ul>
 								{recentIncidents.map((inc) => (
@@ -163,14 +165,14 @@ export default function DashboardPage() {
 					</Card>
 				</Col>
 				<Col xs={24} lg={12}>
-					<Card title="快捷入口">
+					<Card title={t('dashboard.quickLinks', '快捷入口')}>
 						<div className="grid grid-cols-2 gap-1">
 							{quickLinks.map((link) => (
 								<Button
 									key={link.route}
 									type="link"
 									className="justify-start !px-0"
-									icon={<ArrowRightOutlined className="text-xs" />}
+									icon={<ArrowRight size="1em" className="text-xs" />}
 									onClick={() => go(link.route)}
 								>
 									{link.label}

@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { DataTable } from '@autional/ui/antd';
-import { Button, Space, Modal, Form, Input, Select, Popconfirm, Skeleton } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { DataTable, Modal } from '@autional/ui/antd';
+import { Button, Space, Form, Input, Select, Popconfirm, Skeleton } from 'antd';
+import { Pencil, Plus, Trash2 } from 'lucide-react';
 import {
 	usePageTitle,
 	useTenantSlug,
@@ -24,6 +24,7 @@ import { handleApiError } from '@/lib/error-handler';
 import { queryKeys } from '@/lib/query-keys';
 import { ROUTE } from '@/lib/route-paths';
 import { buildNavHref } from '@/lib/nav';
+import { statusLabel, statusVariant } from '@/lib/robot-status';
 
 interface RobotRecord {
 	identityId?: string;
@@ -42,17 +43,6 @@ interface RobotRecord {
 	owner_id?: string;
 	createdAt?: string;
 	created_at?: string;
-}
-
-const STATUS_VARIANT: Record<string, 'success' | 'warning' | 'danger' | 'info' | 'neutral'> = {
-	active: 'success',
-	offline: 'danger',
-	maintenance: 'warning',
-	provisioning: 'info',
-};
-
-function statusVariant(s: string): 'success' | 'warning' | 'danger' | 'info' | 'neutral' {
-	return STATUS_VARIANT[s] || 'neutral';
 }
 
 function formatDate(iso: string): string {
@@ -169,7 +159,9 @@ export default function RobotsPage() {
 			title: '状态',
 			dataIndex: 'status',
 			key: 'status',
-			render: (v: string) => <StatusBadge variant={statusVariant(v)}>{v || '-'}</StatusBadge>,
+			render: (v: string) => (
+				<StatusBadge variant={statusVariant(v)}>{statusLabel(v)}</StatusBadge>
+			),
 		},
 		{
 			title: '所有者',
@@ -190,7 +182,7 @@ export default function RobotsPage() {
 				<Space size="small">
 					<Button
 						type="link"
-						icon={<EditOutlined />}
+						icon={<Pencil size="1em" />}
 						onClick={(e) => {
 							e.stopPropagation();
 							navigate(
@@ -214,7 +206,7 @@ export default function RobotsPage() {
 						<Button
 							type="link"
 							danger
-							icon={<DeleteOutlined />}
+							icon={<Trash2 size="1em" />}
 							onClick={(e) => e.stopPropagation()}
 						>
 							删除
@@ -233,7 +225,7 @@ export default function RobotsPage() {
 				actions={
 					<Button
 						type="primary"
-						icon={<PlusOutlined />}
+						icon={<Plus size="1em" />}
 						onClick={() => {
 							form.resetFields();
 							setModalVisible(true);
@@ -265,7 +257,7 @@ export default function RobotsPage() {
 					<EmptyState title="暂无 Robot" description="创建第一个 Robot 以开始使用。" />
 					<Button
 						type="primary"
-						icon={<PlusOutlined />}
+						icon={<Plus size="1em" />}
 						onClick={() => {
 							form.resetFields();
 							setModalVisible(true);
@@ -315,6 +307,8 @@ export default function RobotsPage() {
 				onOk={() => form.submit()}
 				confirmLoading={createMut.isPending}
 				destroyOnHidden
+				// U412①：destroyOnHidden 弹窗首开前不渲染子树，forceRender 让表单随页挂载（消「未挂载即调用」告警）
+				forceRender
 			>
 				<Form form={form} layout="vertical" onFinish={handleCreate}>
 					<Form.Item name="name" label="名称" rules={[{ required: true }]}>

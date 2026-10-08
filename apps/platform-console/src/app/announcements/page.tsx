@@ -1,15 +1,15 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Button, Space, Tag, Modal, Form, Input, Select, Popconfirm, Checkbox } from 'antd';
+import { Button, Space, Tag, Form, Input, Select, Popconfirm, Checkbox } from 'antd';
 import { message, modal } from '@/lib/antd-app';
 import {
-	PlusOutlined,
-	EditOutlined,
-	DeleteOutlined,
-	SendOutlined,
-	RollbackOutlined,
-} from '@ant-design/icons';
+	Pencil,
+	Plus,
+	Send,
+	Trash2,
+	Undo2,
+} from 'lucide-react';
 import {
 	useAnnouncements,
 	useCreateAnnouncement,
@@ -20,9 +20,10 @@ import {
 	type AnnouncementRecord,
 } from '@/hooks/use-announcements';
 import { handleApiError } from '@/lib/error-handler';
-import { extractItem } from '@autional/shared';
-import { PageError, DataTable } from '@autional/ui/antd';
+import { extractItem, usePageTitle } from '@autional/shared';
+import { PageError, DataTable, Modal } from '@autional/ui/antd';
 import { AppPageHeader } from '@autional/ui';
+import { useTranslation } from 'react-i18next';
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -36,6 +37,8 @@ interface AnnouncementFormValues {
 }
 
 export default function AnnouncementsPage() {
+	const { t } = useTranslation();
+	usePageTitle(t('announcements.title', '平台公告'));
 	const [modalVisible, setModalVisible] = useState(false);
 	const [editing, setEditing] = useState<AnnouncementRecord | null>(null);
 	const [form] = Form.useForm<AnnouncementFormValues>();
@@ -170,7 +173,7 @@ export default function AnnouncementsPage() {
 					<Button
 						type="text"
 						size="small"
-						icon={<EditOutlined />}
+						icon={<Pencil size="1em" />}
 						onClick={() => {
 							setEditing(record);
 							form.setFieldsValue({
@@ -194,7 +197,7 @@ export default function AnnouncementsPage() {
 							<Button
 								type="text"
 								size="small"
-								icon={<SendOutlined />}
+								icon={<Send size="1em" />}
 								loading={publishMut.isPending}
 							>
 								发布
@@ -205,7 +208,7 @@ export default function AnnouncementsPage() {
 						<Button
 							type="text"
 							size="small"
-							icon={<RollbackOutlined />}
+							icon={<Undo2 size="1em" />}
 							onClick={() => handleUnpublish(record.id)}
 							loading={unpublishMut.isPending}
 						>
@@ -213,7 +216,7 @@ export default function AnnouncementsPage() {
 						</Button>
 					)}
 					<Popconfirm title="确认删除该公告？" onConfirm={() => handleDelete(record.id)}>
-						<Button type="text" danger size="small" icon={<DeleteOutlined />}>
+						<Button type="text" danger size="small" icon={<Trash2 size="1em" />}>
 							删除
 						</Button>
 					</Popconfirm>
@@ -225,12 +228,12 @@ export default function AnnouncementsPage() {
 	return (
 		<div>
 			<AppPageHeader
-				title="平台公告"
+				title={t('announcements.title', '平台公告')}
 				actions={
 					<>
 						<Button
 							type="primary"
-							icon={<PlusOutlined />}
+							icon={<Plus size="1em" />}
 							onClick={() => {
 								setEditing(null);
 								form.resetFields();
@@ -263,6 +266,8 @@ export default function AnnouncementsPage() {
 				onOk={() => form.submit()}
 				width={640}
 				destroyOnHidden
+				// U412①：destroyOnHidden 弹窗首开前不渲染子树，forceRender 让表单随页挂载（消「未挂载即调用」告警）
+				forceRender
 			>
 				<Form form={form} layout="vertical" onFinish={handleSave}>
 					<Form.Item name="title" label="标题" rules={[{ required: true }]}>

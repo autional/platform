@@ -8,7 +8,6 @@ import {
 	InputNumber,
 	Switch,
 	Button,
-	message,
 	Spin,
 	TimePicker,
 	Space,
@@ -20,13 +19,15 @@ import {
 	Popconfirm,
 } from 'antd';
 import {
-	SafetyCertificateOutlined,
-	SaveOutlined,
-	ReloadOutlined,
-	UserOutlined,
-} from '@ant-design/icons';
+	BadgeCheck,
+	RefreshCw,
+	Save,
+	User,
+} from 'lucide-react';
 import { handleApiError } from '@/lib/error-handler';
-import { AuthService, fromPageResult, toPageParams } from '@autional/shared';
+import { message } from '@/lib/antd-app';
+import { AuthService, fromPageResult, toPageParams, usePageTitle } from '@autional/shared';
+import { useTranslation } from 'react-i18next';
 import {
 	adminTenantsMinorsProtectionByTenants,
 	adminTenantsMinorsProtectionByTenantsPut,
@@ -60,7 +61,7 @@ interface MinorsFormValues {
 	night_mode_enabled?: boolean;
 	night_mode_start?: dayjs.Dayjs;
 	night_mode_end?: dayjs.Dayjs;
-	live_stream_blocked_under16?: boolean;
+	live_stream_blocked_under_16?: boolean;
 	content_filter_enabled?: boolean;
 	child_default_max_privacy?: boolean;
 	minor_data_retention_days?: number;
@@ -107,6 +108,8 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default function MinorsProtectionPage() {
+	const { t } = useTranslation();
+	usePageTitle(t('complianceMinors.title', '未成年人保护'));
 	const [config, setConfig] = useState<MinorsProtectionConfig | null>(null);
 	const [configError, setConfigError] = useState<Error | null>(null);
 	const [loading, setLoading] = useState(true);
@@ -131,6 +134,27 @@ export default function MinorsProtectionPage() {
 		loadUsers();
 	}, []);
 
+	// U412①：首屏 loading 早退期间 Form 尚未挂载，原 loadConfig 内的同步 setFieldsValue
+	// 会触发「useForm 未挂载」告警；改为配置到位且表单挂载后再回填。
+	useEffect(() => {
+		if (!config || loading) return;
+		form.setFieldsValue({
+			daily_usage_limit_min: config.dailyUsageLimitMin,
+			monthly_spend_limit: config.monthlySpendLimit,
+			night_mode_enabled: config.nightModeEnabled,
+			night_mode_start: config.nightModeStart
+				? dayjs(config.nightModeStart, 'HH:mm')
+				: dayjs('22:00', 'HH:mm'),
+			night_mode_end: config.nightModeEnd
+				? dayjs(config.nightModeEnd, 'HH:mm')
+				: dayjs('06:00', 'HH:mm'),
+			live_stream_blocked_under_16: config.liveStreamBlockedUnder16,
+			content_filter_enabled: config.contentFilterEnabled,
+			child_default_max_privacy: config.childDefaultMaxPrivacy,
+			minor_data_retention_days: config.minorDataRetentionDays,
+		});
+	}, [config, loading, form]);
+
 	const loadConfig = async () => {
 		const tenantId = AuthService.getCurrentTenantId();
 		if (!tenantId) {
@@ -145,21 +169,6 @@ export default function MinorsProtectionPage() {
 			)) as MinorsProtectionConfig;
 			setConfigError(null);
 			setConfig(res);
-			form.setFieldsValue({
-				daily_usage_limit_min: res.dailyUsageLimitMin,
-				monthly_spend_limit: res.monthlySpendLimit,
-				night_mode_enabled: res.nightModeEnabled,
-				night_mode_start: res.nightModeStart
-					? dayjs(res.nightModeStart, 'HH:mm')
-					: dayjs('22:00', 'HH:mm'),
-				night_mode_end: res.nightModeEnd
-					? dayjs(res.nightModeEnd, 'HH:mm')
-					: dayjs('06:00', 'HH:mm'),
-				live_stream_blocked_under16: res.liveStreamBlockedUnder16,
-				content_filter_enabled: res.contentFilterEnabled,
-				child_default_max_privacy: res.childDefaultMaxPrivacy,
-				minor_data_retention_days: res.minorDataRetentionDays,
-			});
 		} catch (err) {
 			setConfig(null);
 			setConfigError(err instanceof Error ? err : new Error('加载未成年人保护配置失败'));
@@ -224,7 +233,7 @@ export default function MinorsProtectionPage() {
 				dailyUsageLimitMin: values.daily_usage_limit_min,
 				monthlySpendLimit: values.monthly_spend_limit,
 				nightModeEnabled: values.night_mode_enabled,
-				liveStreamBlockedUnder16: values.live_stream_blocked_under16,
+				liveStreamBlockedUnder16: values.live_stream_blocked_under_16,
 				contentFilterEnabled: values.content_filter_enabled,
 				childDefaultMaxPrivacy: values.child_default_max_privacy,
 				minorDataRetentionDays: values.minor_data_retention_days,
@@ -279,7 +288,10 @@ export default function MinorsProtectionPage() {
 
 	return (
 		<div style={{ padding: 24 }}>
-			<AppPageHeader title="未成年人保护" description="配置防沉迷策略、查看未成年用户、管理家长同意" />
+			<AppPageHeader
+				title={t('complianceMinors.title', '未成年人保护')}
+				description={t('complianceMinors.description', '配置防沉迷策略、查看未成年用户、管理家长同意')}
+			/>
 
 			<Row gutter={16} style={{ marginBottom: 24 }}>
 				<Col span={8}>
@@ -287,7 +299,7 @@ export default function MinorsProtectionPage() {
 						<Statistic
 							title="未成年用户数"
 							value={userTotal ?? '—'}
-							prefix={<UserOutlined />}
+							prefix={<User size="1em" />}
 						/>
 					</Card>
 				</Col>
@@ -311,7 +323,7 @@ export default function MinorsProtectionPage() {
 										: '关闭'
 									: '—'
 							}
-							prefix={<SafetyCertificateOutlined />}
+							prefix={<BadgeCheck size="1em" />}
 						/>
 					</Card>
 				</Col>
@@ -420,7 +432,7 @@ export default function MinorsProtectionPage() {
 								<div style={{ marginTop: 24, textAlign: 'right' }}>
 									<Button
 										onClick={loadConfig}
-										icon={<ReloadOutlined />}
+										icon={<RefreshCw size="1em" />}
 										style={{ marginRight: 8 }}
 									>
 										重置
@@ -434,7 +446,7 @@ export default function MinorsProtectionPage() {
 										<Button
 											type="primary"
 											loading={saving}
-											icon={<SaveOutlined />}
+											icon={<Save size="1em" />}
 										>
 											保存配置
 										</Button>
@@ -463,7 +475,7 @@ export default function MinorsProtectionPage() {
 									pageSize: userPageSize,
 									total: userTotal ?? users.length,
 									showSizeChanger: true,
-									showTotal: (t) => `共 ${t} 人`,
+									showTotal: (n) => `共 ${n} 人`,
 									onChange: (p: number, ps: number) => {
 										setUserPage(p);
 										setUserPageSize(ps);
@@ -528,7 +540,7 @@ export default function MinorsProtectionPage() {
 									pageSize: consentPageSize,
 									total: consentTotal ?? consents.length,
 									showSizeChanger: true,
-									showTotal: (t) => `共 ${t} 条`,
+									showTotal: (n) => `共 ${n} 条`,
 									onChange: (p: number, ps: number) => {
 										setConsentPage(p);
 										setConsentPageSize(ps);

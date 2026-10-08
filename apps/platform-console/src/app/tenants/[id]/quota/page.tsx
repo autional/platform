@@ -5,7 +5,7 @@ import { useParams } from 'react-router';
 import { Form, InputNumber, Button, Card, Spin, Descriptions, Tag } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
 import { message } from '@/lib/antd-app';
-import { SaveOutlined, ReloadOutlined } from '@ant-design/icons';
+import { RefreshCw, Save } from 'lucide-react';
 import { usePageTitle } from '@autional/shared';
 import { updateTenantQuota } from '@/lib/api.generated';
 import { handleApiError } from '@/lib/error-handler';
@@ -77,7 +77,7 @@ export default function QuotaPage() {
 				description={detail?.name ? `租户：${detail.name}` : tenantId ? `租户 ID：${tenantId}` : undefined}
 				actions={
 					<>
-						<Button icon={<ReloadOutlined />} onClick={() => refetch()}>
+						<Button icon={<RefreshCw size="1em" />} onClick={() => refetch()}>
 							刷新
 						</Button>
 					</>
@@ -141,7 +141,7 @@ export default function QuotaPage() {
 									/>
 								</Form.Item>
 
-								<Button type="primary" htmlType="submit" icon={<SaveOutlined />}>
+								<Button type="primary" htmlType="submit" icon={<Save size="1em" />}>
 									保存配置
 								</Button>
 							</Form>

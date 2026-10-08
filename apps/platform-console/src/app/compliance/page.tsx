@@ -1,15 +1,15 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Tabs, Card, Tag, Button, Statistic, Row, Col, Space, Modal, Form, Input, Select, Empty, Progress, Badge } from 'antd';
+import { Tabs, Card, Tag, Button, Statistic, Row, Col, Space, Modal, Form, Input, Select, Empty, Badge } from 'antd';
 import { message, modal } from '@/lib/antd-app';
 import {
-	SafetyCertificateOutlined,
-	EditOutlined,
-	PlusOutlined,
-	EyeOutlined,
-	SettingOutlined,
-} from '@ant-design/icons';
+	BadgeCheck,
+	Eye,
+	Pencil,
+	Plus,
+	Settings,
+} from 'lucide-react';
 import {
 	useDSARs,
 	useUpdateDSAR,
@@ -80,6 +80,8 @@ interface ConsentRecord {
 export default function CompliancePage() {
 	const [activeTab, setActiveTab] = useState('dashboard');
 	const [complianceScore, setComplianceScore] = useState<number | null>(null);
+	// U414③：score API 已下发 grade（A+/A/B/C/D），接渲染
+	const [complianceGrade, setComplianceGrade] = useState<string | null>(null);
 	const [standardCount, setStandardCount] = useState(0);
 	const navigate = useNavigate();
 	const tenantSlug = useTenantSlug();
@@ -113,8 +115,9 @@ export default function CompliancePage() {
 	const loading = dsarLoading || policyLoading || sodLoading || isoLoading;
 
 	useEffect(() => {
-		if (!currentTenantId && tenants.length > 0) {
-			switchTenant(tenants[0].id);
+		const rows = tenantPage?.items ?? [];
+		if (!currentTenantId && rows.length > 0) {
+			switchTenant(rows[0].id);
 		}
 	}, [currentTenantId, tenantPage, switchTenant]);
 
@@ -127,6 +130,7 @@ export default function CompliancePage() {
 				const scoreRes = (await adminComplianceTenantsScoreByTenants(currentTenantId)) as any;
 				const scorePayload = scoreRes?.data ?? scoreRes;
 				setComplianceScore(scorePayload?.overallScore ?? scorePayload?.overall_score ?? null);
+				setComplianceGrade(scorePayload?.grade ?? null);
 				const polRes = (await adminComplianceTenantsPolicyByTenants(currentTenantId)) as any;
 				const polPayload = polRes?.data ?? polRes;
 				setStandardCount(polPayload?.standards?.length || 0);
@@ -238,7 +242,7 @@ export default function CompliancePage() {
 				<Space size="small">
 					<Button
 						type="link"
-						icon={<EyeOutlined />}
+						icon={<Eye size="1em" />}
 						onClick={() => {
 							setCurrentDsar(record);
 							setDsarDrawer(true);
@@ -275,7 +279,7 @@ export default function CompliancePage() {
 				<Space size="small">
 					<Button
 						type="link"
-						icon={<EditOutlined />}
+						icon={<Pencil size="1em" />}
 						onClick={() => {
 							setEditingPolicy(record);
 							policyForm.setFieldsValue(record);
@@ -386,12 +390,28 @@ export default function CompliancePage() {
 											title="合规评分"
 											value={complianceScore ?? 0}
 											suffix="/ 100"
-											valueStyle={{
+											styles={{ content: {
 												color:
-													(complianceScore ?? 0) >= 80 ? 'var(--color-success-text)' : 'var(--color-danger-text)',
+													(complianceScore ?? 0) >= 80 ? 'var(--color-success-text)' : 'var(--color-danger-text)', }
 											}}
-											prefix={<SafetyCertificateOutlined />}
+											prefix={<BadgeCheck size="1em" />}
 										/>
+										{complianceGrade && (
+											<Tag
+												style={{ marginTop: 8 }}
+												color={
+													complianceGrade.toUpperCase().startsWith('A')
+														? 'success'
+														: complianceGrade.toUpperCase() === 'B'
+															? 'blue'
+															: complianceGrade.toUpperCase() === 'C'
+																? 'warning'
+																: 'error'
+												}
+											>
+												评级 {complianceGrade}
+											</Tag>
+										)}
 									</Card>
 								</Col>
 								<Col xs={24} md={6}>
@@ -400,7 +420,7 @@ export default function CompliancePage() {
 										<Button
 											type="link"
 											size="small"
-											icon={<SettingOutlined />}
+											icon={<Settings size="1em" />}
 											onClick={() =>
 												navigate(buildNavHref(ROUTE.COMPLIANCE_POLICY, tenantSlug))
 											}
@@ -414,7 +434,7 @@ export default function CompliancePage() {
 										<Statistic
 											title="待处理 DSAR"
 											value={pendingDsarCount}
-											valueStyle={{ color: pendingDsarCount > 0 ? 'var(--color-danger-text)' : 'var(--color-success-text)' }}
+											styles={{ content: { color: pendingDsarCount > 0 ? 'var(--color-danger-text)' : 'var(--color-success-text)' } }}
 										/>
 									</Card>
 								</Col>
@@ -442,7 +462,7 @@ export default function CompliancePage() {
 								<div className="flex justify-end mb-4">
 									<Button
 										type="primary"
-										icon={<PlusOutlined />}
+										icon={<Plus size="1em" />}
 										onClick={() => {
 											consentForm.resetFields();
 											setConsentModal(true);
@@ -469,7 +489,7 @@ export default function CompliancePage() {
 								<div className="flex justify-end mb-4">
 									<Button
 										type="primary"
-										icon={<PlusOutlined />}
+										icon={<Plus size="1em" />}
 										onClick={() => {
 											setEditingPolicy(null);
 											policyForm.resetFields();
@@ -576,6 +596,8 @@ export default function CompliancePage() {
 					policyForm.resetFields();
 				}}
 				onOk={() => policyForm.submit()}
+				// U412①：弹窗首开前不渲染子树，forceRender 让表单随页挂载（消「未挂载即调用」告警）
+				forceRender
 			>
 				<Form form={policyForm} layout="vertical" onFinish={handleSavePolicy}>
 					<Form.Item name="name" label="策略名称" rules={[{ required: true }]}>
@@ -608,6 +630,8 @@ export default function CompliancePage() {
 					consentForm.resetFields();
 				}}
 				onOk={() => consentForm.submit()}
+				// U412①：弹窗首开前不渲染子树，forceRender 让表单随页挂载（消「未挂载即调用」告警）
+				forceRender
 			>
 				<Form form={consentForm} layout="vertical" onFinish={handleCreateConsent}>
 					<Form.Item

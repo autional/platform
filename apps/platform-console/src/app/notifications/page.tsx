@@ -1,18 +1,19 @@
 'use client';
 
 import React, { useEffect, useRef, useMemo } from 'react';
-import { Card, Row, Col, Statistic, Skeleton, Tag, Typography } from 'antd';
+import { Card, Row, Col, Statistic, Skeleton, Tag } from 'antd';
 import {
-	ArrowUpOutlined,
-	BellOutlined,
-	EyeOutlined,
-	SendOutlined,
-	MailOutlined,
-} from '@ant-design/icons';
+	Bell,
+	Eye,
+	Send,
+} from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { usePageTitle } from '@autional/shared';
 import {
 	usePlatformCommunicationStats,
 	usePlatformNotificationStats,
 } from '@/hooks/use-platform-stats';
+import { AppPageHeader } from '@autional/ui';
 import { PageError, DataTable } from '@autional/ui/antd';
 import {
 	LineChart,
@@ -28,21 +29,30 @@ import {
 	Legend,
 } from 'recharts';
 
-const { Title } = Typography;
-
 const CHANNEL_COLORS = ['var(--color-chart-1)', 'var(--color-chart-2)', 'var(--color-chart-3)'];
 const TYPE_COLORS = ['var(--color-chart-2)', 'var(--color-chart-3)', 'var(--color-chart-4)', 'var(--color-chart-5)', 'var(--color-chart-1)', 'var(--color-chart-6)'];
 const PIE_COLORS = ['var(--color-chart-1)', 'var(--color-chart-2)', 'var(--color-chart-3)', 'var(--color-chart-4)', 'var(--color-chart-5)', 'var(--color-chart-6)'];
 
-const statusLabels: Record<string, string> = {
+const STATUS_LABELS: Record<string, string> = {
 	sent: '已发送',
 	delivered: '已送达',
 	failed: '失败',
 	pending: '待处理',
 	scheduled: '已排期',
+	cancelled: '已取消',
+};
+
+const CHANNEL_LABELS: Record<string, string> = {
+	sms: '短信',
+	email: '邮件',
+	push: '推送',
+	inapp: '站内',
+	webhook: 'Webhook',
 };
 
 export default function PlatformNotificationsPage() {
+	const { t } = useTranslation();
+	usePageTitle(t('platformNotifications.title', '平台通信与通知'));
 	const {
 		data: comm,
 		isLoading: commLoading,
@@ -73,17 +83,16 @@ export default function PlatformNotificationsPage() {
 	const channelPieData = useMemo(() => {
 		if (!comm?.byChannel) return [];
 		return Object.entries(comm.byChannel).map(([name, value]) => ({
-			name: name.toUpperCase(),
+			name: t(`platformNotifications.channel.${name.toLowerCase()}`, CHANNEL_LABELS[name.toLowerCase()] ?? name),
 			value,
 		}));
-	}, [comm?.byChannel]);
+	}, [comm?.byChannel, t]);
 
 	const statusTableData = useMemo(() => {
 		if (!comm?.byStatus) return [];
 		return Object.entries(comm.byStatus).map(([status, count]) => ({
 			key: status,
 			status,
-			label: statusLabels[status] || status,
 			count,
 		}));
 	}, [comm?.byStatus]);
@@ -95,21 +104,23 @@ export default function PlatformNotificationsPage() {
 
 	return (
 		<div>
-			<div className="flex items-center justify-between mb-2">
-				<Title level={4} className="!mb-0">
-					平台通信与通知
-				</Title>
-				<span className="text-neutral-600 text-xs">每 30 秒自动刷新</span>
-			</div>
 			{/* PL-31：两卡数字来源不同服务、时间窗不同（消息=通信服务近 30 天；通知=站内全量累计），不注明会被当矛盾 */}
-			<div className="text-neutral-600 text-xs mb-6">
-				口径说明：「消息」= 通信服务（短信 / 邮件等渠道）近 30 天发送量；「通知」= 站内通知全量累计（无时间窗）。
-				两者来源不同服务、统计范围不同，数字不可直接比较。
-			</div>
+			<AppPageHeader
+				title={t('platformNotifications.title', '平台通信与通知')}
+				description={t(
+					'platformNotifications.scopeNote',
+					'口径说明：「消息」= 通信服务（短信 / 邮件等渠道）近 30 天发送量；「通知」= 站内通知全量累计（无时间窗）。两者来源不同服务、统计范围不同，数字不可直接比较。',
+				)}
+				actions={
+					<span className="text-xs text-neutral-600">
+						{t('platformNotifications.autoRefresh', '每 30 秒自动刷新')}
+					</span>
+				}
+			/>
 
 			{(commError || notifError) && (
 				<PageError
-					message="加载平台统计失败"
+					message={t('platformNotifications.loadError', '加载平台统计失败')}
 					retry={() => {
 						commRefetch();
 						notifRefetch();
@@ -125,9 +136,9 @@ export default function PlatformNotificationsPage() {
 							<Skeleton active paragraph={{ rows: 0 }} />
 						) : (
 							<Statistic
-								title="近 30 天已发送消息"
+								title={t('platformNotifications.messages30d', '近 30 天已发送消息')}
 								value={comm?.totalSent ?? 0}
-								prefix={<SendOutlined className="text-info" />}
+								prefix={<Send size="1em" className="text-info" />}
 							/>
 						)}
 					</Card>
@@ -138,11 +149,11 @@ export default function PlatformNotificationsPage() {
 							<Skeleton active paragraph={{ rows: 0 }} />
 						) : (
 							<Statistic
-								title="送达率"
+								title={t('platformNotifications.deliveryRate', '送达率')}
 								value={comm?.deliveryRate ? Math.round(comm.deliveryRate * 10000) / 100 : 0}
 								suffix="%"
 								precision={1}
-								valueStyle={{ color: (comm?.deliveryRate ?? 0) > 0.9 ? 'var(--color-success-text)' : 'var(--color-danger-text)' }}
+								styles={{ content: { color: (comm?.deliveryRate ?? 0) > 0.9 ? 'var(--color-success-text)' : 'var(--color-danger-text)' } }}
 							/>
 						)}
 					</Card>
@@ -153,9 +164,9 @@ export default function PlatformNotificationsPage() {
 							<Skeleton active paragraph={{ rows: 0 }} />
 						) : (
 							<Statistic
-								title="通知总数（累计）"
+								title={t('platformNotifications.notificationsTotal', '通知总数（累计）')}
 								value={notif?.totalSent ?? 0}
-								prefix={<BellOutlined className="text-chart-7" />}
+								prefix={<Bell size="1em" className="text-chart-7" />}
 							/>
 						)}
 					</Card>
@@ -166,12 +177,12 @@ export default function PlatformNotificationsPage() {
 							<Skeleton active paragraph={{ rows: 0 }} />
 						) : (
 							<Statistic
-								title="通知已读率"
+								title={t('platformNotifications.readRate', '通知已读率')}
 								value={notif?.readRate ? Math.round(notif.readRate * 10000) / 100 : 0}
 								suffix="%"
 								precision={1}
-								prefix={<EyeOutlined className="text-success" />}
-								valueStyle={{ color: (notif?.readRate ?? 0) > 0.4 ? 'var(--color-success-text)' : 'var(--color-danger-text)' }}
+								prefix={<Eye size="1em" className="text-success" />}
+								styles={{ content: { color: (notif?.readRate ?? 0) > 0.4 ? 'var(--color-success-text)' : 'var(--color-danger-text)' } }}
 							/>
 						)}
 					</Card>
@@ -180,58 +191,62 @@ export default function PlatformNotificationsPage() {
 
 			<Row gutter={[16, 16]} className="mt-6">
 				<Col xs={24} lg={12}>
-					<Card title="按渠道统计消息">
+					<Card title={t('platformNotifications.byChannel', '按渠道统计消息')}>
 						{isLoading ? (
 							<Skeleton active paragraph={{ rows: 5 }} />
 						) : (
-							<ResponsiveContainer width="100%" height={280}>
-								<PieChart>
-									<Pie
-										data={channelPieData}
-										cx="50%"
-										cy="50%"
-										outerRadius={100}
-										dataKey="value"
-										label={({ name, value }) => `${name}: ${value}`}
-									>
-										{channelPieData.map((_, idx) => (
-											<Cell key={idx} fill={CHANNEL_COLORS[idx % CHANNEL_COLORS.length]} />
-										))}
-									</Pie>
-									<Tooltip />
-								</PieChart>
-							</ResponsiveContainer>
+							<div role="img" aria-label={t('platformNotifications.chartChannelsAria', '按渠道统计消息饼图')}>
+								<ResponsiveContainer width="100%" height={280}>
+									<PieChart>
+										<Pie
+											data={channelPieData}
+											cx="50%"
+											cy="50%"
+											outerRadius={100}
+											dataKey="value"
+											label={({ name, value }) => `${name}: ${value}`}
+										>
+											{channelPieData.map((_, idx) => (
+												<Cell key={idx} fill={CHANNEL_COLORS[idx % CHANNEL_COLORS.length]} />
+											))}
+										</Pie>
+										<Tooltip />
+									</PieChart>
+								</ResponsiveContainer>
+							</div>
 						)}
 					</Card>
 				</Col>
 				<Col xs={24} lg={12}>
-					<Card title="按类型统计通知">
+					<Card title={t('platformNotifications.byType', '按类型统计通知')}>
 						{isLoading ? (
 							<Skeleton active paragraph={{ rows: 5 }} />
 						) : (
-							<ResponsiveContainer width="100%" height={280}>
-								<PieChart>
-									<Pie
-										data={typePieData}
-										cx="50%"
-										cy="50%"
-										outerRadius={100}
-										dataKey="value"
-										label={({ name, value }) => `${name}: ${value}`}
-									>
-										{typePieData.map((_, idx) => (
-											<Cell key={idx} fill={TYPE_COLORS[idx % TYPE_COLORS.length]} />
-										))}
-									</Pie>
-									<Tooltip />
-								</PieChart>
-							</ResponsiveContainer>
+							<div role="img" aria-label={t('platformNotifications.chartTypesAria', '按类型统计通知饼图')}>
+								<ResponsiveContainer width="100%" height={280}>
+									<PieChart>
+										<Pie
+											data={typePieData}
+											cx="50%"
+											cy="50%"
+											outerRadius={100}
+											dataKey="value"
+											label={({ name, value }) => `${name}: ${value}`}
+										>
+											{typePieData.map((_, idx) => (
+												<Cell key={idx} fill={TYPE_COLORS[idx % TYPE_COLORS.length]} />
+											))}
+										</Pie>
+										<Tooltip />
+									</PieChart>
+								</ResponsiveContainer>
+							</div>
 						)}
 					</Card>
 				</Col>
 			</Row>
 
-			<Card title="消息状态分布" className="mt-6">
+			<Card title={t('platformNotifications.statusDist', '消息状态分布')} className="mt-6">
 				{isLoading ? (
 					<Skeleton active paragraph={{ rows: 4 }} />
 				) : (
@@ -242,13 +257,15 @@ export default function PlatformNotificationsPage() {
 						rowKey="status"
 						columns={[
 							{
-								title: '状态',
+								title: t('platformNotifications.colStatus', '状态'),
 								dataIndex: 'status',
 								key: 'status',
-								render: (v: string) => <Tag>{v}</Tag>,
+								render: (v: string) => (
+									<Tag>{t(`platformNotifications.status.${v}`, STATUS_LABELS[v] ?? v)}</Tag>
+								),
 							},
 							{
-								title: '数量',
+								title: t('platformNotifications.colCount', '数量'),
 								dataIndex: 'count',
 								key: 'count',
 								render: (v: number) => v.toLocaleString(),

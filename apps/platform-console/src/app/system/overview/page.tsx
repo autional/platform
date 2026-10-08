@@ -3,26 +3,27 @@
 import React, { useMemo } from 'react';
 import { Card, Col, Row, Tag, Statistic } from 'antd';
 import {
-	CheckCircleFilled,
-	CloseCircleFilled,
-	QuestionCircleFilled,
-	DatabaseOutlined,
-	SafetyCertificateOutlined,
-	WarningOutlined,
-	TeamOutlined,
-	CloudServerOutlined,
-} from '@ant-design/icons';
+	AlertTriangle,
+	BadgeCheck,
+	CheckCircle2,
+	Cloud,
+	Database,
+	HelpCircle,
+	Users,
+	XCircle,
+} from 'lucide-react';
 import { Alert, AppPageHeader } from '@autional/ui';
 import { useTranslation } from 'react-i18next';
+import { usePageTitle } from '@autional/shared';
 import { useSystemServices, useSystemTenants, CATEGORY_LABELS } from '@/hooks/use-system-overview';
 import type { ServiceInfo } from '@/hooks/use-system-overview';
 import { PageLoading } from '@autional/ui/antd';
 import { ApiErrorState } from '@/components/ApiErrorState';
 
 const statusConfig: Record<string, { icon: React.ReactNode }> = {
-	healthy: { icon: <CheckCircleFilled style={{ color: 'var(--color-success)' }} /> },
-	unhealthy: { icon: <CloseCircleFilled style={{ color: 'var(--color-danger)' }} /> },
-	unknown: { icon: <QuestionCircleFilled style={{ color: 'var(--color-text-disabled)' }} /> },
+	healthy: { icon: <CheckCircle2 size="1em" style={{ color: 'var(--color-success)' }} /> },
+	unhealthy: { icon: <XCircle size="1em" style={{ color: 'var(--color-danger)' }} /> },
+	unknown: { icon: <HelpCircle size="1em" style={{ color: 'var(--color-text-disabled)' }} /> },
 };
 
 const categoryColors: Record<ServiceInfo['category'], string> = {
@@ -36,6 +37,7 @@ const categoryColors: Record<ServiceInfo['category'], string> = {
 
 export default function SystemOverviewPage() {
 	const { t } = useTranslation();
+	usePageTitle(t('systemOverview.title', '系统总览'));
 	const servicesQuery = useSystemServices();
 	const tenantsQuery = useSystemTenants();
 
@@ -62,7 +64,7 @@ export default function SystemOverviewPage() {
 					<Card
 						title={
 							<span>
-								<CloudServerOutlined className="mr-2" />
+								<Cloud size="1em" className="mr-2" />
 								{t('systemOverview.serviceHealth', '服务健康')}
 							</span>
 						}
@@ -132,7 +134,7 @@ export default function SystemOverviewPage() {
 					<Card
 						title={
 							<span>
-								<DatabaseOutlined className="mr-2" />
+								<Database size="1em" className="mr-2" />
 								{t('systemOverview.infrastructure', '基础设施')}
 							</span>
 						}
@@ -156,7 +158,7 @@ export default function SystemOverviewPage() {
 					<Card
 						title={
 							<span>
-								<TeamOutlined className="mr-2" />
+								<Users size="1em" className="mr-2" />
 								{t('systemOverview.tenantOverview', '租户概览')}
 							</span>
 						}
@@ -174,21 +176,21 @@ export default function SystemOverviewPage() {
 										<Statistic
 											title={t('systemOverview.totalTenants', '总数')}
 											value={tenantsQuery.data.total}
-											prefix={<TeamOutlined className="text-info" />}
+											prefix={<Users size="1em" className="text-info" />}
 										/>
 									</Col>
 									<Col span={8}>
 										<Statistic
 											title={t('systemOverview.activeTenants', '活跃')}
 											value={tenantsQuery.data.active}
-											prefix={<CheckCircleFilled className="text-success" />}
+											prefix={<CheckCircle2 size="1em" className="text-success" />}
 										/>
 									</Col>
 									<Col span={8}>
 										<Statistic
 											title={t('systemOverview.suspendedTenants', '已暂停')}
 											value={tenantsQuery.data.suspended}
-											prefix={<WarningOutlined className="text-warning" />}
+											prefix={<AlertTriangle size="1em" className="text-warning" />}
 										/>
 									</Col>
 								</Row>
@@ -215,7 +217,7 @@ export default function SystemOverviewPage() {
 					<Card
 						title={
 							<span>
-								<SafetyCertificateOutlined className="mr-2" />
+								<BadgeCheck size="1em" className="mr-2" />
 								{t('systemOverview.securityPosture', '安全态势')}
 							</span>
 						}

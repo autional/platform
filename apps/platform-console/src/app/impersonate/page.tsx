@@ -2,9 +2,10 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Button, Form, Input, Select, Space, Typography } from 'antd';
-import { WarningOutlined, ExportOutlined } from '@ant-design/icons';
+import { AlertTriangle, ExternalLink } from 'lucide-react';
 import dayjs from 'dayjs';
 import { useMutation } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import {
 	extractListResult,
 	getPortalUrl,
@@ -44,7 +45,8 @@ const formatExpiresAt = (value: string) => {
 };
 
 export default function ImpersonatePage() {
-	usePageTitle('管理员模拟登录');
+	const { t } = useTranslation();
+	usePageTitle(t('impersonate.title', '管理员模拟登录'));
 	const tenantSlug = useTenantSlug();
 	const [form] = Form.useForm<ImpersonateFormValues>();
 	const [users, setUsers] = useState<PlatformUser[]>([]);
@@ -94,10 +96,10 @@ export default function ImpersonatePage() {
 			}) as Promise<ImpersonateSession>,
 		onSuccess: (payload) => {
 			setSession(payload);
-			message.success('模拟会话已创建');
+			message.success(t('impersonate.created', '模拟会话已创建'));
 		},
 		onError: (err) => {
-			handleApiError(err, '模拟登录失败');
+			handleApiError(err, t('impersonate.failed', '模拟登录失败'));
 		},
 	});
 
@@ -106,10 +108,13 @@ export default function ImpersonatePage() {
 		const label = selected ? userLabel(selected) : values.userId;
 		// 旧「我确认」checkbox 由提交前二次确认替代（见下方 modal.confirm）
 		modal.confirm({
-			title: '确认发起模拟会话？',
-			content: `将以「${label}」的身份进入管理控制台。模拟会话 1 小时内有效、全程审计。`,
-			okText: '确认模拟',
-			cancelText: '取消',
+			title: t('impersonate.confirmTitle', '确认发起模拟会话？'),
+			content: t('impersonate.confirmContent', {
+				label,
+				defaultValue: '将以「{{label}}」的身份进入管理控制台。模拟会话 1 小时内有效、全程审计。',
+			}),
+			okText: t('impersonate.confirmOk', '确认模拟'),
+			cancelText: t('common.cancel', '取消'),
 			onOk: () => {
 				setTarget({ userId: values.userId, label });
 				impersonateMut.mutate(values);
@@ -136,23 +141,36 @@ export default function ImpersonatePage() {
 		return (
 			<div>
 				<div className="mb-6">
-					<AppPageHeader title="管理员模拟登录" description="模拟其他用户登录系统" />
+					<AppPageHeader
+						title={t('impersonate.title', '管理员模拟登录')}
+						description={t('impersonate.subtitleSuccess', '模拟其他用户登录系统')}
+					/>
 				</div>
 				<SectionCard padding="lg">
 					<Result
 						variant="success"
 						surface="tinted"
-						title="模拟会话已就绪"
+						title={t('impersonate.ready', '模拟会话已就绪')}
 						description={
 							<Space orientation="vertical" size="small">
 								<Text>
-									目标用户：{target.label}（{target.userId}）
+									{t('impersonate.targetUserLine', {
+										name: target.label,
+										id: target.userId,
+										defaultValue: '目标用户：{{name}}（{{id}}）',
+									})}
 								</Text>
 								<Text>
-									会话有效期至 {formatExpiresAt(session.expiresAt)}（1 小时后自动过期）
+									{t('impersonate.expiresLine', {
+										time: formatExpiresAt(session.expiresAt),
+										defaultValue: '会话有效期至 {{time}}（1 小时后自动过期）',
+									})}
 								</Text>
 								<Text type="secondary">
-									模拟会话将在新窗口生效，可在该窗口顶部横幅随时终止。
+									{t(
+										'impersonate.newWindowNote',
+										'模拟会话将在新窗口生效，可在该窗口顶部横幅随时终止。',
+									)}
 								</Text>
 							</Space>
 						}
@@ -160,13 +178,13 @@ export default function ImpersonatePage() {
 							<Button
 								key="open"
 								type="primary"
-								icon={<ExportOutlined />}
+								icon={<ExternalLink size="1em" />}
 								onClick={openAdminConsole}
 							>
-								打开管理控制台（模拟会话）
+								{t('impersonate.openConsole', '打开管理控制台（模拟会话）')}
 							</Button>,
 							<Button key="back" onClick={handleBack}>
-								返回
+								{t('impersonate.back', '返回')}
 							</Button>,
 						]}
 					/>
@@ -184,28 +202,37 @@ export default function ImpersonatePage() {
 	return (
 		<div>
 			<div className="mb-6">
-				<AppPageHeader title="管理员模拟登录" description="以其他用户身份登录系统进行操作" />
+				<AppPageHeader
+					title={t('impersonate.title', '管理员模拟登录')}
+					description={t('impersonate.subtitle', '以其他用户身份登录系统进行操作')}
+				/>
 			</div>
 
 			<Alert
 				variant="warning"
-				title="模拟用户操作将被完整审计。请谨慎使用。"
+				title={t('impersonate.auditWarning', '模拟用户操作将被完整审计。请谨慎使用。')}
 				className="mb-6"
-				icon={<WarningOutlined />}
+				icon={<AlertTriangle size="1em" />}
 			/>
 
-			<SectionCard title="模拟登录表单" padding="lg">
+			<SectionCard title={t('impersonate.formTitle', '模拟登录表单')} padding="lg">
 				<Form form={form} layout="vertical" onFinish={handleSubmit}>
 					<Form.Item
 						name="userId"
-						label="目标用户"
-						rules={[{ required: true, message: '请搜索并选择目标用户' }]}
+						label={t('impersonate.targetUser', '目标用户')}
+						rules={[
+							{ required: true, message: t('impersonate.targetUserRequired', '请搜索并选择目标用户') },
+						]}
 					>
 						<Select
-							placeholder="输入用户名或邮箱搜索"
+							placeholder={t('impersonate.searchPlaceholder', '输入用户名或邮箱搜索')}
 							showSearch={{ filterOption: false, onSearch: handleUserSearch }}
 							loading={searching}
-							notFoundContent={searching ? '搜索中…' : '输入用户名或邮箱搜索'}
+							notFoundContent={
+								searching
+									? t('impersonate.searching', '搜索中…')
+									: t('impersonate.searchPlaceholder', '输入用户名或邮箱搜索')
+							}
 							options={userOptions}
 							onSelect={(_value: string, option: Record<string, unknown>) =>
 								setSelectedUser((option?.user as PlatformUser) ?? null)
@@ -227,10 +254,13 @@ export default function ImpersonatePage() {
 
 					<Form.Item
 						name="reason"
-						label="模拟原因"
-						rules={[{ required: true, message: '请输入模拟原因' }]}
+						label={t('impersonate.reason', '模拟原因')}
+						rules={[{ required: true, message: t('impersonate.reasonRequired', '请输入模拟原因') }]}
 					>
-						<TextArea rows={3} placeholder="请详细说明模拟该用户的原因" />
+						<TextArea
+							rows={3}
+							placeholder={t('impersonate.reasonPlaceholder', '请详细说明模拟该用户的原因')}
+						/>
 					</Form.Item>
 
 					<Form.Item>
@@ -240,7 +270,7 @@ export default function ImpersonatePage() {
 							loading={impersonateMut.isPending}
 							size="large"
 						>
-							开始模拟
+							{t('impersonate.submit', '开始模拟')}
 						</Button>
 					</Form.Item>
 				</Form>

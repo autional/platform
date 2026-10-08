@@ -4,12 +4,12 @@ import React, { useMemo } from 'react';
 import { DataTable } from '@autional/ui/antd';
 import { Card, Statistic, Tag, Row, Col, Spin } from 'antd';
 import {
-	CheckCircleOutlined,
-	CloseCircleOutlined,
-	AppstoreOutlined,
-	SettingOutlined,
-	MinusOutlined,
-} from '@ant-design/icons';
+	CheckCircle2,
+	LayoutGrid,
+	Minus,
+	Settings,
+	XCircle,
+} from 'lucide-react';
 import { usePageTitle } from '@autional/shared';
 import { Alert, AppPageHeader } from '@autional/ui';
 import { adminFeatureFlags } from '@autional/shared/generated/api';
@@ -89,19 +89,19 @@ export default function FeatureFlagsPage() {
 					render: (v: boolean | undefined) => {
 						if (v === true) {
 							return (
-								<Tag color="green" icon={<CheckCircleOutlined />}>
+								<Tag color="green" icon={<CheckCircle2 size="1em" />}>
 									启用
 								</Tag>
 							);
 						}
 						if (v === false) {
 							return (
-								<Tag color="default" icon={<CloseCircleOutlined />}>
+								<Tag color="default" icon={<XCircle size="1em" />}>
 									禁用
 								</Tag>
 							);
 						}
-						return <MinusOutlined style={{ color: 'var(--color-text-disabled)' }} />;
+						return <Minus size="1em" style={{ color: 'var(--color-text-disabled)' }} />;
 					},
 				})),
 			],
@@ -141,7 +141,7 @@ export default function FeatureFlagsPage() {
 		<div>
 			<div className="mb-6">
 				<AppPageHeader
-					title="功能开关矩阵"
+					title="功能开关"
 					description="跨服务功能开关配置矩阵 —— 全部 21 个服务总览"
 				/>
 			</div>
@@ -165,7 +165,7 @@ export default function FeatureFlagsPage() {
 								<Statistic
 									title="服务总数"
 									value={isLoading ? '-' : totalServices}
-									prefix={<AppstoreOutlined />}
+									prefix={<LayoutGrid size="1em" />}
 								/>
 							</Card>
 						</Col>
@@ -174,7 +174,7 @@ export default function FeatureFlagsPage() {
 								<Statistic
 									title="功能键"
 									value={isLoading ? '-' : flagKeys.length}
-									prefix={<SettingOutlined />}
+									prefix={<Settings size="1em" />}
 								/>
 							</Card>
 						</Col>
@@ -183,8 +183,8 @@ export default function FeatureFlagsPage() {
 								<Statistic
 									title="已启用功能"
 									value={isLoading ? '-' : totalFeaturesEnabled}
-									prefix={<CheckCircleOutlined />}
-									valueStyle={{ color: 'var(--color-success-text)' }}
+									prefix={<CheckCircle2 size="1em" />}
+									styles={{ content: { color: 'var(--color-success-text)' } }}
 								/>
 							</Card>
 						</Col>

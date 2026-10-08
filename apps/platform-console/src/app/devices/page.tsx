@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { DataTable } from '@autional/ui/antd';
-import { Button, Space, Modal, Form, Input, Select, Popconfirm, Skeleton } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { DataTable, Modal } from '@autional/ui/antd';
+import { Button, Space, Form, Input, Select, Popconfirm, Skeleton } from 'antd';
+import { Pencil, Plus, Trash2 } from 'lucide-react';
 import {
 	usePageTitle,
 	useTenantSlug,
@@ -199,7 +199,7 @@ export default function DevicesPage() {
 				<Space size="small">
 					<Button
 						type="link"
-						icon={<EditOutlined />}
+						icon={<Pencil size="1em" />}
 						onClick={(e) => {
 							e.stopPropagation();
 							navigate(
@@ -223,7 +223,7 @@ export default function DevicesPage() {
 						<Button
 							type="link"
 							danger
-							icon={<DeleteOutlined />}
+							icon={<Trash2 size="1em" />}
 							onClick={(e) => e.stopPropagation()}
 						>
 							删除
@@ -242,7 +242,7 @@ export default function DevicesPage() {
 				actions={
 					<Button
 						type="primary"
-						icon={<PlusOutlined />}
+						icon={<Plus size="1em" />}
 						onClick={() => {
 							form.resetFields();
 							setModalVisible(true);
@@ -274,7 +274,7 @@ export default function DevicesPage() {
 					<EmptyState title="暂无 Device" description="创建第一个 Device 以开始使用。" />
 					<Button
 						type="primary"
-						icon={<PlusOutlined />}
+						icon={<Plus size="1em" />}
 						onClick={() => {
 							form.resetFields();
 							setModalVisible(true);
@@ -324,6 +324,8 @@ export default function DevicesPage() {
 				onOk={() => form.submit()}
 				confirmLoading={createMut.isPending}
 				destroyOnHidden
+				// U412①：destroyOnHidden 弹窗首开前不渲染子树，forceRender 让表单随页挂载（消「未挂载即调用」告警）
+				forceRender
 			>
 				<Form form={form} layout="vertical" onFinish={handleCreate}>
 					<Form.Item name="name" label="名称" rules={[{ required: true }]}>

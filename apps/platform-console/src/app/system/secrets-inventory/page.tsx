@@ -1,28 +1,27 @@
 'use client';
 
 import React, { useState, useMemo, useCallback } from 'react';
-import { Card, Statistic, Tag, Badge, Input, Select, Row, Col, Tabs, Modal, Typography, Space, Button, Descriptions, Tooltip, Popconfirm } from 'antd';
+import { Card, Statistic, Tag, Badge, Input, Select, Row, Col, Tabs, Typography, Space, Button, Descriptions, Tooltip, Popconfirm } from 'antd';
 import { message, modal } from '@/lib/antd-app';
 import {
-	SearchOutlined,
-	EyeOutlined,
-	SyncOutlined,
-	StopOutlined,
-	DeleteOutlined,
-	CheckCircleOutlined,
-	ClockCircleOutlined,
-	ExclamationCircleOutlined,
-	LockOutlined,
-	KeyOutlined,
-	ApiOutlined,
-	GlobalOutlined,
-	CodeOutlined,
-	SafetyOutlined,
-	CloudServerOutlined,
-	LoadingOutlined,
-	CopyOutlined,
-} from '@ant-design/icons';
-import { PageLoading, PageError, DataTable } from '@autional/ui/antd';
+	AlertCircle,
+	Ban,
+	CheckCircle2,
+	Clock,
+	Cloud,
+	Code,
+	Copy,
+	Eye,
+	Globe,
+	KeyRound,
+	Lock,
+	Plug,
+	RefreshCw,
+	Search,
+	ShieldCheck,
+	Trash2,
+} from 'lucide-react';
+import { PageLoading, PageError, DataTable, Modal } from '@autional/ui/antd';
 import { Alert, AppPageHeader } from '@autional/ui';
 import {
 	useSecretsInventoryOverview,
@@ -41,6 +40,9 @@ import {
 	type OAuthSecretRecord,
 } from '@/hooks/use-secrets-inventory';
 import { handleApiError } from '@/lib/error-handler';
+import { ApiErrorState } from '@/components/ApiErrorState';
+import { usePageTitle } from '@autional/shared';
+import { useTranslation } from 'react-i18next';
 import {
 	useRotateSecret,
 	useRevokeSecret,
@@ -60,6 +62,8 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default function SystemSecretsInventoryPage() {
+	const { t } = useTranslation();
+	usePageTitle(t('secretsInventory.title', '密钥清单'));
 	const [activeTab, setActiveTab] = useState('overview');
 	const [kvKeyword, setKvKeyword] = useState('');
 	const [kvStatusFilter, setKvStatusFilter] = useState('all');
@@ -280,7 +284,7 @@ export default function SystemSecretsInventoryPage() {
 			dataIndex: 'key',
 			key: 'key',
 			render: (v: string) => (
-				<code className="text-xs bg-neutral-200 dark:bg-neutral-900 px-2 py-0.5 rounded">{v}</code>
+				<code className="text-xs bg-neutral-200 dark:bg-neutral-900 px-2 py-0.5 rounded-xs">{v}</code>
 			),
 		},
 		{
@@ -326,7 +330,7 @@ export default function SystemSecretsInventoryPage() {
 					<Button
 						type="link"
 						size="small"
-						icon={<EyeOutlined />}
+						icon={<Eye size="1em" />}
 						onClick={() => handleRevealValue(record)}
 					>
 						显示
@@ -334,7 +338,7 @@ export default function SystemSecretsInventoryPage() {
 					<Button
 						type="link"
 						size="small"
-						icon={<SyncOutlined />}
+						icon={<RefreshCw size="1em" />}
 						onClick={() => handleRotate(record)}
 					>
 						轮换
@@ -343,7 +347,7 @@ export default function SystemSecretsInventoryPage() {
 						type="link"
 						size="small"
 						danger
-						icon={<StopOutlined />}
+						icon={<Ban size="1em" />}
 						disabled={record.status === 'revoked'}
 						onClick={() => handleRevoke(record)}
 					>
@@ -354,7 +358,7 @@ export default function SystemSecretsInventoryPage() {
 							type="link"
 							size="small"
 							danger
-							icon={<DeleteOutlined />}
+							icon={<Trash2 size="1em" />}
 							disabled={record.isSystem}
 							onClick={() => handleDelete(record)}
 						>
@@ -393,7 +397,7 @@ export default function SystemSecretsInventoryPage() {
 			dataIndex: 'keyId',
 			key: 'keyId',
 			render: (v: string) => (
-				<code className="text-xs bg-neutral-200 dark:bg-neutral-900 px-2 py-0.5 rounded">{v}</code>
+				<code className="text-xs bg-neutral-200 dark:bg-neutral-900 px-2 py-0.5 rounded-xs">{v}</code>
 			),
 		},
 		{ title: '算法', dataIndex: 'algorithm', key: 'algorithm' },
@@ -450,7 +454,7 @@ export default function SystemSecretsInventoryPage() {
 			width: 200,
 			render: (v: boolean) =>
 				v ? (
-					<Tag icon={<LockOutlined />} color="processing">
+					<Tag icon={<Lock size="1em" />} color="processing">
 						仅存于内存（RSA 2048）
 					</Tag>
 				) : null,
@@ -463,7 +467,7 @@ export default function SystemSecretsInventoryPage() {
 			dataIndex: 'credentialName',
 			key: 'credentialName',
 			render: (v: string) => (
-				<code className="text-xs bg-neutral-200 dark:bg-neutral-900 px-2 py-0.5 rounded">{v}</code>
+				<code className="text-xs bg-neutral-200 dark:bg-neutral-900 px-2 py-0.5 rounded-xs">{v}</code>
 			),
 		},
 		{
@@ -479,11 +483,11 @@ export default function SystemSecretsInventoryPage() {
 			width: 100,
 			render: (v: string) => {
 				const iconMap: Record<string, React.ReactNode> = {
-					DB: <CodeOutlined />,
-					Redis: <CodeOutlined />,
-					MQ: <ApiOutlined />,
-					MinIO: <CloudServerOutlined />,
-					API: <GlobalOutlined />,
+					DB: <Code size="1em" />,
+					Redis: <Code size="1em" />,
+					MQ: <Plug size="1em" />,
+					MinIO: <Cloud size="1em" />,
+					API: <Globe size="1em" />,
 				};
 				return <Tag icon={iconMap[v]}>{v}</Tag>;
 			},
@@ -495,11 +499,11 @@ export default function SystemSecretsInventoryPage() {
 			width: 180,
 			render: (v: boolean) =>
 				v ? (
-					<Tag icon={<CheckCircleOutlined />} color="success">
+					<Tag icon={<CheckCircle2 size="1em" />} color="success">
 						是
 					</Tag>
 				) : (
-					<Tag icon={<ExclamationCircleOutlined />} color="warning">
+					<Tag icon={<AlertCircle size="1em" />} color="warning">
 						否
 					</Tag>
 				),
@@ -511,7 +515,7 @@ export default function SystemSecretsInventoryPage() {
 			title: '前缀',
 			dataIndex: 'prefix',
 			key: 'prefix',
-			render: (v: string) => <code className="text-xs">{v}</code>,
+			render: (v: string) => (v ? <code className="text-xs">{v}</code> : '—'),
 		},
 		{
 			title: '租户',
@@ -575,10 +579,10 @@ export default function SystemSecretsInventoryPage() {
 			key: 'clientId',
 			render: (v: string) => (
 				<Space>
-					<code className="text-xs bg-neutral-200 dark:bg-neutral-900 px-2 py-0.5 rounded max-w-[200px] truncate inline-block">
+					<code className="text-xs bg-neutral-200 dark:bg-neutral-900 px-2 py-0.5 rounded-xs max-w-[200px] truncate inline-block">
 						{v}
 					</code>
-					<LockOutlined className="text-neutral-500" />
+					<Lock size="1em" className="text-neutral-500" />
 				</Space>
 			),
 		},
@@ -610,7 +614,7 @@ export default function SystemSecretsInventoryPage() {
 					<Button
 						type="link"
 						size="small"
-						icon={<SyncOutlined />}
+						icon={<RefreshCw size="1em" />}
 						loading={rotateOAuthMutation.isPending}
 					>
 						轮换密钥
@@ -625,7 +629,7 @@ export default function SystemSecretsInventoryPage() {
 			key: 'overview',
 			label: (
 				<span>
-					<CheckCircleOutlined /> 概览
+					<CheckCircle2 size="1em" /> 概览
 				</span>
 			),
 			children: (
@@ -641,7 +645,7 @@ export default function SystemSecretsInventoryPage() {
 			key: 'kv',
 			label: (
 				<span>
-					<KeyOutlined /> 密钥 KV（{kvData.length}）
+					<KeyRound size="1em" /> 密钥 KV（{kvData.length}）
 				</span>
 			),
 			children: (
@@ -656,7 +660,7 @@ export default function SystemSecretsInventoryPage() {
 							value={kvKeyword}
 							onChange={(e) => setKvKeyword(e.target.value)}
 							className="max-w-md"
-							prefix={<SearchOutlined />}
+							prefix={<Search size="1em" />}
 						/>
 						<Select
 							value={kvStatusFilter}
@@ -689,7 +693,7 @@ export default function SystemSecretsInventoryPage() {
 			key: 'encryption-keys',
 			label: (
 				<span>
-					<SafetyOutlined /> 加密密钥（{encKeys.length}）
+					<ShieldCheck size="1em" /> 加密密钥（{encKeys.length}）
 				</span>
 			),
 			children: (
@@ -720,7 +724,7 @@ export default function SystemSecretsInventoryPage() {
 			key: 'jwt-keys',
 			label: (
 				<span>
-					<LockOutlined /> JWT 密钥（{jwtKeys.length}）
+					<Lock size="1em" /> JWT 密钥（{jwtKeys.length}）
 				</span>
 			),
 			children: (
@@ -747,7 +751,7 @@ export default function SystemSecretsInventoryPage() {
 			key: 'infrastructure',
 			label: (
 				<span>
-					<CloudServerOutlined /> 基础设施（{infra.length}）
+					<Cloud size="1em" /> 基础设施（{infra.length}）
 				</span>
 			),
 			children: (
@@ -778,7 +782,7 @@ export default function SystemSecretsInventoryPage() {
 			key: 'api-keys',
 			label: (
 				<span>
-					<ApiOutlined /> API 密钥（{apiKeys.length}）
+					<Plug size="1em" /> API 密钥（{apiKeys.length}）
 				</span>
 			),
 			children: (
@@ -787,7 +791,7 @@ export default function SystemSecretsInventoryPage() {
 						<PageError message="加载 API 密钥失败" retry={refetchApiKeys} className="mb-4" />
 					)}
 					<DataTable
-						rowKey="prefix"
+						rowKey="id"
 						columns={apiKeyColumns}
 						dataSource={apiKeys}
 						loading={apiKeysLoading}
@@ -805,7 +809,7 @@ export default function SystemSecretsInventoryPage() {
 			key: 'oauth',
 			label: (
 				<span>
-					<GlobalOutlined /> OAuth（{oauth.length}）
+					<Globe size="1em" /> OAuth（{oauth.length}）
 				</span>
 			),
 			children: (
@@ -837,8 +841,8 @@ export default function SystemSecretsInventoryPage() {
 	return (
 		<div>
 			<AppPageHeader
-				title="密钥清单"
-				description="平台级密钥总览与管理"
+				title={t('secretsInventory.title', '密钥清单')}
+				description={t('secretsInventory.description', '平台级密钥总览与管理')}
 			/>
 
 			{overviewLoading ? (
@@ -894,7 +898,7 @@ export default function SystemSecretsInventoryPage() {
 						<Button
 							type="primary"
 							danger
-							icon={<EyeOutlined />}
+							icon={<Eye size="1em" />}
 							onClick={handleConfirmReveal}
 							loading={revealing}
 						>
@@ -911,7 +915,7 @@ export default function SystemSecretsInventoryPage() {
 						<Input.TextArea value={revealedValue} readOnly rows={4} className="font-mono" />
 						<div className="mt-2 text-right">
 							<Text type="secondary">
-								<ClockCircleOutlined className="mr-1" />
+								<Clock size="1em" className="mr-1" />
 								30 秒后自动隐藏
 							</Text>
 						</div>
@@ -946,7 +950,7 @@ export default function SystemSecretsInventoryPage() {
 				<Space>
 					<Button
 						type="primary"
-						icon={<SyncOutlined />}
+						icon={<RefreshCw size="1em" />}
 						onClick={handleConfirmRotate}
 						loading={rotateMutation.isPending}
 					>
@@ -991,7 +995,7 @@ export default function SystemSecretsInventoryPage() {
 				 />
 				<Input.TextArea value={oauthNewSecret ?? ''} readOnly rows={3} className="font-mono" />
 				<div className="mt-3 text-right">
-					<Button type="primary" icon={<CopyOutlined />} onClick={handleCopyOAuthSecret}>
+					<Button type="primary" icon={<Copy size="1em" />} onClick={handleCopyOAuthSecret}>
 						复制新密钥
 					</Button>
 				</div>
@@ -1011,7 +1015,7 @@ function OverviewTab({
 	error: Error | null;
 	retry: () => void;
 }) {
-	if (error) return <PageError message="加载总览失败" retry={retry} />;
+	if (error) return <ApiErrorState error={error} title="加载总览失败" onRetry={retry} />;
 	if (!overview) return <PageLoading />;
 
 	const statusColors: Record<string, string> = {
@@ -1028,7 +1032,7 @@ function OverviewTab({
 						<Statistic
 							title="密钥总数"
 							value={overview.totalSecrets}
-							prefix={<KeyOutlined />}
+							prefix={<KeyRound size="1em" />}
 						/>
 					</Card>
 				</Col>
@@ -1037,8 +1041,8 @@ function OverviewTab({
 						<Statistic
 							title="活跃"
 							value={overview.activeCount}
-							valueStyle={{ color: 'var(--color-success)' }}
-							prefix={<CheckCircleOutlined />}
+							styles={{ content: { color: 'var(--color-success)' } }}
+							prefix={<CheckCircle2 size="1em" />}
 						/>
 					</Card>
 				</Col>
@@ -1047,8 +1051,8 @@ function OverviewTab({
 						<Statistic
 							title="已过期"
 							value={overview.expiredCount}
-							valueStyle={{ color: 'var(--color-warning)' }}
-							prefix={<ClockCircleOutlined />}
+							styles={{ content: { color: 'var(--color-warning)' } }}
+							prefix={<Clock size="1em" />}
 						/>
 					</Card>
 				</Col>
@@ -1057,8 +1061,8 @@ function OverviewTab({
 						<Statistic
 							title="已吊销"
 							value={overview.revokedCount}
-							valueStyle={{ color: 'var(--color-danger)' }}
-							prefix={<StopOutlined />}
+							styles={{ content: { color: 'var(--color-danger)' } }}
+							prefix={<Ban size="1em" />}
 						/>
 					</Card>
 				</Col>
@@ -1090,7 +1094,7 @@ function OverviewTab({
 											</Text>
 										</div>
 									</div>
-									<Statistic value={count} valueStyle={{ fontSize: 24 }} />
+									<Statistic value={count} styles={{ content: { fontSize: 24 } }} />
 								</div>
 							</Card>
 						</Col>
@@ -1103,7 +1107,7 @@ function OverviewTab({
 				title="安全配置检测未接入"
 				className="mb-4"
 			>
-				"PASSWORD_PEPPER 与 HIBP 的启用状态暂无平台侧数据源；接入后将在此展示。"
+				PASSWORD_PEPPER 与 HIBP 的启用状态暂无平台侧数据源；接入后将在此展示。
 			</Alert>
 		</div>
 	);

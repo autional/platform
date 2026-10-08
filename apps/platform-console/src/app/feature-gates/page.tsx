@@ -1,21 +1,22 @@
 'use client';
 import { useMemo } from 'react';
-import { useCurrentTenantId } from '@autional/shared';
+import { useTranslation } from 'react-i18next';
+import { useCurrentTenantId, usePageTitle } from '@autional/shared';
 import { DataTable } from '@autional/ui/antd';
-import { Alert } from '@autional/ui';
-import { Card, Switch, Space, App, Typography, Spin, Tag } from 'antd';
-import { LockOutlined } from '@ant-design/icons';
+import { Alert, AppPageHeader } from '@autional/ui';
+import { Card, Switch, Space, App, Spin, Tag, Popconfirm, Button } from 'antd';
+import { Lock } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
 	adminBillingFeatureGates,
 	adminBillingFeatureGatesOverrides,
 	adminBillingFeatureGatesOverridesPut,
+	adminBillingFeatureGatesOverridesByOverridesDelete,
 } from '@autional/shared/generated/api';
 
-
-const { Title } = Typography;
-
 export default function FeatureGatesPage() {
+	const { t } = useTranslation();
+	usePageTitle(t('featureGates.title', '功能门控'));
 	const { message } = App.useApp();
 	const queryClient = useQueryClient();
 	const tenantId = useCurrentTenantId() ?? '';
@@ -44,9 +45,20 @@ export default function FeatureGatesPage() {
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['feature-gates-overrides'] });
-			message.success('功能开关覆盖已更新');
+			message.success(t('featureGates.overrideUpdated', '功能门控覆盖已更新'));
 		},
-		onError: () => message.error('更新覆盖失败'),
+		onError: () => message.error(t('featureGates.overrideFailed', '更新覆盖失败')),
+	});
+
+	const overrideClearMutation = useMutation({
+		mutationFn: async (gateKey: string) => {
+			return adminBillingFeatureGatesOverridesByOverridesDelete(gateKey);
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['feature-gates-overrides'] });
+			message.success(t('featureGates.overrideCleared', '功能门控覆盖已清除'));
+		},
+		onError: () => message.error(t('featureGates.overrideClearFailed', '清除覆盖失败')),
 	});
 
 	const overrideMap = useMemo(() => {
@@ -58,7 +70,7 @@ export default function FeatureGatesPage() {
 	}, [overrides]);
 
 	const planColumns = [
-		{ title: '开关键', dataIndex: 'key', key: 'key' },
+		{ title: '门控键', dataIndex: 'key', key: 'key' },
 		{ title: '名称', dataIndex: 'name', key: 'name' },
 		{
 			title: '套餐默认',
@@ -67,14 +79,14 @@ export default function FeatureGatesPage() {
 			render: (v: boolean) => (
 				<Space>
 					<Tag color={v ? 'green' : 'red'}>{v ? '启用' : '禁用'}</Tag>
-					<LockOutlined style={{ color: '#999', fontSize: 12 }} />
+					<Lock size={12} style={{ color: '#999' }} />
 				</Space>
 			),
 		},
 	];
 
 	const overrideColumns = [
-		{ title: '开关键', dataIndex: 'key', key: 'key' },
+		{ title: '门控键', dataIndex: 'key', key: 'key' },
 		{
 			title: '套餐默认',
 			dataIndex: 'enabled',
@@ -99,6 +111,30 @@ export default function FeatureGatesPage() {
 						<Tag color={currentOverride !== undefined ? 'blue' : 'default'}>
 							{currentOverride !== undefined ? '自定义' : '默认'}
 						</Tag>
+						{currentOverride !== undefined && (
+							<Popconfirm
+								title={t('featureGates.clearOverrideTitle', '清除该门控的租户覆盖？')}
+								description={t(
+									'featureGates.clearOverrideDesc',
+									'清除后将恢复为套餐默认权益。'
+								)}
+								onConfirm={() => overrideClearMutation.mutate(record.key)}
+								okText={t('featureGates.clearOverrideOk', '清除')}
+								okButtonProps={{ danger: true }}
+								cancelText={t('featureGates.clearOverrideCancel', '取消')}
+							>
+								<Button
+									size="small"
+									type="link"
+									loading={
+										overrideClearMutation.isPending &&
+										overrideClearMutation.variables === record.key
+									}
+								>
+									{t('featureGates.clearOverride', '清除覆盖')}
+								</Button>
+							</Popconfirm>
+						)}
 					</Space>
 				);
 			},
@@ -111,16 +147,16 @@ export default function FeatureGatesPage() {
 
 	return (
 		<div style={{ padding: 24 }}>
-			<Title level={3}>功能开关</Title>
+			<AppPageHeader title={t('featureGates.title', '功能门控')} />
 			{/* PL-55：标明生效范围，避免误以为改的是平台全局（判定为「当前租户」） */}
 			<Alert
 				variant="info"
 				title={`生效范围：当前租户${tenantId ? `（${tenantId}）` : ''}`}
 				className="mb-4"
 			>
-				开关判定按当前租户生效：先取套餐默认权益，存在租户覆盖时以覆盖为准。
+				门控判定按当前租户生效：先取套餐默认权益，存在租户覆盖时以覆盖为准。
 			</Alert>
-			<Space direction="vertical" size="large" style={{ width: '100%' }}>
+			<Space orientation="vertical" size="large" style={{ width: '100%' }}>
 				<Card title="套餐能力">
 					<DataTable
 						dataSource={planGates}

@@ -12,11 +12,8 @@ import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-vi.mock('react-i18next', () => ({
-	useTranslation: () => ({ t: (key: string) => key }),
-	// i18n/index.ts 经 @/lib/format 被间接加载，模块级 .use(initReactI18next) 需要此导出
-	initReactI18next: { type: '3rdParty', init: () => {} },
-}));
+// 不 mock react-i18next：测试 setup 已初始化真实 i18n 并钉死 zh-CN，
+// 断言的中文文案就走真实词典与插值（与生产一致）。
 
 vi.mock('@autional/shared', () => ({
 	useAuthStore: (selector?: (s: unknown) => unknown) => {

@@ -2,11 +2,12 @@ import { Button } from 'antd';
 import { Result } from '@autional/ui';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
-import { useTenantSlug } from '@autional/shared';
+import { usePageTitle, useTenantSlug } from '@autional/shared';
 import { buildNavHref } from '@/lib/nav';
 
 export default function NotFoundPage() {
 	const { t } = useTranslation();
+	usePageTitle(t('notFound.title', '页面不存在'));
 	const navigate = useNavigate();
 	const tenantSlug = useTenantSlug();
 	return (

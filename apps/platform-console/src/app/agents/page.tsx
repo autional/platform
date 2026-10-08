@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { DataTable } from '@autional/ui/antd';
-import { Button, Space, Tag, Modal, Form, Input, Select, Popconfirm, Skeleton } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { DataTable, Modal } from '@autional/ui/antd';
+import { Button, Space, Tag, Form, Input, Select, Popconfirm, Skeleton } from 'antd';
+import { Pencil, Plus, Trash2 } from 'lucide-react';
 import {
 	usePageTitle,
 	useTenantSlug,
@@ -24,6 +24,7 @@ import { handleApiError } from '@/lib/error-handler';
 import { queryKeys } from '@/lib/query-keys';
 import { ROUTE } from '@/lib/route-paths';
 import { buildNavHref } from '@/lib/nav';
+import { statusLabel, statusVariant } from '@/lib/agent-status';
 
 interface AgentRecord {
 	identityId?: string;
@@ -47,8 +48,8 @@ interface AgentRecord {
 
 const SUBTYPE_LABELS: Record<string, string> = {
 	agent: 'Agent',
-	service_account: 'Service Account',
-	automation: 'Automation',
+	service_account: '服务账号',
+	automation: '自动化',
 };
 
 const SUBTYPE_COLORS: Record<string, string> = {
@@ -56,17 +57,6 @@ const SUBTYPE_COLORS: Record<string, string> = {
 	service_account: 'green',
 	automation: 'orange',
 };
-
-const STATUS_VARIANT: Record<string, 'success' | 'warning' | 'danger' | 'info' | 'neutral'> = {
-	active: 'success',
-	disabled: 'danger',
-	suspended: 'warning',
-	provisioning: 'info',
-};
-
-function statusVariant(s: string): 'success' | 'warning' | 'danger' | 'info' | 'neutral' {
-	return STATUS_VARIANT[s] || 'neutral';
-}
 
 function formatDate(iso: string): string {
 	if (!iso) return '-';
@@ -190,7 +180,9 @@ export default function AgentsPage() {
 			title: '状态',
 			dataIndex: 'status',
 			key: 'status',
-			render: (v: string) => <StatusBadge variant={statusVariant(v)}>{v || '-'}</StatusBadge>,
+			render: (v: string) => (
+				<StatusBadge variant={statusVariant(v)}>{statusLabel(v)}</StatusBadge>
+			),
 		},
 		{
 			title: '所有者',
@@ -211,7 +203,7 @@ export default function AgentsPage() {
 				<Space size="small">
 					<Button
 						type="link"
-						icon={<EditOutlined />}
+						icon={<Pencil size="1em" />}
 						onClick={(e) => {
 							e.stopPropagation();
 							navigate(
@@ -235,7 +227,7 @@ export default function AgentsPage() {
 						<Button
 							type="link"
 							danger
-							icon={<DeleteOutlined />}
+							icon={<Trash2 size="1em" />}
 							onClick={(e) => e.stopPropagation()}
 						>
 							删除
@@ -254,7 +246,7 @@ export default function AgentsPage() {
 				actions={
 					<Button
 						type="primary"
-						icon={<PlusOutlined />}
+						icon={<Plus size="1em" />}
 						onClick={() => {
 							form.resetFields();
 							setModalVisible(true);
@@ -286,7 +278,7 @@ export default function AgentsPage() {
 					<EmptyState title="暂无 Agent" description="创建第一个 AI 智能体以开始使用。" />
 					<Button
 						type="primary"
-						icon={<PlusOutlined />}
+						icon={<Plus size="1em" />}
 						onClick={() => {
 							form.resetFields();
 							setModalVisible(true);
@@ -336,6 +328,8 @@ export default function AgentsPage() {
 				onOk={() => form.submit()}
 				confirmLoading={createMut.isPending}
 				destroyOnHidden
+				// U412①：destroyOnHidden 弹窗首开前不渲染子树，forceRender 让表单随页挂载（消「未挂载即调用」告警）
+				forceRender
 			>
 				<Form form={form} layout="vertical" onFinish={handleCreate}>
 					<Form.Item name="name" label="名称" rules={[{ required: true }]}>

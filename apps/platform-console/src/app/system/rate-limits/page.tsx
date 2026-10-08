@@ -3,13 +3,14 @@
 import React from 'react';
 import { Card, Tag, Descriptions } from 'antd';
 import {
-	CloudServerOutlined,
-	CheckCircleOutlined,
-	CloseCircleOutlined,
-	QuestionCircleOutlined,
-} from '@ant-design/icons';
+	CheckCircle2,
+	Cloud,
+	HelpCircle,
+	XCircle,
+} from 'lucide-react';
 import { AppPageHeader } from '@autional/ui';
 import { useTranslation } from 'react-i18next';
+import { usePageTitle } from '@autional/shared';
 import { useQuery } from '@tanstack/react-query';
 import { ops } from '@/lib/api.generated';
 import { PageLoading } from '@autional/ui/antd';
@@ -22,6 +23,7 @@ interface RateLimitData {
 
 export default function SystemRateLimitsPage() {
 	const { t } = useTranslation();
+	usePageTitle(t('rateLimits.title', '限流状态'));
 
 	const { data, isLoading, error, refetch } = useQuery<RateLimitData>({
 		queryKey: ['system', 'rate-limits'],
@@ -61,7 +63,7 @@ export default function SystemRateLimitsPage() {
 					className="mt-6 max-w-lg"
 					title={
 						<span>
-							<CloudServerOutlined className="mr-2" />
+							<Cloud size="1em" className="mr-2" />
 							{t('rateLimits.providerStatus', '提供方状态')}
 						</span>
 					}
@@ -69,17 +71,17 @@ export default function SystemRateLimitsPage() {
 					<Descriptions bordered column={1} size="middle">
 						<Descriptions.Item label={t('rateLimits.available', '是否可用')}>
 							{data.available ? (
-								<Tag icon={<CheckCircleOutlined />} color="success">
+								<Tag icon={<CheckCircle2 size="1em" />} color="success">
 									{t('rateLimits.yes', '可用')}
 								</Tag>
 							) : (
-								<Tag icon={<CloseCircleOutlined />} color="error">
+								<Tag icon={<XCircle size="1em" />} color="error">
 									{t('rateLimits.no', '不可用')}
 								</Tag>
 							)}
 						</Descriptions.Item>
 						<Descriptions.Item label={t('rateLimits.provider', '提供方')}>
-							<Tag icon={<QuestionCircleOutlined />} color="blue">
+							<Tag icon={<HelpCircle size="1em" />} color="blue">
 								{data.providerName}
 							</Tag>
 						</Descriptions.Item>

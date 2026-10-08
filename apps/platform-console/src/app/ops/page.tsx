@@ -4,15 +4,17 @@ import React, { useState } from 'react';
 import { Card, Tag, Row, Col, Spin, Statistic } from 'antd';
 import { message } from '@/lib/antd-app';
 import {
-	CheckCircleOutlined,
-	CloseCircleOutlined,
-	CloudServerOutlined,
-	WarningOutlined,
-} from '@ant-design/icons';
+	AlertTriangle,
+	CheckCircle2,
+	Cloud,
+	XCircle,
+} from 'lucide-react';
 import { useOpsStatus, useHealth, useServiceHealth, type ServiceHealthItem } from '@/hooks/use-ops';
 import { ops, isGrafanaConfigured } from '@/lib/api.generated';
-import { PageError } from '@autional/ui/antd';
+import { ApiErrorState } from '@/components/ApiErrorState';
 import { Alert, AppPageHeader } from '@autional/ui';
+import { useTranslation } from 'react-i18next';
+import { usePageTitle } from '@autional/shared';
 
 interface ServiceHealth {
 	name: string;
@@ -23,6 +25,8 @@ interface ServiceHealth {
 }
 
 export default function OpsPage() {
+	const { t } = useTranslation();
+	usePageTitle(t('ops.title', '运维视图'));
 	const [selectedService, setSelectedService] = useState<string | null>(null);
 
 	const { data: opsStatus, isLoading: opsLoading, error, refetch } = useOpsStatus();
@@ -65,10 +69,10 @@ export default function OpsPage() {
 
 	return (
 		<div>
-			{error && <PageError message="加载运维状态失败" retry={refetch} className="mb-4" />}
+			{error && <ApiErrorState error={error} title="加载运维状态失败" onRetry={refetch} className="mb-4" />}
 
 			<AppPageHeader
-				title="运维视图"
+				title={t('ops.title', '运维视图')}
 			/>
 
 			<Spin spinning={loading}>
@@ -84,7 +88,7 @@ export default function OpsPage() {
 								<Statistic
 									title="服务总数"
 									value={healthData.servicesTotal}
-									prefix={<CloudServerOutlined />}
+									prefix={<Cloud size="1em" />}
 								/>
 							</Card>
 						</Col>
@@ -94,18 +98,18 @@ export default function OpsPage() {
 									title="健康服务"
 									value={healthData.servicesHealthy}
 									suffix={`/ ${healthData.servicesTotal}`}
-									valueStyle={{ color: 'var(--color-success-text)' }}
-									prefix={<CheckCircleOutlined />}
+									styles={{ content: { color: 'var(--color-success-text)' } }}
+									prefix={<CheckCircle2 size="1em" />}
 								/>
 							</Card>
 						</Col>
 						<Col xs={24} sm={8}>
 							<Card>
 								<Statistic
-									title="活跃事件"
+									title="活跃事故"
 									value={healthData.activeIncidents}
-									valueStyle={{ color: healthData.activeIncidents > 0 ? 'var(--color-danger-text)' : undefined }}
-									prefix={<WarningOutlined />}
+									styles={{ content: { color: healthData.activeIncidents > 0 ? 'var(--color-danger-text)' : undefined } }}
+									prefix={<AlertTriangle size="1em" />}
 								/>
 							</Card>
 						</Col>
@@ -125,7 +129,7 @@ export default function OpsPage() {
 									<div className="font-medium">{svc.name}</div>
 									<Tag
 										icon={
-											svc.status === 'healthy' ? <CheckCircleOutlined /> : <CloseCircleOutlined />
+											svc.status === 'healthy' ? <CheckCircle2 size="1em" /> : <XCircle size="1em" />
 										}
 										color={
 											svc.status === 'healthy'
@@ -178,7 +182,7 @@ export default function OpsPage() {
 							variant="info"
 							title="Grafana 未接入"
 						>
-							"当前环境未配置 Grafana 面板地址；接入后在此展示服务总览面板。"
+							当前环境未配置 Grafana 面板地址；接入后在此展示服务总览面板。
 						</Alert>
 					)}
 				</Card>
@@ -215,7 +219,7 @@ export default function OpsPage() {
 								variant="info"
 								title="Grafana 未接入"
 							>
-								"当前环境未配置 Grafana 面板地址；接入后在此展示该服务面板。"
+								当前环境未配置 Grafana 面板地址；接入后在此展示该服务面板。
 							</Alert>
 						)}
 					</Card>

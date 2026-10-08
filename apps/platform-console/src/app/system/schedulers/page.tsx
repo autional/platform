@@ -2,17 +2,19 @@
 
 import { Card, Tag, Badge, Statistic, Row, Col, Button } from 'antd';
 import {
-	ReloadOutlined,
-	CheckCircleFilled,
-	CloseCircleFilled,
-	MinusCircleFilled,
-	ClockCircleOutlined,
-} from '@ant-design/icons';
+	CheckCircle2,
+	Clock,
+	MinusCircle,
+	RefreshCw,
+	XCircle,
+} from 'lucide-react';
 import { AppPageHeader } from '@autional/ui';
 import { useTranslation } from 'react-i18next';
+import { usePageTitle } from '@autional/shared';
 import { PageLoading, DataTable } from '@autional/ui/antd';
 import { useSchedulers } from '@/hooks/use-schedulers';
 import { ApiErrorState } from '@/components/ApiErrorState';
+import { formatDateTime } from '@/lib/format';
 
 const statusConfig: Record<string, { labelKey: string; label: string }> = {
 	running: { labelKey: 'schedulers.statusRunning', label: '运行中' },
@@ -23,6 +25,7 @@ const statusConfig: Record<string, { labelKey: string; label: string }> = {
 
 export default function SystemSchedulersPage() {
 	const { t } = useTranslation();
+	usePageTitle(t('schedulers.title', '系统作业'));
 	const { data, isLoading, error, refetch } = useSchedulers();
 
 	if (isLoading) return <PageLoading />;
@@ -53,7 +56,7 @@ export default function SystemSchedulersPage() {
 			key: 'interval',
 			render: (interval: string) => (
 				<span>
-					<ClockCircleOutlined style={{ marginRight: 6 }} />
+					<Clock size="1em" style={{ marginRight: 6 }} />
 					{interval || '—'}
 				</span>
 			),
@@ -78,7 +81,8 @@ export default function SystemSchedulersPage() {
 			title: t('schedulers.lastRun', '上次运行'),
 			dataIndex: 'lastRun',
 			key: 'lastRun',
-			render: (v: string) => v || '—',
+			// 后端 last_run 为 ISO 串；零值（从未运行）为 Go 零时间 "0001-01-01T00:00:00Z"，兜底为「—」
+			render: (v: string) => (v && !v.startsWith('0001-01-01') ? formatDateTime(v) : '—'),
 		},
 	];
 
@@ -105,8 +109,8 @@ export default function SystemSchedulersPage() {
 								<Statistic
 									title={t('schedulers.statusRunning', '运行中')}
 									value={stats.running}
-									valueStyle={{ color: 'var(--color-success)' }}
-									prefix={<CheckCircleFilled />}
+									styles={{ content: { color: 'var(--color-success)' } }}
+									prefix={<CheckCircle2 size="1em" />}
 								/>
 							</Card>
 						</Col>
@@ -115,8 +119,8 @@ export default function SystemSchedulersPage() {
 								<Statistic
 									title={t('schedulers.statusPaused', '已暂停')}
 									value={stats.paused}
-									valueStyle={{ color: 'var(--color-warning)' }}
-									prefix={<MinusCircleFilled />}
+									styles={{ content: { color: 'var(--color-warning)' } }}
+									prefix={<MinusCircle size="1em" />}
 								/>
 							</Card>
 						</Col>
@@ -125,8 +129,8 @@ export default function SystemSchedulersPage() {
 								<Statistic
 									title={t('schedulers.statusFailed', '失败')}
 									value={stats.failed}
-									valueStyle={{ color: 'var(--color-danger)' }}
-									prefix={<CloseCircleFilled />}
+									styles={{ content: { color: 'var(--color-danger)' } }}
+									prefix={<XCircle size="1em" />}
 								/>
 							</Card>
 						</Col>
@@ -135,8 +139,8 @@ export default function SystemSchedulersPage() {
 								<Statistic
 									title={t('schedulers.statusDisabled', '已禁用')}
 									value={stats.disabled}
-									valueStyle={{ color: 'var(--color-text-disabled)' }}
-									prefix={<CloseCircleFilled />}
+									styles={{ content: { color: 'var(--color-text-disabled)' } }}
+									prefix={<XCircle size="1em" />}
 								/>
 							</Card>
 						</Col>
@@ -145,7 +149,7 @@ export default function SystemSchedulersPage() {
 					<Card
 						title={t('schedulers.list', '调度器列表')}
 						extra={
-							<Button icon={<ReloadOutlined />} onClick={() => refetch()}>
+							<Button icon={<RefreshCw size="1em" />} onClick={() => refetch()}>
 								{t('common.refresh', '刷新')}
 							</Button>
 						}

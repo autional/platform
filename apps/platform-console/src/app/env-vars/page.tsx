@@ -3,8 +3,9 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { DataTable } from '@autional/ui/antd';
 import { Input, Button, Skeleton } from 'antd';
-import { EyeOutlined, EyeInvisibleOutlined, SearchOutlined } from '@ant-design/icons';
+import { Eye, EyeOff, Search } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { usePageTitle } from '@autional/shared';
 import { adminEnvVars } from '@autional/shared/generated/api';
 import { AppPageHeader, EmptyState } from '@autional/ui';
@@ -33,7 +34,8 @@ async function fetchEnvVars(): Promise<EnvVarRecord[]> {
 }
 
 export default function EnvVarsPage() {
-	usePageTitle('环境变量');
+	const { t } = useTranslation();
+	usePageTitle(t('envVars.title', '环境变量'));
 	const [searchText, setSearchText] = useState('');
 	const [revealedKeys, setRevealedKeys] = useState<Set<string>>(new Set());
 
@@ -68,18 +70,18 @@ export default function EnvVarsPage() {
 
 	const columns = [
 		{
-			title: '键',
+			title: t('envVars.colKey', '键'),
 			dataIndex: 'key',
 			key: 'key',
 			width: 320,
 			render: (v: string) => (
-				<code className="text-xs font-mono bg-neutral-200 dark:bg-neutral-900 px-2 py-0.5 rounded">
+				<code className="text-xs font-mono bg-neutral-200 dark:bg-neutral-900 px-2 py-0.5 rounded-xs">
 					{v}
 				</code>
 			),
 		},
 		{
-			title: '值',
+			title: t('envVars.colValue', '值'),
 			dataIndex: 'value',
 			key: 'value',
 			render: (v: string, record: EnvVarRecord) => {
@@ -90,16 +92,16 @@ export default function EnvVarsPage() {
 						<Button
 							type="text"
 							size="small"
-							icon={revealed ? <EyeInvisibleOutlined /> : <EyeOutlined />}
+							icon={revealed ? <EyeOff size="1em" /> : <Eye size="1em" />}
 							onClick={() => toggleReveal(record.key)}
-							title={revealed ? '隐藏值' : '显示值'}
+							title={revealed ? t('envVars.hide', '隐藏值') : t('envVars.reveal', '显示值')}
 						/>
 					</div>
 				);
 			},
 		},
 		{
-			title: '来源文件',
+			title: t('envVars.colSource', '来源文件'),
 			key: 'source',
 			render: (_: unknown, r: EnvVarRecord) => (
 				<code className="text-xs font-mono text-neutral-600">{r.source || r.source_file || '—'}</code>
@@ -111,8 +113,8 @@ export default function EnvVarsPage() {
 	return (
 		<div>
 			<AppPageHeader
-				title="环境变量"
-				description="查看各服务运行时加载的全部环境变量。"
+				title={t('envVars.title', '环境变量')}
+				description={t('envVars.subtitle', '查看各服务运行时加载的全部环境变量。')}
 			/>
 
 			<div className="mt-6">
@@ -125,16 +127,16 @@ export default function EnvVarsPage() {
 				)}
 
 				{!isLoading && error && (
-					<ApiErrorState error={error} title="加载环境变量失败" onRetry={() => refetch()} />
+					<ApiErrorState error={error} title={t('envVars.loadError', '加载环境变量失败')} onRetry={() => refetch()} />
 				)}
 
 				{!isLoading && !error && (
 					<>
 						<div className="mb-4">
 							<Input
-								placeholder="按键名搜索…"
+								placeholder={t('envVars.searchPlaceholder', '按键名搜索…')}
 								allowClear
-								prefix={<SearchOutlined />}
+								prefix={<Search size="1em" />}
 								value={searchText}
 								onChange={(e) => setSearchText(e.target.value)}
 								style={{ maxWidth: 480 }}
@@ -143,13 +145,13 @@ export default function EnvVarsPage() {
 
 						{filtered.length === 0 && data.length > 0 ? (
 							<EmptyState
-								title="无匹配的变量"
-								description="请尝试调整搜索条件。"
+								title={t('envVars.emptyFilteredTitle', '无匹配的变量')}
+								description={t('envVars.emptyFilteredDesc', '请尝试调整搜索条件。')}
 							/>
 						) : filtered.length === 0 ? (
 							<EmptyState
-								title="暂无环境变量"
-								description="当前没有加载任何环境变量。"
+								title={t('envVars.emptyTitle', '暂无环境变量')}
+								description={t('envVars.emptyDesc', '当前没有加载任何环境变量。')}
 							/>
 						) : (
 							<DataTable

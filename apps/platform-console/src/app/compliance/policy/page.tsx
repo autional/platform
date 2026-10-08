@@ -1,19 +1,20 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Tabs, Card, Checkbox, Button, Tag, Space, Modal, Form, Input, Select, message, Progress, Row, Col, Statistic, Descriptions, Spin } from 'antd';
+import { Tabs, Card, Checkbox, Button, Tag, Space, Form, Input, Select, Progress, Row, Col, Statistic, Descriptions, Spin } from 'antd';
 import {
-	SafetyCertificateOutlined,
-	CheckCircleOutlined,
-	CloseCircleOutlined,
-	WarningOutlined,
-	SettingOutlined,
-	EditOutlined,
-	DeleteOutlined,
-} from '@ant-design/icons';
+	BadgeCheck,
+	CheckCircle2,
+	Pencil,
+	Trash2,
+	XCircle,
+} from 'lucide-react';
 import { handleApiError } from '@/lib/error-handler';
-import { useAuthStore, extractItem } from '@autional/shared';
-import { PageError, DataTable } from '@autional/ui/antd';
+import { message } from '@/lib/antd-app';
+import { useAuthStore, extractItem, usePageTitle } from '@autional/shared';
+import { PageError, DataTable, Modal } from '@autional/ui/antd';
+import { AppPageHeader } from '@autional/ui';
+import { useTranslation } from 'react-i18next';
 import { useTenants } from '@/hooks/use-tenants';
 
 const API_BASE = '/compliance/api/v1/admin/compliance';
@@ -102,6 +103,8 @@ const categoryLabel: Record<string, string> = {
 };
 
 export default function CompliancePolicyPage() {
+	const { t } = useTranslation();
+	usePageTitle(t('compliancePolicy.title', '合规策略管理'));
 	const [activeTab, setActiveTab] = useState('standards');
 	const [standards, setStandards] = useState<StandardItem[]>([]);
 	const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -110,6 +113,8 @@ export default function CompliancePolicyPage() {
 	const [overrides, setOverrides] = useState<OverrideItem[]>([]);
 	const [readiness, setReadiness] = useState<Record<string, ReadinessItem>>({});
 	const [score, setScore] = useState<number | null>(null);
+	// U414③：score API 已下发 grade（A+/A/B/C/D），接渲染
+	const [scoreGrade, setScoreGrade] = useState<string | null>(null);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [overrideModal, setOverrideModal] = useState(false);
@@ -189,6 +194,7 @@ export default function CompliancePolicyPage() {
 			const res = (await adminComplianceTenantsScoreByTenants(currentTenantId)) as any;
 			const payload = res?.data ?? res;
 			setScore(payload?.overallScore ?? payload?.overall_score ?? null);
+			setScoreGrade(payload?.grade ?? null);
 		} catch {
 			// 评分加载失败时保持默认
 		}
@@ -306,7 +312,7 @@ export default function CompliancePolicyPage() {
 							onChange={(v) => setSelectedIds(v as string[])}
 							style={{ width: '100%' }}
 						>
-							<Space direction="vertical" size="middle" style={{ width: '100%' }}>
+							<Space orientation="vertical" size="middle" style={{ width: '100%' }}>
 								{filteredStandards.map((std) => (
 									<Card key={std.id} size="small" hoverable>
 										<Checkbox value={std.id}>
@@ -327,7 +333,7 @@ export default function CompliancePolicyPage() {
 					<Space>
 						<Button
 							type="primary"
-							icon={<SafetyCertificateOutlined />}
+							icon={<BadgeCheck size="1em" />}
 							onClick={handleApply}
 							loading={loading}
 						>
@@ -405,12 +411,19 @@ export default function CompliancePolicyPage() {
 								<Space>
 									<span>差距分析</span>
 									{score != null && (
-										<Progress
-											type="circle"
-											percent={Math.round(score)}
-											size={40}
-											status={score >= 80 ? 'success' : score >= 60 ? 'normal' : 'exception'}
-										/>
+										<Space size={6}>
+											<Progress
+												type="circle"
+												percent={Math.round(score)}
+												size={40}
+												status={score >= 80 ? 'success' : score >= 60 ? 'normal' : 'exception'}
+											/>
+											{/* U414③：圆环数字补文本直读 + grade 接渲染 */}
+											<span>
+												合规评分 {Math.round(score)}/100
+												{scoreGrade ? ` · 评级 ${scoreGrade}` : ''}
+											</span>
+										</Space>
 									)}
 								</Space>
 							}
@@ -433,11 +446,11 @@ export default function CompliancePolicyPage() {
 										width: 80,
 										render: (v: boolean) =>
 											v ? (
-												<Tag color="green" icon={<CheckCircleOutlined />}>
+												<Tag color="green" icon={<CheckCircle2 size="1em" />}>
 													合规
 												</Tag>
 											) : (
-												<Tag color="red" icon={<CloseCircleOutlined />}>
+												<Tag color="red" icon={<XCircle size="1em" />}>
 													不合规
 												</Tag>
 											),
@@ -467,7 +480,7 @@ export default function CompliancePolicyPage() {
 					<Card
 						title="参数拔高覆盖"
 						extra={
-							<Button type="primary" icon={<EditOutlined />} onClick={() => setOverrideModal(true)}>
+							<Button type="primary" icon={<Pencil size="1em" />} onClick={() => setOverrideModal(true)}>
 								新增覆盖
 							</Button>
 						}
@@ -496,7 +509,7 @@ export default function CompliancePolicyPage() {
 										<Button
 											type="link"
 											danger
-											icon={<DeleteOutlined />}
+											icon={<Trash2 size="1em" />}
 											onClick={() => handleRemoveOverride(record.parameter)}
 										>
 											移除
@@ -544,7 +557,7 @@ export default function CompliancePolicyPage() {
 							</div>
 						</Card>
 					) : (
-						<Space direction="vertical" size="middle" style={{ width: '100%' }}>
+						<Space orientation="vertical" size="middle" style={{ width: '100%' }}>
 							{resolvedStandards.map((sid) => {
 								const r = readiness[sid];
 								return (
@@ -619,31 +632,28 @@ export default function CompliancePolicyPage() {
 
 	return (
 		<div>
-			<div
-				style={{
-					display: 'flex',
-					justifyContent: 'space-between',
-					alignItems: 'center',
-					marginBottom: 16,
-				}}
-			>
-				<h2 style={{ margin: 0 }}>
-					<SafetyCertificateOutlined style={{ marginRight: 8 }} />
-					合规策略管理
-				</h2>
-				<Select
-					style={{ width: 240 }}
-					placeholder="选择租户"
-					value={currentTenantId || undefined}
-					onChange={(tid: string) => switchTenant(tid)}
-					options={tenantOptions}
-					showSearch
-					filterOption={false}
-					onSearch={setTenantSearch}
-					loading={tenantsLoading}
-					notFoundContent={tenantsLoading ? <Spin size="small" /> : undefined}
-				/>
-			</div>
+			<AppPageHeader
+				title={
+					<span>
+						<BadgeCheck size="1em" style={{ marginRight: 8 }} />
+						{t('compliancePolicy.title', '合规策略管理')}
+					</span>
+				}
+				actions={
+					<Select
+						style={{ width: 240 }}
+						placeholder="选择租户"
+						value={currentTenantId || undefined}
+						onChange={(tid: string) => switchTenant(tid)}
+						options={tenantOptions}
+						showSearch
+						filterOption={false}
+						onSearch={setTenantSearch}
+						loading={tenantsLoading}
+						notFoundContent={tenantsLoading ? <Spin size="small" /> : undefined}
+					/>
+				}
+			/>
 			<Tabs activeKey={activeTab} onChange={setActiveTab} items={tabs} />
 		</div>
 	);

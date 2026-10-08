@@ -24,6 +24,7 @@ vi.mock('@autional/shared/generated/api', () => ({
 	adminBillingFeatureGates: (...args: unknown[]) => mocks.featureGates(...args),
 	adminBillingFeatureGatesOverrides: (...args: unknown[]) => mocks.overrides(...args),
 	adminBillingFeatureGatesOverridesPut: (...args: unknown[]) => mocks.putOverride(...args),
+	adminBillingFeatureGatesOverridesByOverridesDelete: vi.fn(),
 	adminFeatureFlags: (...args: unknown[]) => mocks.featureFlags(...args),
 }));
 

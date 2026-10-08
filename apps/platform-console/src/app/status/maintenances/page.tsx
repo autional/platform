@@ -2,9 +2,9 @@
 
 import React, { useState } from 'react';
 import dayjs from 'dayjs';
-import { Button, Space, Modal, Form, Input, Select, Popconfirm, DatePicker } from 'antd';
+import { Button, Space, Form, Input, Select, Popconfirm, DatePicker } from 'antd';
 import { message } from '@/lib/antd-app';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Pencil, Plus, Trash2 } from 'lucide-react';
 import {
 	useMaintenances,
 	useCreateMaintenance,
@@ -13,8 +13,11 @@ import {
 } from '@/hooks/use-status';
 import type { MaintenanceRecord } from '@/hooks/use-status';
 import { handleApiError } from '@/lib/error-handler';
-import { PageError, DataTable } from '@autional/ui/antd';
+import { formatDateTime } from '@/lib/format';
+import { PageError, DataTable, Modal } from '@autional/ui/antd';
 import { AppPageHeader, StatusBadge, type StatusVariant } from '@autional/ui';
+import { useTranslation } from 'react-i18next';
+import { usePageTitle } from '@autional/shared';
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -34,6 +37,8 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function MaintenancesPage() {
+	const { t } = useTranslation();
+	usePageTitle(t('maintenances.title', '计划维护'));
 	const [modalVisible, setModalVisible] = useState(false);
 	const [editing, setEditing] = useState<MaintenanceRecord | null>(null);
 	const [filters, setFilters] = useState<{ status?: string }>({});
@@ -104,13 +109,13 @@ export default function MaintenancesPage() {
 			title: '计划开始',
 			dataIndex: 'scheduledStartAt',
 			key: 'scheduledStartAt',
-			render: (v?: string) => v || '-',
+			render: (v?: string) => (v ? formatDateTime(v) : '-'),
 		},
 		{
 			title: '计划结束',
 			dataIndex: 'scheduledEndAt',
 			key: 'scheduledEndAt',
-			render: (v?: string) => v || '-',
+			render: (v?: string) => (v ? formatDateTime(v) : '-'),
 		},
 		{
 			title: '影响服务',
@@ -126,7 +131,7 @@ export default function MaintenancesPage() {
 					<Button
 						type="text"
 						size="small"
-						icon={<EditOutlined />}
+						icon={<Pencil size="1em" />}
 						onClick={() => {
 							setEditing(record);
 							form.setFieldsValue({
@@ -145,7 +150,7 @@ export default function MaintenancesPage() {
 						编辑
 					</Button>
 					<Popconfirm title="确认删除该项维护？" onConfirm={() => handleDelete(record.id)}>
-						<Button type="text" danger size="small" icon={<DeleteOutlined />}>
+						<Button type="text" danger size="small" icon={<Trash2 size="1em" />}>
 							删除
 						</Button>
 					</Popconfirm>
@@ -157,12 +162,12 @@ export default function MaintenancesPage() {
 	return (
 		<div>
 			<AppPageHeader
-				title="计划维护"
+				title={t('maintenances.title', '计划维护')}
 				actions={
 					<>
 						<Button
 							type="primary"
-							icon={<PlusOutlined />}
+							icon={<Plus size="1em" />}
 							onClick={() => {
 								setEditing(null);
 								form.resetFields();
@@ -210,6 +215,8 @@ export default function MaintenancesPage() {
 				onOk={() => form.submit()}
 				width={640}
 				destroyOnHidden
+				// U412①：destroyOnHidden 弹窗首开前不渲染子树，forceRender 让表单随页挂载（消「未挂载即调用」告警）
+				forceRender
 			>
 				<Form form={form} layout="vertical" onFinish={handleSave}>
 					<Form.Item name="title" label="标题" rules={[{ required: true }]}>
