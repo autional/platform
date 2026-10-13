@@ -16,11 +16,11 @@ import { useSchedulers } from '@/hooks/use-schedulers';
 import { ApiErrorState } from '@/components/ApiErrorState';
 import { formatDateTime } from '@/lib/format';
 
-const statusConfig: Record<string, { labelKey: string; label: string }> = {
-	running: { labelKey: 'schedulers.statusRunning', label: '运行中' },
-	paused: { labelKey: 'schedulers.statusPaused', label: '已暂停' },
-	failed: { labelKey: 'schedulers.statusFailed', label: '失败' },
-	disabled: { labelKey: 'schedulers.statusDisabled', label: '已禁用' },
+const statusConfig: Record<string, { labelKey: string }> = {
+	running: { labelKey: 'schedulers.statusRunning' },
+	paused: { labelKey: 'schedulers.statusPaused' },
+	failed: { labelKey: 'schedulers.statusFailed' },
+	disabled: { labelKey: 'schedulers.statusDisabled' },
 };
 
 export default function SystemSchedulersPage() {
@@ -72,7 +72,7 @@ export default function SystemSchedulersPage() {
 						status={
 							status === 'running' ? 'success' : status === 'paused' ? 'warning' : 'error'
 						}
-						text={t(cfg.labelKey, cfg.label)}
+						text={t(cfg.labelKey)}
 					/>
 				);
 			},

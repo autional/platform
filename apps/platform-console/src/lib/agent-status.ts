@@ -3,6 +3,8 @@
 // 列表/详情两页面共址，防止各自漂移（曾被两页各持一份缺键映射：rotating/revoked/deleted 裸英文外露，
 // 且表里含后端不存在的 disabled/suspended）。
 
+import i18n from '@/i18n';
+
 export type AgentStatusVariant = 'success' | 'warning' | 'danger' | 'info' | 'neutral';
 
 const STATUS_VARIANT: Record<string, AgentStatusVariant> = {
@@ -13,12 +15,13 @@ const STATUS_VARIANT: Record<string, AgentStatusVariant> = {
 	deleted: 'neutral',
 };
 
-const STATUS_LABELS: Record<string, string> = {
-	provisioning: '配置中',
-	active: '活跃',
-	rotating: '凭证轮换中',
-	revoked: '已吊销',
-	deleted: '已删除',
+// 键映射 + 调用时求值（模块级无组件作用域）：未知状态回退原始值，语义同旧版 MAP[s] || s
+const STATUS_LABEL_KEYS: Record<string, string> = {
+	provisioning: 'agents.status.provisioning',
+	active: 'agents.status.active',
+	rotating: 'agents.status.rotating',
+	revoked: 'agents.status.revoked',
+	deleted: 'agents.status.deleted',
 };
 
 export function statusVariant(s: string | undefined): AgentStatusVariant {
@@ -27,5 +30,6 @@ export function statusVariant(s: string | undefined): AgentStatusVariant {
 
 export function statusLabel(s: string | undefined): string {
 	if (!s) return '-';
-	return STATUS_LABELS[s] || s;
+	const key = STATUS_LABEL_KEYS[s];
+	return key ? i18n.t(key) : s;
 }

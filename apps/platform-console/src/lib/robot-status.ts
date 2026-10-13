@@ -2,6 +2,8 @@
 // commissioning → active ⇄ degraded → decommissioned → deleted。
 // 列表/详情两页面共址，防止各自漂移（曾被 UI 锁 active、后端零守卫；列表还用过后端不存在的 offline/maintenance/provisioning）。
 
+import i18n from '@/i18n';
+
 export type RobotStatusVariant = 'success' | 'warning' | 'danger' | 'info' | 'neutral';
 
 const STATUS_VARIANT: Record<string, RobotStatusVariant> = {
@@ -12,12 +14,13 @@ const STATUS_VARIANT: Record<string, RobotStatusVariant> = {
 	deleted: 'danger',
 };
 
-const STATUS_LABELS: Record<string, string> = {
-	commissioning: '待启用',
-	active: '活跃',
-	degraded: '降级运行',
-	decommissioned: '已停用',
-	deleted: '已删除',
+// 键映射 + 调用时求值（模块级无组件作用域）：未知状态回退原始值，语义同旧版 MAP[s] || s
+const STATUS_LABEL_KEYS: Record<string, string> = {
+	commissioning: 'robots.status.commissioning',
+	active: 'robots.status.active',
+	degraded: 'robots.status.degraded',
+	decommissioned: 'robots.status.decommissioned',
+	deleted: 'robots.status.deleted',
 };
 
 export function statusVariant(s: string | undefined): RobotStatusVariant {
@@ -26,7 +29,8 @@ export function statusVariant(s: string | undefined): RobotStatusVariant {
 
 export function statusLabel(s: string | undefined): string {
 	if (!s) return '-';
-	return STATUS_LABELS[s] || s;
+	const key = STATUS_LABEL_KEYS[s];
+	return key ? i18n.t(key) : s;
 }
 
 // 「启用状态：」提示 —— 全状态覆盖 + 兜底（旧实现条件链全不匹配时整块挂空）。
@@ -35,15 +39,19 @@ export interface RobotOperationHint {
 	type: 'success' | 'warning' | 'danger' | 'secondary';
 }
 
-const OPERATION_HINTS: Record<string, RobotOperationHint> = {
-	commissioning: { text: '待启用 —— 可点击「启用」上线', type: 'success' },
-	active: { text: '活跃 —— 可停用、可签发 Intent', type: 'warning' },
-	degraded: { text: '降级运行 —— 可停用、可签发 Intent', type: 'warning' },
-	decommissioned: { text: '已停用 —— 不可再启用', type: 'secondary' },
-	deleted: { text: '已删除', type: 'danger' },
+const OPERATION_HINT_KEYS: Record<string, { key: string; type: RobotOperationHint['type'] }> = {
+	commissioning: { key: 'robots.hint.commissioning', type: 'success' },
+	active: { key: 'robots.hint.active', type: 'warning' },
+	degraded: { key: 'robots.hint.degraded', type: 'warning' },
+	decommissioned: { key: 'robots.hint.decommissioned', type: 'secondary' },
+	deleted: { key: 'robots.hint.deleted', type: 'danger' },
 };
 
 export function operationHint(s: string | undefined): RobotOperationHint {
-	if (s && OPERATION_HINTS[s]) return OPERATION_HINTS[s];
-	return { text: s ? `未知状态（${s}）` : '未知状态', type: 'secondary' };
+	const hint = s ? OPERATION_HINT_KEYS[s] : undefined;
+	if (hint) return { text: i18n.t(hint.key), type: hint.type };
+	return {
+		text: s ? i18n.t('robots.unknownStatus', { s }) : i18n.t('robots.unknownStatusPlain'),
+		type: 'secondary',
+	};
 }

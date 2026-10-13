@@ -6,6 +6,8 @@ import { Button, Tag, Form, Input, Select, Skeleton, Descriptions } from 'antd';
 import { Modal } from '@autional/ui/antd';
 import { ArrowLeft, Pencil } from 'lucide-react';
 import { usePageTitle, useTenantSlug } from '@autional/shared';
+import { useTranslation } from 'react-i18next';
+import i18n from '@/i18n';
 import { ApiErrorState } from '@/components/ApiErrorState';
 import { AppPageHeader, EmptyState, ErrorState, SectionCard, StatusBadge } from '@autional/ui';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -29,12 +31,19 @@ function statusVariant(s: string): 'success' | 'warning' | 'danger' | 'info' | '
 	return STATUS_VARIANT[s] || 'neutral';
 }
 
-const SUBTYPE_LABELS: Record<string, string> = {
-	pet: '宠物',
-	smart_home: '智能家居',
-	office: '办公',
-	sensor: '传感器',
+const SUBTYPE_LABEL_KEYS: Record<string, string> = {
+	pet: 'devices.subtype.pet',
+	smart_home: 'devices.subtype.smart_home',
+	office: 'devices.subtype.office',
+	sensor: 'devices.subtype.sensor',
 };
+
+// 键映射 + 调用时求值（模块级无组件作用域）：未知子类型回退原始值，语义同旧版映射兜底。
+function subtypeLabel(s: string | undefined): string {
+	if (!s) return '-';
+	const key = SUBTYPE_LABEL_KEYS[s];
+	return key ? i18n.t(key) : s;
+}
 
 const SUBTYPE_COLORS: Record<string, string> = {
 	pet: 'pink',
@@ -59,6 +68,7 @@ async function updateDevice(id: string, values: Record<string, unknown>): Promis
 
 export default function DeviceDetailPage() {
 	const { id } = useParams<{ id: string }>();
+	const { t } = useTranslation();
 	const navigate = useNavigate();
 	const tenantSlug = useTenantSlug();
 	const queryClient = useQueryClient();
@@ -86,16 +96,16 @@ export default function DeviceDetailPage() {
 		},
 	});
 
-	usePageTitle(device?.name ? `${device.name} - Device` : 'Device 详情');
+	usePageTitle(device?.name ? `${device.name} - Device` : t('devices.detailTitle', 'Device 详情'));
 
 	const handleEdit = async (values: Record<string, unknown>) => {
 		if (!id) return;
 		try {
 			await updateMut.mutateAsync({ id, values });
-			message.success('Device 更新成功');
+			message.success(t('devices.updateSuccess', 'Device 更新成功'));
 			setEditVisible(false);
 		} catch (err) {
-			handleApiError(err, '更新失败');
+			handleApiError(err, t('devices.updateFailed', '更新失败'));
 		}
 	};
 
@@ -113,7 +123,10 @@ export default function DeviceDetailPage() {
 	if (!id) {
 		return (
 			<div>
-				<ErrorState title="Device 无效" message="未提供 Device ID。" />
+				<ErrorState
+					title={t('devices.invalidTitle', 'Device 无效')}
+					message={t('devices.invalidMessage', '未提供 Device ID。')}
+				/>
 			</div>
 		);
 	}
@@ -127,22 +140,22 @@ export default function DeviceDetailPage() {
 					onClick={() => navigate(buildNavHref(ROUTE.DEVICES, tenantSlug))}
 					className="mb-4 pl-0"
 				>
-					返回 Device 列表
+					{t('devices.backToList', '返回 Device 列表')}
 				</Button>
 				<div className="flex items-center justify-between">
 					<AppPageHeader
-						title={device?.name || 'Device 详情'}
+						title={device?.name || t('devices.detailTitle', 'Device 详情')}
 						description={
 							device?.manufacturer
-								? `制造商：${device.manufacturer}`
+								? t('devices.manufacturerLine', { name: device.manufacturer })
 								: isLoading
-									? '加载中…'
+									? t('devices.loading', '加载中…')
 									: ''
 						}
 					/>
 					{device && (
 						<Button icon={<Pencil size="1em" />} onClick={openEdit}>
-							编辑 Device
+							{t('devices.editDevice', '编辑 Device')}
 						</Button>
 					)}
 				</div>
@@ -157,37 +170,37 @@ export default function DeviceDetailPage() {
 			{!isLoading && error && (
 				<ApiErrorState
 					error={error}
-					title="加载 Device 详情失败"
+					title={t('devices.loadDetailError', '加载 Device 详情失败')}
 					onRetry={() => refetch()}
 				/>
 			)}
 
 			{!isLoading && !error && device && (
-				<SectionCard title="Device 信息" className="mb-6">
+				<SectionCard title={t('devices.infoSection', 'Device 信息')} className="mb-6">
 					<Descriptions column={2} bordered size="small">
-						<Descriptions.Item label="名称">{device.name}</Descriptions.Item>
-						<Descriptions.Item label="状态">
+						<Descriptions.Item label={t('devices.name', '名称')}>{device.name}</Descriptions.Item>
+						<Descriptions.Item label={t('common.status', '状态')}>
 							<StatusBadge variant={statusVariant(device.status || '')}>
 								{device.status || '-'}
 							</StatusBadge>
 						</Descriptions.Item>
-						<Descriptions.Item label="类型">
+						<Descriptions.Item label={t('devices.type', '类型')}>
 							<Tag color={SUBTYPE_COLORS[device.workloadSubtype || ''] || 'default'}>
-								{SUBTYPE_LABELS[device.workloadSubtype || ''] || device.workloadSubtype || '-'}
+								{subtypeLabel(device.workloadSubtype)}
 							</Tag>
 						</Descriptions.Item>
-						<Descriptions.Item label="身份 ID">{device.identityId || '-'}</Descriptions.Item>
-						<Descriptions.Item label="硬件 ID">{device.hardwareId || '-'}</Descriptions.Item>
-						<Descriptions.Item label="固件">{device.firmwareVer || '-'}</Descriptions.Item>
-						<Descriptions.Item label="制造商">{device.manufacturer || '-'}</Descriptions.Item>
-						<Descriptions.Item label="所有者 ID">{device.ownerId || '-'}</Descriptions.Item>
-						<Descriptions.Item label="配对码">
+						<Descriptions.Item label={t('devices.identityId', '身份 ID')}>{device.identityId || '-'}</Descriptions.Item>
+						<Descriptions.Item label={t('devices.hardwareId', '硬件 ID')}>{device.hardwareId || '-'}</Descriptions.Item>
+						<Descriptions.Item label={t('devices.firmware', '固件')}>{device.firmwareVer || '-'}</Descriptions.Item>
+						<Descriptions.Item label={t('devices.manufacturer', '制造商')}>{device.manufacturer || '-'}</Descriptions.Item>
+						<Descriptions.Item label={t('devices.ownerId', '所有者 ID')}>{device.ownerId || '-'}</Descriptions.Item>
+						<Descriptions.Item label={t('devices.pairingCode', '配对码')}>
 							{device.pairingCode ? <code className="text-xs">{device.pairingCode}</code> : '-'}
 						</Descriptions.Item>
-						<Descriptions.Item label="创建时间">
+						<Descriptions.Item label={t('devices.createdAt', '创建时间')}>
 							{formatDate(device.createdAt || '')}
 						</Descriptions.Item>
-						<Descriptions.Item label="更新时间">
+						<Descriptions.Item label={t('devices.updatedAt', '更新时间')}>
 							{formatDate(device.updatedAt || '')}
 						</Descriptions.Item>
 					</Descriptions>
@@ -196,13 +209,13 @@ export default function DeviceDetailPage() {
 
 			{!isLoading && !error && !device && (
 				<EmptyState
-					title="未找到 Device"
-					description="无法找到所请求的 Device。"
+					title={t('devices.notFoundTitle', '未找到 Device')}
+					description={t('devices.notFoundDesc', '无法找到所请求的 Device。')}
 				/>
 			)}
 
 			<Modal
-				title="编辑 Device"
+				title={t('devices.editDevice', '编辑 Device')}
 				open={editVisible}
 				onCancel={() => {
 					setEditVisible(false);
@@ -215,17 +228,17 @@ export default function DeviceDetailPage() {
 				forceRender
 			>
 				<Form form={form} layout="vertical" onFinish={handleEdit}>
-					<Form.Item name="name" label="名称" rules={[{ required: true }]}>
-						<Input placeholder="例如：temp-sensor-1" />
+					<Form.Item name="name" label={t('devices.name', '名称')} rules={[{ required: true }]}>
+						<Input placeholder={t('devices.nameEditPlaceholder', '例如：temp-sensor-1')} />
 					</Form.Item>
-					<Form.Item name="firmwareVer" label="固件版本">
-						<Input placeholder="例如：v1.2.3" />
+					<Form.Item name="firmwareVer" label={t('devices.firmwareVer', '固件版本')}>
+						<Input placeholder={t('devices.firmwareVerPlaceholder', '例如：v1.2.3')} />
 					</Form.Item>
-					<Form.Item name="hardwareId" label="硬件 ID">
-						<Input placeholder="例如：HW-001" />
+					<Form.Item name="hardwareId" label={t('devices.hardwareId', '硬件 ID')}>
+						<Input placeholder={t('devices.hardwareIdEditPlaceholder', '例如：HW-001')} />
 					</Form.Item>
-					<Form.Item name="manufacturer" label="制造商">
-						<Input placeholder="例如：Bosch、Xiaomi" />
+					<Form.Item name="manufacturer" label={t('devices.manufacturer', '制造商')}>
+						<Input placeholder={t('devices.manufacturerPlaceholder', '例如：Bosch、Xiaomi')} />
 					</Form.Item>
 				</Form>
 			</Modal>

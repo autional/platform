@@ -87,19 +87,20 @@ const severityColor: Record<string, string> = {
 	low: 'blue',
 };
 
-const severityLabel: Record<string, string> = {
-	critical: '严重',
-	high: '高',
-	medium: '中',
-	low: '低',
+// 键映射 + 调用时求值（渲染处用组件 t）：未知值回退语义与旧版一致
+const severityLabelKeys: Record<string, string> = {
+	critical: 'compliancePolicy.severity.critical',
+	high: 'compliancePolicy.severity.high',
+	medium: 'compliancePolicy.severity.medium',
+	low: 'compliancePolicy.severity.low',
 };
 
-const categoryLabel: Record<string, string> = {
-	financial: '金融',
-	government: '政府',
-	privacy: '隐私',
-	security: '安全',
-	healthcare: '医疗',
+const categoryLabelKeys: Record<string, string> = {
+	financial: 'compliancePolicy.category.financial',
+	government: 'compliancePolicy.category.government',
+	privacy: 'compliancePolicy.category.privacy',
+	security: 'compliancePolicy.category.security',
+	healthcare: 'compliancePolicy.category.healthcare',
 };
 
 export default function CompliancePolicyPage() {
@@ -171,7 +172,7 @@ export default function CompliancePolicyPage() {
 				}
 			}
 		} catch (err) {
-			setError('加载标准失败');
+			setError(t('compliancePolicy.loadStandardsFailed'));
 		} finally {
 			setLoading(false);
 		}
@@ -211,11 +212,11 @@ export default function CompliancePolicyPage() {
 			const policy = (res as any)?.data || res;
 			setResolvedPolicy(policy?.parameters || {});
 			setResolvedStandards(policy?.standards || []);
-			message.success('标准选择已更新');
+			message.success(t('compliancePolicy.standardsUpdated'));
 			fetchOverrides();
 			fetchScore();
 		} catch (err) {
-			handleApiError(err, '更新失败');
+			handleApiError(err, t('compliancePolicy.updateFailed'));
 		} finally {
 			setLoading(false);
 		}
@@ -232,7 +233,7 @@ export default function CompliancePolicyPage() {
 			setGapItems(payload?.parameters ?? []);
 			setActiveTab('gaps');
 		} catch (err) {
-			handleApiError(err, '差距分析失败');
+			handleApiError(err, t('compliancePolicy.gapAnalysisFailed'));
 		} finally {
 			setLoading(false);
 		}
@@ -251,7 +252,7 @@ export default function CompliancePolicyPage() {
 			)) as any;
 			setReadiness((prev) => ({ ...prev, [stdId]: res?.data ?? res }));
 		} catch (err) {
-			handleApiError(err, '获取认证报告失败');
+			handleApiError(err, t('compliancePolicy.readinessFailed'));
 		} finally {
 			setLoading(false);
 		}
@@ -266,12 +267,12 @@ export default function CompliancePolicyPage() {
 				value: values.value,
 				reason: values.reason || '',
 			} as any); // OverrideRequest 类型为 billing feature-gates 结构，compliance 契约实际为 parameter/value/reason
-			message.success('覆盖已设置');
+			message.success(t('compliancePolicy.overrideSet'));
 			setOverrideModal(false);
 			overrideForm.resetFields();
 			fetchOverrides();
 		} catch (err) {
-			handleApiError(err, '设置覆盖失败');
+			handleApiError(err, t('compliancePolicy.overrideSetFailed'));
 		}
 	};
 
@@ -279,10 +280,10 @@ export default function CompliancePolicyPage() {
 		try {
 			const { apiClient: api } = await import('@autional/shared');
 			await api.delete(`${API_BASE}/tenants/self/overrides/${param}`); // @generated-api-exempt — no generated endpoint
-			message.success('覆盖已移除');
+			message.success(t('compliancePolicy.overrideRemoved'));
 			fetchOverrides();
 		} catch (err) {
-			handleApiError(err, '移除覆盖失败');
+			handleApiError(err, t('compliancePolicy.overrideRemoveFailed'));
 		}
 	};
 
@@ -303,10 +304,10 @@ export default function CompliancePolicyPage() {
 	const tabs = [
 		{
 			key: 'standards',
-			label: '标准选择',
+			label: t('compliancePolicy.tabStandards'),
 			children: (
 				<div>
-					<Card title="选择遵守的合规标准" style={{ marginBottom: 16 }}>
+					<Card title={t('compliancePolicy.selectStandards')} style={{ marginBottom: 16 }}>
 						<Checkbox.Group
 							value={selectedIds}
 							onChange={(v) => setSelectedIds(v as string[])}
@@ -318,7 +319,9 @@ export default function CompliancePolicyPage() {
 										<Checkbox value={std.id}>
 											<strong>{std.name}</strong>
 											<Tag style={{ marginLeft: 8 }}>
-												{categoryLabel[std.category] || std.category}
+												{categoryLabelKeys[std.category]
+													? t(categoryLabelKeys[std.category])
+													: std.category}
 											</Tag>
 											<Tag color="blue">{std.version}</Tag>
 										</Checkbox>
@@ -337,10 +340,10 @@ export default function CompliancePolicyPage() {
 							onClick={handleApply}
 							loading={loading}
 						>
-							应用标准选择
+							{t('compliancePolicy.applyStandards')}
 						</Button>
 						<Button onClick={handleRunGapAnalysis} loading={loading}>
-							运行差距分析
+							{t('compliancePolicy.runGapAnalysis')}
 						</Button>
 					</Space>
 				</div>
@@ -348,10 +351,12 @@ export default function CompliancePolicyPage() {
 		},
 		{
 			key: 'policy',
-			label: `组合策略${resolvedStandards.length ? ` (${resolvedStandards.length}个标准)` : ''}`,
+			label: resolvedStandards.length
+				? t('compliancePolicy.tabPolicyCount', { n: resolvedStandards.length })
+				: t('compliancePolicy.tabPolicy'),
 			children: (
 				<div>
-					<Card title="解析后的合规策略" style={{ marginBottom: 16 }}>
+					<Card title={t('compliancePolicy.resolvedPolicy')} style={{ marginBottom: 16 }}>
 						{resolvedStandards.length > 0 && (
 							<Space wrap style={{ marginBottom: 12 }}>
 								{resolvedStandards.map((sid) => (
@@ -369,19 +374,24 @@ export default function CompliancePolicyPage() {
 								key: k,
 							}))}
 							columns={[
-								{ title: '参数', dataIndex: 'parameter', width: 200 },
-								{ title: '要求值', dataIndex: 'value', render: (v: any) => String(v) },
-								{ title: '合并规则', dataIndex: 'mergeRule', width: 100 },
-								{ title: '来源标准', dataIndex: 'source', render: (s: string[]) => s.join(', ') },
+								{ title: t('compliancePolicy.colParameter'), dataIndex: 'parameter', width: 200 },
+								{ title: t('compliancePolicy.colRequiredValue'), dataIndex: 'value', render: (v: any) => String(v) },
+								{ title: t('compliancePolicy.colMergeRule'), dataIndex: 'mergeRule', width: 100 },
+								{ title: t('compliancePolicy.colSourceStandard'), dataIndex: 'source', render: (s: string[]) => s.join(', ') },
 								{
-									title: '严重度',
+									title: t('compliancePolicy.colSeverity'),
 									dataIndex: 'severity',
-									render: (s: string) => <Tag color={severityColor[s]}>{severityLabel[s]}</Tag>,
+									render: (s: string) => (
+										<Tag color={severityColor[s]}>
+											{severityLabelKeys[s] ? t(severityLabelKeys[s]) : ''}
+										</Tag>
+									),
 								},
 								{
-									title: '已拔高',
+									title: t('compliancePolicy.colOverridden'),
 									dataIndex: 'overridden',
-									render: (v: boolean) => (v ? <Tag color="green">是</Tag> : <Tag>否</Tag>),
+									render: (v: boolean) =>
+										v ? <Tag color="green">{t('common.yes')}</Tag> : <Tag>{t('common.no')}</Tag>,
 								},
 							]}
 							pagination={{ pageSize: 20 }}
@@ -393,15 +403,19 @@ export default function CompliancePolicyPage() {
 		},
 		{
 			key: 'gaps',
-			label: `差距分析${gapItems.length ? ` (${gapItems.filter((g) => !g.compliant).length}项不合规)` : ''}`,
+			label: gapItems.length
+				? t('compliancePolicy.gapAnalysisCount', {
+						n: gapItems.filter((g) => !g.compliant).length,
+					})
+				: t('compliancePolicy.gapAnalysis'),
 			children: (
 				<div>
 					{gapItems.length === 0 ? (
 						<Card>
 							<div style={{ textAlign: 'center', padding: 40 }}>
-								<p>点击"运行差距分析"按钮查看合规差距</p>
+								<p>{t('compliancePolicy.gapHint')}</p>
 								<Button type="primary" onClick={handleRunGapAnalysis}>
-									运行差距分析
+									{t('compliancePolicy.runGapAnalysis')}
 								</Button>
 							</div>
 						</Card>
@@ -409,7 +423,7 @@ export default function CompliancePolicyPage() {
 						<Card
 							title={
 								<Space>
-									<span>差距分析</span>
+									<span>{t('compliancePolicy.gapAnalysis')}</span>
 									{score != null && (
 										<Space size={6}>
 											<Progress
@@ -418,10 +432,12 @@ export default function CompliancePolicyPage() {
 												size={40}
 												status={score >= 80 ? 'success' : score >= 60 ? 'normal' : 'exception'}
 											/>
-											{/* U414③：圆环数字补文本直读 + grade 接渲染 */}
+											{/* U414③：圆环数字补文本直读 + grade 接渲染（u414-locks.test ③ 锁本渲染点的 t() 调用形态） */}
 											<span>
-												合规评分 {Math.round(score)}/100
-												{scoreGrade ? ` · 评级 ${scoreGrade}` : ''}
+												{t('compliancePolicy.scoreLine', { score: Math.round(score) })}
+												{scoreGrade
+													? t('compliancePolicy.scoreGradeSuffix', { grade: scoreGrade })
+													: ''}
 											</span>
 										</Space>
 									)}
@@ -432,37 +448,41 @@ export default function CompliancePolicyPage() {
 								rowKey="parameter"
 								dataSource={gapItems}
 								columns={[
-									{ title: '参数', dataIndex: 'parameter', width: 200 },
-									{ title: '要求值', dataIndex: 'required', render: (v: any) => String(v) },
+									{ title: t('compliancePolicy.colParameter'), dataIndex: 'parameter', width: 200 },
+									{ title: t('compliancePolicy.colRequiredValue'), dataIndex: 'required', render: (v: any) => String(v) },
 									{
-										title: '当前值',
+										title: t('compliancePolicy.colCurrentValue'),
 										dataIndex: 'current',
 										render: (v: any) => (v != null ? String(v) : '—'),
 									},
-									{ title: '操作符', dataIndex: 'operator', width: 70 },
+									{ title: t('compliancePolicy.colOperator'), dataIndex: 'operator', width: 70 },
 									{
-										title: '状态',
+										title: t('common.status'),
 										dataIndex: 'compliant',
 										width: 80,
 										render: (v: boolean) =>
 											v ? (
 												<Tag color="green" icon={<CheckCircle2 size="1em" />}>
-													合规
+													{t('compliancePolicy.compliant')}
 												</Tag>
 											) : (
 												<Tag color="red" icon={<XCircle size="1em" />}>
-													不合规
+													{t('compliancePolicy.nonCompliant')}
 												</Tag>
 											),
 									},
 									{
-										title: '严重度',
+										title: t('compliancePolicy.colSeverity'),
 										dataIndex: 'severity',
 										width: 80,
-										render: (s: string) => <Tag color={severityColor[s]}>{severityLabel[s]}</Tag>,
+										render: (s: string) => (
+											<Tag color={severityColor[s]}>
+												{severityLabelKeys[s] ? t(severityLabelKeys[s]) : ''}
+											</Tag>
+										),
 									},
-									{ title: '来源', dataIndex: 'standard', width: 120 },
-									{ title: '说明', dataIndex: 'description', ellipsis: true },
+									{ title: t('compliancePolicy.colSource'), dataIndex: 'standard', width: 120 },
+									{ title: t('compliancePolicy.colDescription'), dataIndex: 'description', ellipsis: true },
 								]}
 								pagination={{ pageSize: 20 }}
 								size="small"
@@ -474,14 +494,16 @@ export default function CompliancePolicyPage() {
 		},
 		{
 			key: 'overrides',
-			label: `参数覆盖${overrides.length ? ` (${overrides.length})` : ''}`,
+			label: overrides.length
+				? t('compliancePolicy.tabOverridesCount', { n: overrides.length })
+				: t('compliancePolicy.tabOverrides'),
 			children: (
 				<div>
 					<Card
-						title="参数拔高覆盖"
+						title={t('compliancePolicy.overrideCard')}
 						extra={
 							<Button type="primary" icon={<Pencil size="1em" />} onClick={() => setOverrideModal(true)}>
-								新增覆盖
+								{t('compliancePolicy.addOverride')}
 							</Button>
 						}
 					>
@@ -489,21 +511,21 @@ export default function CompliancePolicyPage() {
 							rowKey="parameter"
 							dataSource={overrides}
 							columns={[
-								{ title: '参数', dataIndex: 'parameter', width: 220 },
+								{ title: t('compliancePolicy.colParameter'), dataIndex: 'parameter', width: 220 },
 								{
-									title: '覆盖值',
+									title: t('compliancePolicy.colOverrideValue'),
 									dataIndex: 'value',
 									render: (v: any) => <Tag color="green">{String(v)}</Tag>,
 								},
-								{ title: '原因', dataIndex: 'reason' },
+								{ title: t('compliancePolicy.colReason'), dataIndex: 'reason' },
 								{
-									title: '设置时间',
+									title: t('compliancePolicy.colSetAt'),
 									dataIndex: 'created_at',
 									width: 180,
 									render: (_: any, r: OverrideItem) => r.createdAt ?? r.created_at ?? '-',
 								},
 								{
-									title: '操作',
+									title: t('common.actions'),
 									width: 80,
 									render: (_: any, record: OverrideItem) => (
 										<Button
@@ -512,7 +534,7 @@ export default function CompliancePolicyPage() {
 											icon={<Trash2 size="1em" />}
 											onClick={() => handleRemoveOverride(record.parameter)}
 										>
-											移除
+											{t('compliancePolicy.remove')}
 										</Button>
 									),
 								},
@@ -522,7 +544,7 @@ export default function CompliancePolicyPage() {
 						/>
 					</Card>
 					<Modal
-						title="新增参数覆盖 (只能拔高)"
+						title={t('compliancePolicy.addOverrideTitle')}
 						open={overrideModal}
 						onCancel={() => {
 							setOverrideModal(false);
@@ -531,14 +553,14 @@ export default function CompliancePolicyPage() {
 						onOk={() => overrideForm.submit()}
 					>
 						<Form form={overrideForm} layout="vertical" onFinish={handleAddOverride}>
-							<Form.Item name="parameter" label="参数名" rules={[{ required: true }]}>
-								<Input placeholder="例如: password_min_length_sfa" />
+							<Form.Item name="parameter" label={t('compliancePolicy.overrideParameterLabel')} rules={[{ required: true }]}>
+								<Input placeholder={t('compliancePolicy.overrideParameterPlaceholder')} />
 							</Form.Item>
-							<Form.Item name="value" label="覆盖值" rules={[{ required: true }]}>
-								<Input placeholder="例如: 16" />
+							<Form.Item name="value" label={t('compliancePolicy.overrideValueLabel')} rules={[{ required: true }]}>
+								<Input placeholder={t('compliancePolicy.overrideValuePlaceholder')} />
 							</Form.Item>
-							<Form.Item name="reason" label="原因">
-								<Input.TextArea placeholder="可选: 说明为何需要更高的安全要求" rows={2} />
+							<Form.Item name="reason" label={t('compliancePolicy.overrideReasonLabel')}>
+								<Input.TextArea placeholder={t('compliancePolicy.overrideReasonPlaceholder')} rows={2} />
 							</Form.Item>
 						</Form>
 					</Modal>
@@ -547,13 +569,13 @@ export default function CompliancePolicyPage() {
 		},
 		{
 			key: 'readiness',
-			label: '认证就绪',
+			label: t('compliancePolicy.tabReadiness'),
 			children: (
 				<div>
 					{resolvedStandards.length === 0 ? (
 						<Card>
 							<div style={{ textAlign: 'center', padding: 40 }}>
-								请先在"标准选择"中选择至少一个标准
+								{t('compliancePolicy.selectStandardFirst')}
 							</div>
 						</Card>
 					) : (
@@ -570,7 +592,7 @@ export default function CompliancePolicyPage() {
 												onClick={() => handleGetReadiness(sid)}
 												loading={loading}
 											>
-												检查认证就绪
+												{t('compliancePolicy.checkReadiness')}
 											</Button>
 										}
 									>
@@ -579,20 +601,23 @@ export default function CompliancePolicyPage() {
 												<Row gutter={16}>
 													<Col span={6}>
 														<Statistic
-															title="就绪度"
+															title={t('compliancePolicy.statReadiness')}
 															value={Math.round(r.complianceRate ?? 0)}
 															suffix="%"
 														/>
 													</Col>
 													<Col span={6}>
 														<Statistic
-															title="通过"
+															title={t('compliancePolicy.statPassed')}
 															value={r.passedControls}
 															suffix={`/ ${r.totalControls}`}
 														/>
 													</Col>
 													<Col span={6}>
-														<Statistic title="可提交审计" value={r.readyForAudit ? '是' : '否'} />
+														<Statistic
+															title={t('compliancePolicy.statAuditable')}
+															value={r.readyForAudit ? t('common.yes') : t('common.no')}
+														/>
 													</Col>
 													<Col span={6}>
 														<Progress
@@ -605,7 +630,11 @@ export default function CompliancePolicyPage() {
 												</Row>
 												{(r.recommendations ?? []).length > 0 && (
 													<div style={{ marginTop: 12 }}>
-														<Descriptions title="建议操作" column={1} size="small">
+														<Descriptions
+															title={t('compliancePolicy.recommendations')}
+															column={1}
+															size="small"
+														>
 															{r.recommendations.map((rec, i) => (
 																<Descriptions.Item key={i} label={`#${i + 1}`}>
 																	{rec}
@@ -617,7 +646,7 @@ export default function CompliancePolicyPage() {
 											</div>
 										) : (
 											<div style={{ color: '#999', padding: 20, textAlign: 'center' }}>
-												点击"检查认证就绪"获取报告
+												{t('compliancePolicy.checkReadinessHint')}
 											</div>
 										)}
 									</Card>
@@ -642,7 +671,7 @@ export default function CompliancePolicyPage() {
 				actions={
 					<Select
 						style={{ width: 240 }}
-						placeholder="选择租户"
+						placeholder={t('compliancePolicy.selectTenant')}
 						value={currentTenantId || undefined}
 						onChange={(tid: string) => switchTenant(tid)}
 						options={tenantOptions}

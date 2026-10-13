@@ -93,11 +93,12 @@ interface ConsentRecord {
 	verified_at?: string;
 }
 
-const AGE_GROUP_LABELS: Record<string, string> = {
-	'under-14': '14岁以下',
-	'14-16': '14-16岁',
-	'16-18': '16-18岁',
-	adult: '成人',
+// 键映射 + 调用时求值（组件内渲染处用 t()）：未知值回退原始值，语义同旧版 MAP[s] || s
+const AGE_GROUP_LABEL_KEYS: Record<string, string> = {
+	'under-14': 'complianceMinors.age.under14',
+	'14-16': 'complianceMinors.age.14to16',
+	'16-18': 'complianceMinors.age.16to18',
+	adult: 'complianceMinors.age.adult',
 };
 
 const STATUS_COLORS: Record<string, string> = {
@@ -158,7 +159,7 @@ export default function MinorsProtectionPage() {
 	const loadConfig = async () => {
 		const tenantId = AuthService.getCurrentTenantId();
 		if (!tenantId) {
-			setConfigError(new Error('当前会话缺少租户上下文，无法加载配置'));
+			setConfigError(new Error(t('complianceMinors.missingTenantLoad')));
 			setLoading(false);
 			return;
 		}
@@ -171,7 +172,7 @@ export default function MinorsProtectionPage() {
 			setConfig(res);
 		} catch (err) {
 			setConfig(null);
-			setConfigError(err instanceof Error ? err : new Error('加载未成年人保护配置失败'));
+			setConfigError(err instanceof Error ? err : new Error(t('complianceMinors.loadConfigFailed')));
 		} finally {
 			setLoading(false);
 		}
@@ -188,7 +189,7 @@ export default function MinorsProtectionPage() {
 			setUsers(result.items);
 			setUserTotal(result.total);
 		} catch (err) {
-			setUsersError(err instanceof Error ? err : new Error('加载未成年用户列表失败'));
+			setUsersError(err instanceof Error ? err : new Error(t('complianceMinors.loadUsersFailed')));
 		} finally {
 			setUsersLoading(false);
 		}
@@ -203,7 +204,7 @@ export default function MinorsProtectionPage() {
 			setConsents(result.items);
 			setConsentTotal(result.total);
 		} catch (err) {
-			setConsentsError(err instanceof Error ? err : new Error('加载家长同意记录失败'));
+			setConsentsError(err instanceof Error ? err : new Error(t('complianceMinors.loadConsentsFailed')));
 		} finally {
 			setConsentsLoading(false);
 		}
@@ -218,7 +219,7 @@ export default function MinorsProtectionPage() {
 	const handleSave = async () => {
 		const tenantId = AuthService.getCurrentTenantId();
 		if (!tenantId) {
-			message.error('当前会话缺少租户上下文，无法保存配置');
+			message.error(t('complianceMinors.missingTenantSave'));
 			return;
 		}
 		let values: MinorsFormValues;
@@ -241,42 +242,46 @@ export default function MinorsProtectionPage() {
 			if (values.night_mode_start) payload.nightModeStart = values.night_mode_start.format('HH:mm');
 			if (values.night_mode_end) payload.nightModeEnd = values.night_mode_end.format('HH:mm');
 			await adminTenantsMinorsProtectionByTenantsPut(tenantId, payload);
-			message.success('未成年人保护配置已更新');
+			message.success(t('complianceMinors.configUpdated'));
 			loadConfig();
 		} catch (err) {
-			handleApiError(err, '保存配置失败');
+			handleApiError(err, t('complianceMinors.saveConfigFailed'));
 		} finally {
 			setSaving(false);
 		}
 	};
 
 	const userColumns = [
-		{ title: '用户ID', dataIndex: 'id', key: 'id', width: 200, ellipsis: true },
-		{ title: '邮箱', dataIndex: 'email', key: 'email' },
-		{ title: '手机', dataIndex: 'phone', key: 'phone' },
+		{ title: t('complianceMinors.colUserId'), dataIndex: 'id', key: 'id', width: 200, ellipsis: true },
+		{ title: t('complianceMinors.colEmail'), dataIndex: 'email', key: 'email' },
+		{ title: t('complianceMinors.colPhone'), dataIndex: 'phone', key: 'phone' },
 		{
-			title: '年龄组',
+			title: t('complianceMinors.colAgeGroup'),
 			key: 'age_group',
 			render: (_: unknown, r: any) => {
 				const v = (r.ageGroup as string) ?? (r.age_group as string) ?? '';
 				return (
 					<Tag color={v === 'under-14' ? 'red' : v === '14-16' ? 'orange' : 'blue'}>
-						{AGE_GROUP_LABELS[v] || v}
+						{AGE_GROUP_LABEL_KEYS[v] ? t(AGE_GROUP_LABEL_KEYS[v]) : v}
 					</Tag>
 				);
 			},
 		},
 		{
-			title: '家长同意',
+			title: t('complianceMinors.colParentalConsent'),
 			key: 'pending_parental_consent',
 			render: (_: unknown, r: any) => {
 				const v = (r.pendingParentalConsent as boolean) ?? (r.pending_parental_consent as boolean);
-				return v ? <Tag color="orange">待验证</Tag> : <Tag color="green">已通过</Tag>;
+				return v ? (
+					<Tag color="orange">{t('complianceMinors.pendingVerification')}</Tag>
+				) : (
+					<Tag color="green">{t('complianceMinors.passed')}</Tag>
+				);
 			},
 		},
-		{ title: '状态', dataIndex: 'status', key: 'status' },
+		{ title: t('common.status'), dataIndex: 'status', key: 'status' },
 		{
-			title: '注册时间',
+			title: t('complianceMinors.colCreatedAt'),
 			key: 'created_at',
 			width: 180,
 			render: (_: unknown, r: any) =>
@@ -297,7 +302,7 @@ export default function MinorsProtectionPage() {
 				<Col span={8}>
 					<Card>
 						<Statistic
-							title="未成年用户数"
+							title={t('complianceMinors.statMinorUsers')}
 							value={userTotal ?? '—'}
 							prefix={<User size="1em" />}
 						/>
@@ -306,21 +311,21 @@ export default function MinorsProtectionPage() {
 				<Col span={8}>
 					<Card>
 						<Statistic
-							title="每日时长限制"
+							title={t('complianceMinors.statDailyLimit')}
 							value={config ? config.dailyUsageLimitMin : '—'}
-							suffix={config ? '分钟' : undefined}
+							suffix={config ? t('complianceMinors.minutesUnit') : undefined}
 						/>
 					</Card>
 				</Col>
 				<Col span={8}>
 					<Card>
 						<Statistic
-							title="宵禁"
+							title={t('complianceMinors.statNightMode')}
 							value={
 								config
 									? config.nightModeEnabled
 										? `${config.nightModeStart}-${config.nightModeEnd}`
-										: '关闭'
+										: t('complianceMinors.nightModeOff')
 									: '—'
 							}
 							prefix={<BadgeCheck size="1em" />}
@@ -335,27 +340,27 @@ export default function MinorsProtectionPage() {
 				items={[
 					{
 						key: 'config',
-						label: '策略配置',
+						label: t('complianceMinors.tabConfig'),
 						children: configError ? (
 							<ApiErrorState
 								error={configError}
-								title="加载未成年人保护配置失败"
+								title={t('complianceMinors.loadConfigFailed')}
 								onRetry={loadConfig}
 							/>
 						) : (
 							<>
-								<SectionCard title="防沉迷与宵禁">
+								<SectionCard title={t('complianceMinors.sectionAntiAddiction')}>
 									<Form form={form} layout="vertical" style={{ maxWidth: 600 }}>
 										<Form.Item
 											name="daily_usage_limit_min"
-											label="每日使用时长上限 (分钟)"
-											tooltip="0 表示不限制"
+											label={t('complianceMinors.dailyLimitLabel')}
+											tooltip={t('complianceMinors.zeroUnlimited')}
 										>
 											<InputNumber min={0} max={1440} style={{ width: '100%' }} />
 										</Form.Item>
 										<Form.Item
 											name="night_mode_enabled"
-											label="启用宵禁"
+											label={t('complianceMinors.enableNightMode')}
 											valuePropName="checked"
 										>
 											<Switch />
@@ -368,10 +373,16 @@ export default function MinorsProtectionPage() {
 											{({ getFieldValue }) =>
 												getFieldValue('night_mode_enabled') ? (
 													<Space>
-														<Form.Item name="night_mode_start" label="宵禁开始">
+														<Form.Item
+															name="night_mode_start"
+															label={t('complianceMinors.nightModeStart')}
+														>
 															<TimePicker format="HH:mm" />
 														</Form.Item>
-														<Form.Item name="night_mode_end" label="宵禁结束">
+														<Form.Item
+															name="night_mode_end"
+															label={t('complianceMinors.nightModeEnd')}
+														>
 															<TimePicker format="HH:mm" />
 														</Form.Item>
 													</Space>
@@ -382,25 +393,25 @@ export default function MinorsProtectionPage() {
 								</SectionCard>
 
 								<div style={{ marginTop: 16 }}>
-									<SectionCard title="消费与功能限制">
+									<SectionCard title={t('complianceMinors.sectionSpendLimits')}>
 										<Form form={form} layout="vertical" style={{ maxWidth: 600 }}>
 											<Form.Item
 												name="monthly_spend_limit"
-												label="每月消费上限 (分)"
-												tooltip="0 表示不限制"
+												label={t('complianceMinors.monthlySpendLimit')}
+												tooltip={t('complianceMinors.zeroUnlimited')}
 											>
 												<InputNumber min={0} style={{ width: '100%' }} />
 											</Form.Item>
 											<Form.Item
 												name="live_stream_blocked_under_16"
-												label="禁止16岁以下直播"
+												label={t('complianceMinors.blockLiveUnder16')}
 												valuePropName="checked"
 											>
 												<Switch />
 											</Form.Item>
 											<Form.Item
 												name="content_filter_enabled"
-												label="启用内容过滤"
+												label={t('complianceMinors.contentFilter')}
 												valuePropName="checked"
 											>
 												<Switch />
@@ -410,18 +421,18 @@ export default function MinorsProtectionPage() {
 								</div>
 
 								<div style={{ marginTop: 16 }}>
-									<SectionCard title="数据隐私">
+									<SectionCard title={t('complianceMinors.sectionDataPrivacy')}>
 										<Form form={form} layout="vertical" style={{ maxWidth: 600 }}>
 											<Form.Item
 												name="child_default_max_privacy"
-												label="未成年人默认最高隐私设置"
+												label={t('complianceMinors.maxPrivacy')}
 												valuePropName="checked"
 											>
 												<Switch />
 											</Form.Item>
 											<Form.Item
 												name="minor_data_retention_days"
-												label="未成年人数据保留天数"
+												label={t('complianceMinors.retentionDays')}
 											>
 												<InputNumber min={30} max={3650} style={{ width: '100%' }} />
 											</Form.Item>
@@ -435,12 +446,12 @@ export default function MinorsProtectionPage() {
 										icon={<RefreshCw size="1em" />}
 										style={{ marginRight: 8 }}
 									>
-										重置
+										{t('common.reset')}
 									</Button>
 									<Popconfirm
-										title="确认保存配置？"
-										description="保存后将对当前租户立即生效。"
-										okText="确认保存"
+										title={t('complianceMinors.confirmSaveTitle')}
+										description={t('complianceMinors.confirmSaveDesc')}
+										okText={t('complianceMinors.confirmSaveOk')}
 										onConfirm={handleSave}
 									>
 										<Button
@@ -448,7 +459,7 @@ export default function MinorsProtectionPage() {
 											loading={saving}
 											icon={<Save size="1em" />}
 										>
-											保存配置
+											{t('complianceMinors.saveConfig')}
 										</Button>
 									</Popconfirm>
 								</div>
@@ -457,11 +468,11 @@ export default function MinorsProtectionPage() {
 					},
 					{
 						key: 'users',
-						label: `未成年用户 (${userTotal ?? '—'})`,
+						label: t('complianceMinors.tabUsers', { n: userTotal ?? '—' }),
 						children: usersError ? (
 							<ApiErrorState
 								error={usersError}
-								title="加载未成年用户列表失败"
+								title={t('complianceMinors.loadUsersFailed')}
 								onRetry={() => loadUsers()}
 							/>
 						) : (
@@ -475,7 +486,7 @@ export default function MinorsProtectionPage() {
 									pageSize: userPageSize,
 									total: userTotal ?? users.length,
 									showSizeChanger: true,
-									showTotal: (n) => `共 ${n} 人`,
+									showTotal: (n) => t('complianceMinors.usersTotal', { n }),
 									onChange: (p: number, ps: number) => {
 										setUserPage(p);
 										setUserPageSize(ps);
@@ -488,18 +499,18 @@ export default function MinorsProtectionPage() {
 					},
 					{
 						key: 'consents',
-						label: '家长同意管理',
+						label: t('complianceMinors.tabConsents'),
 						children: consentsError ? (
 							<ApiErrorState
 								error={consentsError}
-								title="加载家长同意记录失败"
+								title={t('complianceMinors.loadConsentsFailed')}
 								onRetry={() => loadConsents()}
 							/>
 						) : (
 							<DataTable
 								columns={[
 									{
-										title: '用户ID',
+										title: t('complianceMinors.colUserId'),
 										key: 'user_id',
 										width: 200,
 										ellipsis: true,
@@ -507,26 +518,27 @@ export default function MinorsProtectionPage() {
 											(r.userId as string) ?? (r.user_id as string) ?? '-',
 									},
 									{
-										title: '家长邮箱',
+										title: t('complianceMinors.colParentEmail'),
 										key: 'parent_email',
 										render: (_: unknown, r: any) =>
 											(r.parentEmail as string) ?? (r.parent_email as string) ?? '-',
 									},
-									{ title: '验证方式', dataIndex: 'method', key: 'method' },
+									{ title: t('complianceMinors.colMethod'), dataIndex: 'method', key: 'method' },
 									{
-										title: '状态',
+										title: t('common.status'),
 										dataIndex: 'status',
 										key: 'status',
 										render: (v: string) => <Tag color={STATUS_COLORS[v]}>{v}</Tag>,
 									},
 									{
-										title: '已验证',
+										title: t('complianceMinors.colVerified'),
 										dataIndex: 'verified',
 										key: 'verified',
-										render: (v: boolean) => (v ? <Tag color="green">是</Tag> : <Tag>否</Tag>),
+										render: (v: boolean) =>
+											v ? <Tag color="green">{t('common.yes')}</Tag> : <Tag>{t('common.no')}</Tag>,
 									},
 									{
-										title: '记录时间',
+										title: t('complianceMinors.colRecordedAt'),
 										dataIndex: 'recordedAt',
 										key: 'recorded_at',
 										width: 180,
@@ -540,7 +552,7 @@ export default function MinorsProtectionPage() {
 									pageSize: consentPageSize,
 									total: consentTotal ?? consents.length,
 									showSizeChanger: true,
-									showTotal: (n) => `共 ${n} 条`,
+									showTotal: (n) => t('complianceMinors.consentsTotal', { n }),
 									onChange: (p: number, ps: number) => {
 										setConsentPage(p);
 										setConsentPageSize(ps);

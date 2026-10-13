@@ -23,6 +23,8 @@ import {
 	Play,
 } from 'lucide-react';
 import { usePageTitle, useTenantSlug } from '@autional/shared';
+import { useTranslation } from 'react-i18next';
+import i18n from '@/i18n';
 import { AppPageHeader, ErrorState, SectionCard, StatusBadge } from '@autional/ui';
 import { ApiErrorState } from '@/components/ApiErrorState';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -43,11 +45,18 @@ import type { RobotInfo } from '@autional/shared/generated/types';
 
 const { Paragraph, Text } = Typography;
 
-const SUBTYPE_LABELS: Record<string, string> = {
-	industrial: '工业',
-	vehicle: '车辆',
-	drone: '无人机',
+const SUBTYPE_LABEL_KEYS: Record<string, string> = {
+	industrial: 'robots.subtype.industrial',
+	vehicle: 'robots.subtype.vehicle',
+	drone: 'robots.subtype.drone',
 };
+
+// 键映射 + 调用时求值（模块级无组件作用域）：未知子类型回退原始值，语义同旧版映射兜底。
+function subtypeLabel(s: string | undefined): string {
+	if (!s) return '-';
+	const key = SUBTYPE_LABEL_KEYS[s];
+	return key ? i18n.t(key) : s;
+}
 
 function formatDate(iso: string): string {
 	if (!iso) return '-';
@@ -79,6 +88,7 @@ async function issueIntentToken(
 
 export default function RobotDetailPage() {
 	const { id } = useParams<{ id: string }>();
+	const { t } = useTranslation();
 	const navigate = useNavigate();
 	const tenantSlug = useTenantSlug();
 	const queryClient = useQueryClient();
@@ -130,16 +140,16 @@ export default function RobotDetailPage() {
 			issueIntentToken(robotId, data),
 	});
 
-	usePageTitle(robot?.name ? `${robot.name} - Robot` : 'Robot 详情');
+	usePageTitle(robot?.name ? `${robot.name} - Robot` : t('robots.detailTitle', 'Robot 详情'));
 
 	const handleEdit = async (values: Record<string, unknown>) => {
 		if (!id) return;
 		try {
 			await updateMut.mutateAsync({ id, values });
-			message.success('Robot 更新成功');
+			message.success(t('robots.updateSuccess', 'Robot 更新成功'));
 			setEditVisible(false);
 		} catch (err) {
-			handleApiError(err, '更新失败');
+			handleApiError(err, t('robots.updateFailed', '更新失败'));
 		}
 	};
 
@@ -159,9 +169,9 @@ export default function RobotDetailPage() {
 		if (!id) return;
 		try {
 			await commissionMut.mutateAsync(id);
-			message.success('Robot 已启用');
+			message.success(t('robots.enableSuccess', 'Robot 已启用'));
 		} catch (err) {
-			handleApiError(err, '启用失败');
+			handleApiError(err, t('robots.enableFailed', '启用失败'));
 		}
 	};
 
@@ -169,9 +179,9 @@ export default function RobotDetailPage() {
 		if (!id) return;
 		try {
 			await decommissionMut.mutateAsync(id);
-			message.success('Robot 已停用');
+			message.success(t('robots.disableSuccess', 'Robot 已停用'));
 		} catch (err) {
-			handleApiError(err, '停用失败');
+			handleApiError(err, t('robots.disableFailed', '停用失败'));
 		}
 	};
 
@@ -180,9 +190,9 @@ export default function RobotDetailPage() {
 		try {
 			const result = await intentMut.mutateAsync({ id, data: values });
 			setIntentResult(result.intentToken ?? result.intent_token ?? null);
-			message.success('Intent Token 已签发');
+			message.success(t('robots.issueIntentSuccess', 'Intent Token 已签发'));
 		} catch (err) {
-			handleApiError(err, '签发失败');
+			handleApiError(err, t('robots.issueIntentFailed', '签发失败'));
 		}
 	};
 
@@ -195,7 +205,10 @@ export default function RobotDetailPage() {
 	if (!id) {
 		return (
 			<div>
-				<ErrorState title="Robot 无效" message="未提供 Robot ID。" />
+				<ErrorState
+					title={t('robots.invalidTitle', 'Robot 无效')}
+					message={t('robots.invalidMessage', '未提供 Robot ID。')}
+				/>
 			</div>
 		);
 	}
@@ -209,12 +222,18 @@ export default function RobotDetailPage() {
 					onClick={() => navigate(buildNavHref(ROUTE.ROBOTS, tenantSlug))}
 					className="mb-4 pl-0"
 				>
-					返回 Robot 列表
+					{t('robots.backToList', '返回 Robot 列表')}
 				</Button>
 				<div className="flex items-center justify-between">
 					<AppPageHeader
-						title={robot?.name || 'Robot 详情'}
-						description={robot?.model ? `型号：${robot.model}` : isLoading ? '加载中…' : ''}
+						title={robot?.name || t('robots.detailTitle', 'Robot 详情')}
+						description={
+							robot?.model
+								? t('robots.modelLine', { model: robot.model })
+								: isLoading
+									? t('robots.loading', '加载中…')
+									: ''
+						}
 					/>
 					{robot && (
 						<Space>
@@ -225,14 +244,14 @@ export default function RobotDetailPage() {
 									onClick={handleCommission}
 									loading={commissionMut.isPending}
 								>
-									启用
+									{t('robots.enable', '启用')}
 								</Button>
 							)}
 							{canDecommission && (
 								<Popconfirm
-									title="确认停用该 Robot？"
-									description="停用后该机器人将不可用，此操作将产生审计记录。"
-									okText="确认停用"
+									title={t('robots.disableConfirmTitle', '确认停用该 Robot？')}
+									description={t('robots.disableConfirmDesc')}
+									okText={t('robots.disableConfirmOk', '确认停用')}
 									okButtonProps={{ danger: true }}
 									onConfirm={handleDecommission}
 								>
@@ -241,7 +260,7 @@ export default function RobotDetailPage() {
 										danger
 										loading={decommissionMut.isPending}
 									>
-										停用
+										{t('robots.disable', '停用')}
 									</Button>
 								</Popconfirm>
 							)}
@@ -254,11 +273,11 @@ export default function RobotDetailPage() {
 										setIntentVisible(true);
 									}}
 								>
-									签发 Intent
+									{t('robots.issueIntent', '签发 Intent')}
 								</Button>
 							)}
 							<Button icon={<Pencil size="1em" />} onClick={openEdit}>
-								编辑 Robot
+								{t('robots.editRobot', '编辑 Robot')}
 							</Button>
 						</Space>
 					)}
@@ -275,59 +294,59 @@ export default function RobotDetailPage() {
 			{!isLoading && error && (
 				<ApiErrorState
 					error={error}
-					title="加载 Robot 详情失败"
+					title={t('robots.loadDetailError', '加载 Robot 详情失败')}
 					onRetry={() => refetch()}
 				/>
 			)}
 
 			{!isLoading && !error && robot && (
 				<>
-					<SectionCard title="Robot 信息" className="mb-6">
+					<SectionCard title={t('robots.infoSection', 'Robot 信息')} className="mb-6">
 						<Descriptions column={2} bordered size="small">
-							<Descriptions.Item label="名称">{robot.name}</Descriptions.Item>
-							<Descriptions.Item label="状态">
+							<Descriptions.Item label={t('robots.name', '名称')}>{robot.name}</Descriptions.Item>
+							<Descriptions.Item label={t('common.status', '状态')}>
 								<StatusBadge variant={statusVariant(robot.status)}>
 									{statusLabel(robot.status)}
 								</StatusBadge>
 							</Descriptions.Item>
-							<Descriptions.Item label="型号">{robot.model || '-'}</Descriptions.Item>
-							<Descriptions.Item label="子类型">
+							<Descriptions.Item label={t('robots.model', '型号')}>{robot.model || '-'}</Descriptions.Item>
+							<Descriptions.Item label={t('robots.subtype', '子类型')}>
 								<Tag color="purple">
-									{SUBTYPE_LABELS[robot.workloadSubtype || ''] || robot.workloadSubtype || '-'}
+									{subtypeLabel(robot.workloadSubtype)}
 								</Tag>
 							</Descriptions.Item>
-							<Descriptions.Item label="位置">{robot.location || '-'}</Descriptions.Item>
-							<Descriptions.Item label="固件">{robot.firmwareVer || '-'}</Descriptions.Item>
-							<Descriptions.Item label="身份 ID">{robot.identityId || '-'}</Descriptions.Item>
-							<Descriptions.Item label="所有者 ID">{robot.ownerId || '-'}</Descriptions.Item>
-							<Descriptions.Item label="安全策略">
+							<Descriptions.Item label={t('robots.location', '位置')}>{robot.location || '-'}</Descriptions.Item>
+							<Descriptions.Item label={t('robots.firmware', '固件')}>{robot.firmwareVer || '-'}</Descriptions.Item>
+							<Descriptions.Item label={t('robots.identityId', '身份 ID')}>{robot.identityId || '-'}</Descriptions.Item>
+							<Descriptions.Item label={t('robots.ownerId', '所有者 ID')}>{robot.ownerId || '-'}</Descriptions.Item>
+							<Descriptions.Item label={t('robots.safetyPolicy', '安全策略')}>
 								{robot.safetyPolicy || '-'}
 							</Descriptions.Item>
-							<Descriptions.Item label="最近健康检查">
+							<Descriptions.Item label={t('robots.lastHealthAt', '最近健康检查')}>
 								{formatDate(robot.lastHealthAt || '')}
 							</Descriptions.Item>
-							<Descriptions.Item label="创建时间">
+							<Descriptions.Item label={t('robots.createdAt', '创建时间')}>
 								{formatDate(robot.createdAt || '')}
 							</Descriptions.Item>
-							<Descriptions.Item label="更新时间">
+							<Descriptions.Item label={t('robots.updatedAt', '更新时间')}>
 								{formatDate(robot.updatedAt || '')}
 							</Descriptions.Item>
 						</Descriptions>
 					</SectionCard>
 
-					<SectionCard title="操作" className="mb-6">
+					<SectionCard title={t('common.actions', '操作')} className="mb-6">
 						<div className="space-y-4">
 							<div>
-								<Text strong>启用状态：</Text>
+								<Text strong>{t('robots.commissionStatus', '启用状态：')}</Text>
 								<Text type={statusHint.type}>{statusHint.text}</Text>
 							</div>
 							<div>
-								<Text strong>Intent 令牌：</Text>
+								<Text strong>{t('robots.intentTokenLine', 'Intent 令牌：')}</Text>
 								{canIssueIntent ? (
-									<Text>可用 —— 点击「签发 Intent」生成一次性操作令牌。</Text>
+									<Text>{t('robots.intentAvailable')}</Text>
 								) : (
 									<Text type="secondary">
-										不可用 —— 仅活跃或降级运行的 Robot 可签发。
+										{t('robots.intentUnavailable')}
 									</Text>
 								)}
 							</div>
@@ -337,7 +356,7 @@ export default function RobotDetailPage() {
 			)}
 
 			<Modal
-				title="编辑 Robot"
+				title={t('robots.editRobot', '编辑 Robot')}
 				open={editVisible}
 				onCancel={() => {
 					setEditVisible(false);
@@ -350,26 +369,26 @@ export default function RobotDetailPage() {
 				forceRender
 			>
 				<Form form={form} layout="vertical" onFinish={handleEdit}>
-					<Form.Item name="name" label="名称" rules={[{ required: true }]}>
-						<Input placeholder="例如：assembly-bot-1、patrol-drone" />
+					<Form.Item name="name" label={t('robots.name', '名称')} rules={[{ required: true }]}>
+						<Input placeholder={t('robots.namePlaceholder', '例如：assembly-bot-1、patrol-drone')} />
 					</Form.Item>
-					<Form.Item name="model" label="型号">
-						<Input placeholder="例如：UR5e、Phantom 4" />
+					<Form.Item name="model" label={t('robots.model', '型号')}>
+						<Input placeholder={t('robots.modelPlaceholder', '例如：UR5e、Phantom 4')} />
 					</Form.Item>
-					<Form.Item name="location" label="位置">
-						<Input placeholder="例如：Warehouse-A、Floor-3" />
+					<Form.Item name="location" label={t('robots.location', '位置')}>
+						<Input placeholder={t('robots.locationPlaceholder', '例如：Warehouse-A、Floor-3')} />
 					</Form.Item>
-					<Form.Item name="firmwareVer" label="固件版本">
-						<Input placeholder="例如：v2.1.0" />
+					<Form.Item name="firmwareVer" label={t('robots.firmwareVer', '固件版本')}>
+						<Input placeholder={t('robots.firmwarePlaceholder', '例如：v2.1.0')} />
 					</Form.Item>
-					<Form.Item name="safetyPolicy" label="安全策略">
-						<Input placeholder="例如：strict、moderate" />
+					<Form.Item name="safetyPolicy" label={t('robots.safetyPolicy', '安全策略')}>
+						<Input placeholder={t('robots.safetyPolicyPlaceholder', '例如：strict、moderate')} />
 					</Form.Item>
 				</Form>
 			</Modal>
 
 			<Modal
-				title={`签发 Intent 令牌 — ${robot?.name || ''}`}
+				title={t('robots.issueIntentTitle', { name: robot?.name || '' })}
 				open={intentVisible}
 				onCancel={() => {
 					setIntentVisible(false);
@@ -386,7 +405,7 @@ export default function RobotDetailPage() {
 										setIntentResult(null);
 									}}
 								>
-									关闭
+									{t('robots.close', '关闭')}
 								</Button>,
 							]
 						: [
@@ -397,7 +416,7 @@ export default function RobotDetailPage() {
 										setIntentResult(null);
 									}}
 								>
-									取消
+									{t('common.cancel', '取消')}
 								</Button>,
 								<Button
 									key="submit"
@@ -405,7 +424,7 @@ export default function RobotDetailPage() {
 									loading={intentMut.isPending}
 									onClick={() => intentForm.submit()}
 								>
-									签发令牌
+									{t('robots.issueToken', '签发令牌')}
 								</Button>,
 							]
 				}
@@ -415,43 +434,43 @@ export default function RobotDetailPage() {
 			>
 				{intentResult ? (
 					<div className="space-y-3">
-						<Text strong>已生成的 Intent 令牌：</Text>
+						<Text strong>{t('robots.generatedIntentToken', '已生成的 Intent 令牌：')}</Text>
 						<Paragraph copyable code className="break-all text-xs bg-neutral-50 p-3 rounded-xs border">
 							{intentResult}
 						</Paragraph>
 						<Text type="secondary" className="text-xs">
-							复制该令牌并用于 Robot Runtime SDK。该令牌不会再次显示。
+							{t('robots.intentTokenNote')}
 						</Text>
 					</div>
 				) : (
 					<Form form={intentForm} layout="vertical" onFinish={handleIssueIntent}>
-						<Form.Item name="actions" label="允许的动作">
+						<Form.Item name="actions" label={t('robots.allowedActions', '允许的动作')}>
 							<Select
 								mode="tags"
-								placeholder="例如：move、grasp、navigate"
+								placeholder={t('robots.actionsPlaceholder', '例如：move、grasp、navigate')}
 								options={[
-									{ value: 'move', label: '移动' },
-									{ value: 'grasp', label: '抓取' },
-									{ value: 'navigate', label: '导航' },
-									{ value: 'scan', label: '扫描' },
-									{ value: 'dock', label: '停靠' },
+									{ value: 'move', label: t('robots.action.move', '移动') },
+									{ value: 'grasp', label: t('robots.action.grasp', '抓取') },
+									{ value: 'navigate', label: t('robots.action.navigate', '导航') },
+									{ value: 'scan', label: t('robots.action.scan', '扫描') },
+									{ value: 'dock', label: t('robots.action.dock', '停靠') },
 								]}
 							/>
 						</Form.Item>
-						<Form.Item name="allowedZones" label="允许的区域">
+						<Form.Item name="allowedZones" label={t('robots.allowedZones', '允许的区域')}>
 							<Select
 								mode="tags"
-								placeholder="例如：zone-a、warehouse-1"
+								placeholder={t('robots.zonesPlaceholder', '例如：zone-a、warehouse-1')}
 								options={[
-									{ value: 'zone-a', label: '区域 A' },
-									{ value: 'zone-b', label: '区域 B' },
-									{ value: 'warehouse-1', label: '仓库 1' },
-									{ value: 'floor-1', label: '楼层 1' },
+									{ value: 'zone-a', label: t('robots.zoneA', '区域 A') },
+									{ value: 'zone-b', label: t('robots.zoneB', '区域 B') },
+									{ value: 'warehouse-1', label: t('robots.zoneWarehouse1', '仓库 1') },
+									{ value: 'floor-1', label: t('robots.zoneFloor1', '楼层 1') },
 								]}
 							/>
 						</Form.Item>
-						<Form.Item name="maxSpeed" label="最大速度（m/s）">
-							<Input type="number" placeholder="例如：2.0" />
+						<Form.Item name="maxSpeed" label={t('robots.maxSpeed', '最大速度（m/s）')}>
+							<Input type="number" placeholder={t('robots.maxSpeedPlaceholder', '例如：2.0')} />
 						</Form.Item>
 					</Form>
 				)}

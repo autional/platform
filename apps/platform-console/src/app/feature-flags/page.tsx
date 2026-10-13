@@ -14,6 +14,7 @@ import { usePageTitle } from '@autional/shared';
 import { Alert, AppPageHeader } from '@autional/ui';
 import { adminFeatureFlags } from '@autional/shared/generated/api';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { ApiErrorState } from '@/components/ApiErrorState';
 
 interface FeatureFlagsResponse {
@@ -26,7 +27,8 @@ interface FeatureFlagsResponse {
 }
 
 export default function FeatureFlagsPage() {
-	usePageTitle('功能开关');
+	const { t } = useTranslation();
+	usePageTitle(t('featureFlags.title', '功能开关'));
 
 	const { data, isLoading, error, refetch } = useQuery<FeatureFlagsResponse>({
 		queryKey: ['feature-flags'],
@@ -73,7 +75,7 @@ export default function FeatureFlagsPage() {
 			flagKeys: keys,
 			columns: [
 				{
-					title: '服务',
+					title: t('featureFlags.colService', '服务'),
 					dataIndex: 'service',
 					key: 'service',
 					fixed: 'left' as const,
@@ -90,14 +92,14 @@ export default function FeatureFlagsPage() {
 						if (v === true) {
 							return (
 								<Tag color="green" icon={<CheckCircle2 size="1em" />}>
-									启用
+									{t('common.enabled', '启用')}
 								</Tag>
 							);
 						}
 						if (v === false) {
 							return (
 								<Tag color="default" icon={<XCircle size="1em" />}>
-									禁用
+									{t('common.disabled', '禁用')}
 								</Tag>
 							);
 						}
@@ -106,7 +108,7 @@ export default function FeatureFlagsPage() {
 				})),
 			],
 		};
-	}, [data]);
+	}, [data, t]);
 
 	const tableData = useMemo(() => {
 		if (!data?.services) return [];
@@ -141,29 +143,33 @@ export default function FeatureFlagsPage() {
 		<div>
 			<div className="mb-6">
 				<AppPageHeader
-					title="功能开关"
-					description="跨服务功能开关配置矩阵 —— 全部服务总览"
+					title={t('featureFlags.title', '功能开关')}
+					description={t('featureFlags.subtitle', '跨服务功能开关配置矩阵 —— 全部服务总览')}
 				/>
 			</div>
 
 			{/* PL-55：标明生效范围，避免误读为租户级开关（实为网关内置清单） */}
 			<Alert
 				variant="info"
-				title="生效范围：当前部署（全部服务，非租户级）"
+				title={t('featureFlags.scopeTitle', '生效范围：当前部署（全部服务，非租户级）')}
 				className="mb-4"
 			>
-				本矩阵为网关内置的服务能力清单，随部署版本生效、所有租户共用，仅供总览、不在此页变更。
+				{t('featureFlags.scopeDesc')}
 			</Alert>
 
 			{error && !isLoading ? (
-				<ApiErrorState error={error} title="加载功能开关失败" onRetry={() => refetch()} />
+				<ApiErrorState
+					error={error}
+					title={t('featureFlags.loadFailed', '加载功能开关失败')}
+					onRetry={() => refetch()}
+				/>
 			) : (
 				<>
 					<Row gutter={[16, 16]} className="mb-6">
 						<Col xs={24} sm={8}>
 							<Card>
 								<Statistic
-									title="服务总数"
+									title={t('featureFlags.totalServices', '服务总数')}
 									value={isLoading ? '-' : totalServices}
 									prefix={<LayoutGrid size="1em" />}
 								/>
@@ -172,7 +178,7 @@ export default function FeatureFlagsPage() {
 						<Col xs={24} sm={8}>
 							<Card>
 								<Statistic
-									title="功能键"
+									title={t('featureFlags.totalFlags', '功能键')}
 									value={isLoading ? '-' : flagKeys.length}
 									prefix={<Settings size="1em" />}
 								/>
@@ -181,7 +187,7 @@ export default function FeatureFlagsPage() {
 						<Col xs={24} sm={8}>
 							<Card>
 								<Statistic
-									title="已启用功能"
+									title={t('featureFlags.enabledCount', '已启用功能')}
 									value={isLoading ? '-' : totalFeaturesEnabled}
 									prefix={<CheckCircle2 size="1em" />}
 									styles={{ content: { color: 'var(--color-success-text)' } }}
@@ -199,7 +205,7 @@ export default function FeatureFlagsPage() {
 							scroll={{ x: 'max-content' }}
 							bordered
 							size="small"
-							locale={{ emptyText: '暂无功能开关数据' }}
+							locale={{ emptyText: t('featureFlags.empty', '暂无功能开关数据') }}
 						/>
 					</Spin>
 				</>
