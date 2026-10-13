@@ -69,7 +69,7 @@ export default function OpsPage() {
 
 	return (
 		<div>
-			{error && <ApiErrorState error={error} title="加载运维状态失败" onRetry={refetch} className="mb-4" />}
+			{error && <ApiErrorState error={error} title={t('ops.loadError', '加载运维状态失败')} onRetry={refetch} className="mb-4" />}
 
 			<AppPageHeader
 				title={t('ops.title', '运维视图')}
@@ -78,7 +78,7 @@ export default function OpsPage() {
 			<Spin spinning={loading}>
 				{/* PL-57：本页两个数字来源不同（此带=公开状态页聚合，下方服务卡=网关直连探测子集），不注明会被当矛盾 */}
 				{healthData && (
-					<div className="text-sm font-medium mb-2">全站服务概览（公开状态页聚合口径）</div>
+					<div className="text-sm font-medium mb-2">{t('ops.publicOverview')}</div>
 				)}
 
 				{healthData && (
@@ -86,7 +86,7 @@ export default function OpsPage() {
 						<Col xs={24} sm={8}>
 							<Card>
 								<Statistic
-									title="服务总数"
+									title={t('ops.servicesTotal', '服务总数')}
 									value={healthData.servicesTotal}
 									prefix={<Cloud size="1em" />}
 								/>
@@ -95,7 +95,7 @@ export default function OpsPage() {
 						<Col xs={24} sm={8}>
 							<Card>
 								<Statistic
-									title="健康服务"
+									title={t('ops.servicesHealthy', '健康服务')}
 									value={healthData.servicesHealthy}
 									suffix={`/ ${healthData.servicesTotal}`}
 									styles={{ content: { color: 'var(--color-success-text)' } }}
@@ -106,7 +106,7 @@ export default function OpsPage() {
 						<Col xs={24} sm={8}>
 							<Card>
 								<Statistic
-									title="活跃事故"
+									title={t('ops.activeIncidents', '活跃事故')}
 									value={healthData.activeIncidents}
 									styles={{ content: { color: healthData.activeIncidents > 0 ? 'var(--color-danger-text)' : undefined } }}
 									prefix={<AlertTriangle size="1em" />}
@@ -117,9 +117,7 @@ export default function OpsPage() {
 				)}
 
 				{services.length > 0 && (
-					<div className="text-sm font-medium mb-2">
-						服务直连探测（网关 developer/status 口径 · 仅含网关已注册服务，少于全站总数属正常）
-					</div>
+					<div className="text-sm font-medium mb-2">{t('ops.directProbe')}</div>
 				)}
 				<Row gutter={[16, 16]} className="mb-6">
 					{services.map((svc) => (
@@ -140,16 +138,16 @@ export default function OpsPage() {
 										}
 									>
 										{svc.status === 'healthy'
-											? '正常'
+											? t('ops.statusHealthy', '正常')
 											: svc.status === 'degraded'
-												? '降级'
-												: '异常'}
+												? t('ops.statusDegraded', '降级')
+												: t('ops.statusUnhealthy', '异常')}
 									</Tag>
 								</div>
 								{svc.latency && (
 									<div className="text-xs text-neutral-600">
-										延迟: {svc.latency === '0s' ? '—' : svc.latency}
-										{svc.port != null && ` | 端口: ${svc.port}`}
+										{t('ops.latencyLine', { latency: svc.latency === '0s' ? '—' : svc.latency })}
+										{svc.port != null && t('ops.portSuffix', { port: svc.port })}
 									</div>
 								)}
 							</Card>
@@ -158,13 +156,13 @@ export default function OpsPage() {
 				</Row>
 
 				<Card
-					title="服务总览 (Grafana)"
+					title={t('ops.grafanaOverview', '服务总览 (Grafana)')}
 					className="mb-6"
 					// iframe 加载失败跨域不可检测（XFO/CSP/Basic Auth 均表现为空白）→ 链接恒显式渲染
 					extra={
 						isGrafanaConfigured ? (
 							<a href={ops.grafanaOverviewUrl} target="_blank" rel="noreferrer">
-								新窗口打开
+								{t('ops.openNewWindow', '新窗口打开')}
 							</a>
 						) : undefined
 					}
@@ -175,21 +173,21 @@ export default function OpsPage() {
 							width="100%"
 							height="500"
 							style={{ border: 'none' }}
-							title="Grafana 总览面板"
+							title={t('ops.grafanaOverviewPanel', 'Grafana 总览面板')}
 						/>
 					) : (
 						<Alert
 							variant="info"
-							title="Grafana 未接入"
+							title={t('ops.grafanaNotConnected', 'Grafana 未接入')}
 						>
-							当前环境未配置 Grafana 面板地址；接入后在此展示服务总览面板。
+							{t('ops.grafanaDesc')}
 						</Alert>
 					)}
 				</Card>
 
 				{selectedService && (
 					<Card
-						title={`${selectedService} 详情 (Grafana)`}
+						title={t('ops.grafanaServiceTitle', { name: selectedService })}
 						className="mb-6"
 						extra={
 							<span className="flex items-center gap-3">
@@ -199,7 +197,7 @@ export default function OpsPage() {
 										target="_blank"
 										rel="noreferrer"
 									>
-										新窗口打开
+										{t('ops.openNewWindow', '新窗口打开')}
 									</a>
 								)}
 								<Tag color="blue">Grafana</Tag>
@@ -212,14 +210,14 @@ export default function OpsPage() {
 								width="100%"
 								height="400"
 								style={{ border: 'none' }}
-								title={`Grafana ${selectedService} 面板`}
+								title={t('ops.grafanaServicePanel', { name: selectedService })}
 							/>
 						) : (
 							<Alert
 								variant="info"
-								title="Grafana 未接入"
+								title={t('ops.grafanaNotConnected', 'Grafana 未接入')}
 							>
-								当前环境未配置 Grafana 面板地址；接入后在此展示该服务面板。
+								{t('ops.grafanaServiceDesc')}
 							</Alert>
 						)}
 					</Card>

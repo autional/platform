@@ -29,11 +29,13 @@ const maintenanceStatusBadge: Record<string, StatusVariant> = {
 	cancelled: 'neutral',
 };
 
-const statusLabels: Record<string, string> = {
-	scheduled: '已排期',
-	in_progress: '进行中',
-	completed: '已完成',
-	cancelled: '已取消',
+// 键映射 + 调用时求值：映射表存 i18n 键名，渲染处经组件 t() 解析；
+// 未知状态不落键 → 渲染回退原始值，语义同旧版 statusLabels[v] || v。
+const statusLabelKeys: Record<string, string> = {
+	scheduled: 'maintenances.status.scheduled',
+	in_progress: 'maintenances.status.in_progress',
+	completed: 'maintenances.status.completed',
+	cancelled: 'maintenances.status.cancelled',
 };
 
 export default function MaintenancesPage() {
@@ -73,58 +75,60 @@ export default function MaintenancesPage() {
 					id: editing.id,
 					data: { ...payload, status: values.status },
 				});
-				message.success('维护更新成功');
+				message.success(t('maintenances.updateSuccess', '维护更新成功'));
 			} else {
 				await createMut.mutateAsync(payload);
-				message.success('维护创建成功');
+				message.success(t('maintenances.createSuccess', '维护创建成功'));
 			}
 			setModalVisible(false);
 			setEditing(null);
 			form.resetFields();
 		} catch (err) {
-			handleApiError(err, '保存失败');
+			handleApiError(err, t('common.saveFailed', '保存失败'));
 		}
 	};
 
 	const handleDelete = async (id: string) => {
 		try {
 			await deleteMut.mutateAsync(id);
-			message.success('删除成功');
+			message.success(t('common.deleteSuccess', '删除成功'));
 		} catch (err) {
-			handleApiError(err, '删除失败');
+			handleApiError(err, t('common.deleteFailed', '删除失败'));
 		}
 	};
 
 	const columns = [
-		{ title: '标题', dataIndex: 'title', key: 'title' },
+		{ title: t('maintenances.colTitle', '标题'), dataIndex: 'title', key: 'title' },
 		{
-			title: '状态',
+			title: t('common.status', '状态'),
 			dataIndex: 'status',
 			key: 'status',
 			render: (v: string) => (
-				<StatusBadge variant={maintenanceStatusBadge[v]}>{statusLabels[v] || v}</StatusBadge>
+				<StatusBadge variant={maintenanceStatusBadge[v]}>
+					{statusLabelKeys[v] ? t(statusLabelKeys[v]) : v}
+				</StatusBadge>
 			),
 		},
 		{
-			title: '计划开始',
+			title: t('maintenances.colScheduledStart', '计划开始'),
 			dataIndex: 'scheduledStartAt',
 			key: 'scheduledStartAt',
 			render: (v?: string) => (v ? formatDateTime(v) : '-'),
 		},
 		{
-			title: '计划结束',
+			title: t('maintenances.colScheduledEnd', '计划结束'),
 			dataIndex: 'scheduledEndAt',
 			key: 'scheduledEndAt',
 			render: (v?: string) => (v ? formatDateTime(v) : '-'),
 		},
 		{
-			title: '影响服务',
+			title: t('maintenances.colAffectedServices', '影响服务'),
 			dataIndex: 'affectedServices',
 			key: 'affectedServices',
 			render: (v?: string[]) => (v && v.length > 0 ? v.join(', ') : '-'),
 		},
 		{
-			title: '操作',
+			title: t('common.actions', '操作'),
 			key: 'action',
 			render: (_: any, record: MaintenanceRecord) => (
 				<Space size="small">
@@ -147,11 +151,14 @@ export default function MaintenancesPage() {
 							setModalVisible(true);
 						}}
 					>
-						编辑
+						{t('common.edit', '编辑')}
 					</Button>
-					<Popconfirm title="确认删除该项维护？" onConfirm={() => handleDelete(record.id)}>
+					<Popconfirm
+						title={t('maintenances.confirmDelete', '确认删除该项维护？')}
+						onConfirm={() => handleDelete(record.id)}
+					>
 						<Button type="text" danger size="small" icon={<Trash2 size="1em" />}>
-							删除
+							{t('common.delete', '删除')}
 						</Button>
 					</Popconfirm>
 				</Space>
@@ -174,7 +181,7 @@ export default function MaintenancesPage() {
 								setModalVisible(true);
 							}}
 						>
-							创建维护
+							{t('maintenances.createTitle', '创建维护')}
 						</Button>
 					</>
 				}
@@ -183,19 +190,19 @@ export default function MaintenancesPage() {
 			<div className="flex gap-4 mb-4">
 				<Select
 					allowClear
-					placeholder="状态"
+					placeholder={t('common.status', '状态')}
 					style={{ width: 160 }}
 					value={filters.status}
 					onChange={(v) => setFilters((f) => ({ ...f, status: v }))}
 				>
-					<Option value="scheduled">已排期</Option>
-					<Option value="in_progress">进行中</Option>
-					<Option value="completed">已完成</Option>
-					<Option value="cancelled">已取消</Option>
+					<Option value="scheduled">{t('maintenances.status.scheduled', '已排期')}</Option>
+					<Option value="in_progress">{t('maintenances.status.in_progress', '进行中')}</Option>
+					<Option value="completed">{t('maintenances.status.completed', '已完成')}</Option>
+					<Option value="cancelled">{t('maintenances.status.cancelled', '已取消')}</Option>
 				</Select>
 			</div>
 
-			{error && <PageError message="加载维护列表失败" retry={refetch} className="mb-4" />}
+			{error && <PageError message={t('maintenances.loadError', '加载维护列表失败')} retry={refetch} className="mb-4" />}
 			<DataTable
 				rowKey="id"
 				columns={columns}
@@ -205,7 +212,7 @@ export default function MaintenancesPage() {
 			/>
 
 			<Modal
-				title={editing ? '编辑维护' : '创建维护'}
+				title={editing ? t('maintenances.editTitle', '编辑维护') : t('maintenances.createTitle', '创建维护')}
 				open={modalVisible}
 				onCancel={() => {
 					setModalVisible(false);
@@ -219,28 +226,28 @@ export default function MaintenancesPage() {
 				forceRender
 			>
 				<Form form={form} layout="vertical" onFinish={handleSave}>
-					<Form.Item name="title" label="标题" rules={[{ required: true }]}>
-						<Input placeholder="维护标题" />
+					<Form.Item name="title" label={t('maintenances.colTitle', '标题')} rules={[{ required: true }]}>
+						<Input placeholder={t('maintenances.titlePlaceholder', '维护标题')} />
 					</Form.Item>
-					<Form.Item name="description" label="描述">
-						<TextArea rows={4} placeholder="维护描述" />
+					<Form.Item name="description" label={t('maintenances.descriptionLabel', '描述')}>
+						<TextArea rows={4} placeholder={t('maintenances.descriptionPlaceholder', '维护描述')} />
 					</Form.Item>
-					<Form.Item name="scheduledStartAt" label="计划开始时间" rules={[{ required: true }]}>
+					<Form.Item name="scheduledStartAt" label={t('maintenances.startLabel', '计划开始时间')} rules={[{ required: true }]}>
 						<DatePicker showTime style={{ width: '100%' }} />
 					</Form.Item>
-					<Form.Item name="scheduledEndAt" label="计划结束时间" rules={[{ required: true }]}>
+					<Form.Item name="scheduledEndAt" label={t('maintenances.endLabel', '计划结束时间')} rules={[{ required: true }]}>
 						<DatePicker showTime style={{ width: '100%' }} />
 					</Form.Item>
-					<Form.Item name="affectedServices" label="影响服务">
-						<Input placeholder="多个服务用逗号分隔" />
+					<Form.Item name="affectedServices" label={t('maintenances.colAffectedServices', '影响服务')}>
+						<Input placeholder={t('maintenances.servicesPlaceholder', '多个服务用逗号分隔')} />
 					</Form.Item>
 					{editing && (
-						<Form.Item name="status" label="状态" initialValue="scheduled">
+						<Form.Item name="status" label={t('common.status', '状态')} initialValue="scheduled">
 							<Select>
-								<Option value="scheduled">已排期</Option>
-								<Option value="in_progress">进行中</Option>
-								<Option value="completed">已完成</Option>
-								<Option value="cancelled">已取消</Option>
+								<Option value="scheduled">{t('maintenances.status.scheduled', '已排期')}</Option>
+								<Option value="in_progress">{t('maintenances.status.in_progress', '进行中')}</Option>
+								<Option value="completed">{t('maintenances.status.completed', '已完成')}</Option>
+								<Option value="cancelled">{t('maintenances.status.cancelled', '已取消')}</Option>
 							</Select>
 						</Form.Item>
 					)}
