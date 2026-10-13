@@ -44,10 +44,7 @@ export default function SystemRateLimitsPage() {
 		<div>
 			<AppPageHeader
 				title={t('rateLimits.title', '限流状态')}
-				description={t(
-					'rateLimits.subtitle',
-					'网关限流器提供方（provider）可用性状态；限流策略与命中统计暂未接入。',
-				)}
+				description={t('rateLimits.subtitle')}
 			/>
 
 			{error ? (

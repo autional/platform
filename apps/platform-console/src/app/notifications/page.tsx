@@ -33,23 +33,6 @@ const CHANNEL_COLORS = ['var(--color-chart-1)', 'var(--color-chart-2)', 'var(--c
 const TYPE_COLORS = ['var(--color-chart-2)', 'var(--color-chart-3)', 'var(--color-chart-4)', 'var(--color-chart-5)', 'var(--color-chart-1)', 'var(--color-chart-6)'];
 const PIE_COLORS = ['var(--color-chart-1)', 'var(--color-chart-2)', 'var(--color-chart-3)', 'var(--color-chart-4)', 'var(--color-chart-5)', 'var(--color-chart-6)'];
 
-const STATUS_LABELS: Record<string, string> = {
-	sent: '已发送',
-	delivered: '已送达',
-	failed: '失败',
-	pending: '待处理',
-	scheduled: '已排期',
-	cancelled: '已取消',
-};
-
-const CHANNEL_LABELS: Record<string, string> = {
-	sms: '短信',
-	email: '邮件',
-	push: '推送',
-	inapp: '站内',
-	webhook: 'Webhook',
-};
-
 export default function PlatformNotificationsPage() {
 	const { t } = useTranslation();
 	usePageTitle(t('platformNotifications.title', '平台通信与通知'));
@@ -83,7 +66,7 @@ export default function PlatformNotificationsPage() {
 	const channelPieData = useMemo(() => {
 		if (!comm?.byChannel) return [];
 		return Object.entries(comm.byChannel).map(([name, value]) => ({
-			name: t(`platformNotifications.channel.${name.toLowerCase()}`, CHANNEL_LABELS[name.toLowerCase()] ?? name),
+			name: t(`platformNotifications.channel.${name.toLowerCase()}`, { defaultValue: name }),
 			value,
 		}));
 	}, [comm?.byChannel, t]);
@@ -107,10 +90,7 @@ export default function PlatformNotificationsPage() {
 			{/* PL-31：两卡数字来源不同服务、时间窗不同（消息=通信服务近 30 天；通知=站内全量累计），不注明会被当矛盾 */}
 			<AppPageHeader
 				title={t('platformNotifications.title', '平台通信与通知')}
-				description={t(
-					'platformNotifications.scopeNote',
-					'口径说明：「消息」= 通信服务（短信 / 邮件等渠道）近 30 天发送量；「通知」= 站内通知全量累计（无时间窗）。两者来源不同服务、统计范围不同，数字不可直接比较。',
-				)}
+				description={t('platformNotifications.scopeNote')}
 				actions={
 					<span className="text-xs text-neutral-600">
 						{t('platformNotifications.autoRefresh', '每 30 秒自动刷新')}
@@ -261,7 +241,7 @@ export default function PlatformNotificationsPage() {
 								dataIndex: 'status',
 								key: 'status',
 								render: (v: string) => (
-									<Tag>{t(`platformNotifications.status.${v}`, STATUS_LABELS[v] ?? v)}</Tag>
+									<Tag>{t(`platformNotifications.status.${v}`, { defaultValue: v })}</Tag>
 								),
 							},
 							{

@@ -61,7 +61,7 @@ export default function AnnouncementsPage() {
 		try {
 			if (editing) {
 				await updateMut.mutateAsync({ id: editing.id, data: payload });
-				message.success('公告更新成功');
+				message.success(t('announcements.updateSuccess', '公告更新成功'));
 			} else {
 				const res = await createMut.mutateAsync(payload);
 				const created = values.publishNow
@@ -70,19 +70,19 @@ export default function AnnouncementsPage() {
 				if (created?.id) {
 					try {
 						await publishMut.mutateAsync(created.id);
-						message.success('公告已创建并发布');
+						message.success(t('announcements.createdAndPublished', '公告已创建并发布'));
 					} catch (err) {
-						handleApiError(err, '公告已保存为草稿，但立即发布失败');
+						handleApiError(err, t('announcements.savedDraftPublishFailed'));
 					}
 				} else {
-					message.success('公告已保存为草稿，可在列表中发布');
+					message.success(t('announcements.savedAsDraft'));
 				}
 			}
 			setModalVisible(false);
 			setEditing(null);
 			form.resetFields();
 		} catch (err) {
-			handleApiError(err, '保存失败');
+			handleApiError(err, t('common.saveFailed', '保存失败'));
 		}
 	};
 
@@ -90,9 +90,9 @@ export default function AnnouncementsPage() {
 	const handleSave = async (values: AnnouncementFormValues) => {
 		if (!editing && values.publishNow) {
 			modal.confirm({
-				title: '确认立即发布？',
-				content: '公告将直接发布，对用户可见；如需先审阅请取消并改用「保存为草稿」。',
-				okText: '确认发布',
+				title: t('announcements.confirmPublishNow', '确认立即发布？'),
+				content: t('announcements.confirmPublishNowDetail'),
+				okText: t('announcements.confirmPublish', '确认发布'),
 				onOk: () => doSave(values),
 			});
 			return;
@@ -103,55 +103,55 @@ export default function AnnouncementsPage() {
 	const handleDelete = async (id: string) => {
 		try {
 			await deleteMut.mutateAsync(id);
-			message.success('删除成功');
+			message.success(t('common.deleteSuccess', '删除成功'));
 		} catch (err) {
-			handleApiError(err, '删除失败');
+			handleApiError(err, t('common.deleteFailed', '删除失败'));
 		}
 	};
 
 	const handlePublish = async (id: string) => {
 		try {
 			await publishMut.mutateAsync(id);
-			message.success('公告已发布');
+			message.success(t('announcements.published', '公告已发布'));
 		} catch (err) {
-			handleApiError(err, '发布失败');
+			handleApiError(err, t('announcements.publishFailed', '发布失败'));
 		}
 	};
 
 	const handleUnpublish = async (id: string) => {
 		try {
 			await unpublishMut.mutateAsync(id);
-			message.success('公告已撤回');
+			message.success(t('announcements.unpublished', '公告已撤回'));
 		} catch (err) {
-			handleApiError(err, '撤回失败');
+			handleApiError(err, t('announcements.unpublishFailed', '撤回失败'));
 		}
 	};
 
 	const type = Form.useWatch('type', form);
 
 	const columns = [
-		{ title: '标题', dataIndex: 'title', key: 'title' },
+		{ title: t('announcements.colTitle', '标题'), dataIndex: 'title', key: 'title' },
 		{
-			title: '类型',
+			title: t('announcements.colType', '类型'),
 			key: 'type',
 			// 由真实字段 targetRoles 推导（空 = 全员广播）；此前读幻影 record.type 恒显示「定向」（PL-18）
 			render: (_: unknown, record: AnnouncementRecord) =>
 				record.targetRoles?.length ? (
-					<Tag color="orange">定向</Tag>
+					<Tag color="orange">{t('announcements.type.targeted', '定向')}</Tag>
 				) : (
-					<Tag color="blue">全局</Tag>
+					<Tag color="blue">{t('announcements.type.global', '全局')}</Tag>
 				),
 		},
 		{
-			title: '发布状态',
+			title: t('announcements.colStatus', '发布状态'),
 			dataIndex: 'status',
 			key: 'status',
 			render: (v: string) => {
 				const meta: Record<string, { color: string; label: string }> = {
-					draft: { color: 'default', label: '草稿' },
-					scheduled: { color: 'processing', label: '定时待发' },
-					published: { color: 'success', label: '已发布' },
-					expired: { color: 'gray', label: '已过期' },
+					draft: { color: 'default', label: t('announcements.status.draft', '草稿') },
+					scheduled: { color: 'processing', label: t('announcements.status.scheduled', '定时待发') },
+					published: { color: 'success', label: t('announcements.status.published', '已发布') },
+					expired: { color: 'gray', label: t('announcements.status.expired', '已过期') },
 				};
 				const m = meta[v];
 				return <Tag color={m?.color ?? 'default'}>{m?.label ?? v}</Tag>;
@@ -160,13 +160,13 @@ export default function AnnouncementsPage() {
 		{
 			// 此前读幻影 publishedAt 恒「-」；改读真实字段 publishAt（计划发布时间）。
 			// 实际发布时刻后端无独立字段，W5（PL-17）复核口径。
-			title: '发布时间',
+			title: t('announcements.colPublishAt', '发布时间'),
 			dataIndex: 'publishAt',
 			key: 'publishAt',
 			render: (v?: string) => v || '-',
 		},
 		{
-			title: '操作',
+			title: t('common.actions', '操作'),
 			key: 'action',
 			render: (_: any, record: AnnouncementRecord) => (
 				<Space size="small">
@@ -185,13 +185,13 @@ export default function AnnouncementsPage() {
 							setModalVisible(true);
 						}}
 					>
-						编辑
+						{t('common.edit', '编辑')}
 					</Button>
 					{(record.status === 'draft' || record.status === 'scheduled') && (
 						<Popconfirm
-							title="确认发布该公告？"
-							description="发布后公告将立即对所有用户可见。"
-							okText="确认发布"
+							title={t('announcements.confirmPublishTitle', '确认发布该公告？')}
+							description={t('announcements.confirmPublishDesc')}
+							okText={t('announcements.confirmPublish', '确认发布')}
 							onConfirm={() => handlePublish(record.id)}
 						>
 							<Button
@@ -200,7 +200,7 @@ export default function AnnouncementsPage() {
 								icon={<Send size="1em" />}
 								loading={publishMut.isPending}
 							>
-								发布
+								{t('announcements.publish', '发布')}
 							</Button>
 						</Popconfirm>
 					)}
@@ -212,12 +212,12 @@ export default function AnnouncementsPage() {
 							onClick={() => handleUnpublish(record.id)}
 							loading={unpublishMut.isPending}
 						>
-							撤回
+								{t('announcements.unpublish', '撤回')}
 						</Button>
 					)}
-					<Popconfirm title="确认删除该公告？" onConfirm={() => handleDelete(record.id)}>
+					<Popconfirm title={t('announcements.confirmDelete', '确认删除该公告？')} onConfirm={() => handleDelete(record.id)}>
 						<Button type="text" danger size="small" icon={<Trash2 size="1em" />}>
-							删除
+							{t('common.delete', '删除')}
 						</Button>
 					</Popconfirm>
 				</Space>
@@ -240,13 +240,13 @@ export default function AnnouncementsPage() {
 								setModalVisible(true);
 							}}
 						>
-							发布公告
+							{t('announcements.create', '发布公告')}
 						</Button>
 					</>
 				}
 			/>
 
-			{error && <PageError message="加载公告列表失败" retry={refetch} className="mb-4" />}
+			{error && <PageError message={t('announcements.loadError', '加载公告列表失败')} retry={refetch} className="mb-4" />}
 			<DataTable
 				rowKey="id"
 				columns={columns}
@@ -256,7 +256,7 @@ export default function AnnouncementsPage() {
 			/>
 
 			<Modal
-				title={editing ? '编辑公告' : '发布公告'}
+				title={editing ? t('announcements.editTitle', '编辑公告') : t('announcements.create', '发布公告')}
 				open={modalVisible}
 				onCancel={() => {
 					setModalVisible(false);
@@ -270,34 +270,34 @@ export default function AnnouncementsPage() {
 				forceRender
 			>
 				<Form form={form} layout="vertical" onFinish={handleSave}>
-					<Form.Item name="title" label="标题" rules={[{ required: true }]}>
-						<Input placeholder="公告标题" />
+					<Form.Item name="title" label={t('announcements.colTitle', '标题')} rules={[{ required: true }]}>
+						<Input placeholder={t('announcements.titlePlaceholder', '公告标题')} />
 					</Form.Item>
-					<Form.Item name="content" label="内容" rules={[{ required: true }]}>
-						<TextArea rows={6} placeholder="公告正文，支持 HTML" />
+					<Form.Item name="content" label={t('announcements.contentLabel', '内容')} rules={[{ required: true }]}>
+						<TextArea rows={6} placeholder={t('announcements.contentPlaceholder', '公告正文，支持 HTML')} />
 					</Form.Item>
-					<Form.Item name="type" label="类型" rules={[{ required: true }]} initialValue="global">
-						<Select placeholder="选择类型">
-							<Option value="global">全局（所有用户）</Option>
-							<Option value="targeted">定向（按角色）</Option>
+					<Form.Item name="type" label={t('announcements.colType', '类型')} rules={[{ required: true }]} initialValue="global">
+						<Select placeholder={t('announcements.typePlaceholder', '选择类型')}>
+							<Option value="global">{t('announcements.type.globalOption', '全局（所有用户）')}</Option>
+							<Option value="targeted">{t('announcements.type.targetedOption', '定向（按角色）')}</Option>
 						</Select>
 					</Form.Item>
 					{type === 'targeted' && (
 						<Form.Item
 							name="targetRoles"
-							label="目标角色"
-							rules={[{ required: true, type: 'array', message: '请选择至少一个目标角色' }]}
+							label={t('announcements.targetRolesLabel', '目标角色')}
+							rules={[{ required: true, type: 'array', message: t('announcements.targetRolesRequired', '请选择至少一个目标角色') }]}
 						>
-							<Select mode="multiple" allowClear placeholder="选择目标角色，仅这些角色的用户会收到公告">
-								<Option value="owner">所有者 (Owner)</Option>
-								<Option value="admin">管理员 (Admin)</Option>
-								<Option value="member">成员 (Member)</Option>
+							<Select mode="multiple" allowClear placeholder={t('announcements.targetRolesPlaceholder')}>
+								<Option value="owner">{t('announcements.role.owner', '所有者 (Owner)')}</Option>
+								<Option value="admin">{t('announcements.role.admin', '管理员 (Admin)')}</Option>
+								<Option value="member">{t('announcements.role.member', '成员 (Member)')}</Option>
 							</Select>
 						</Form.Item>
 					)}
 					{!editing && (
 						<Form.Item name="publishNow" valuePropName="checked" initialValue={false} className="mb-0">
-							<Checkbox>创建后立即发布（默认保存为草稿，可在列表中再发布）</Checkbox>
+							<Checkbox>{t('announcements.publishNowHint')}</Checkbox>
 						</Form.Item>
 					)}
 				</Form>

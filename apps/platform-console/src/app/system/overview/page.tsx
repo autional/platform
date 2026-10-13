@@ -81,16 +81,10 @@ export default function SystemOverviewPage() {
 								{servicesQuery.data && !servicesQuery.data.healthAvailable && (
 									<Alert
 										variant="warning"
-										title={t(
-											'systemOverview.healthUnavailable',
-											'健康数据不可用',
-										)}
+										title={t('systemOverview.healthUnavailable')}
 										className="mb-4"
 									>
-										{t(
-											'systemOverview.healthUnavailableDetail',
-											'服务状态已按「未知」呈现；健康检查数据源暂不可用。',
-										)}
+										{t('systemOverview.healthUnavailableDetail')}
 									</Alert>
 								)}
 								{Object.entries(servicesByCategory).map(([category, services]) => (
@@ -144,10 +138,7 @@ export default function SystemOverviewPage() {
 							variant="warning"
 							title={t('systemOverview.notConnected', '未接入')}
 						>
-							{t(
-								'systemOverview.notConnectedDetail',
-								'暂无数据源；接入后展示真实数据。',
-							)}
+							{t('systemOverview.notConnectedDetail')}
 						</Alert>
 					</Card>
 				</Col>
@@ -226,10 +217,7 @@ export default function SystemOverviewPage() {
 							variant="warning"
 							title={t('systemOverview.notConnected', '未接入')}
 						>
-							{t(
-								'systemOverview.notConnectedDetail',
-								'暂无数据源；接入后展示真实数据。',
-							)}
+							{t('systemOverview.notConnectedDetail')}
 						</Alert>
 					</Card>
 				</Col>
