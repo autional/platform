@@ -9,6 +9,7 @@ import {
 	type ServiceCategory,
 	type ServiceStatus,
 } from '@/hooks/use-system-overview';
+import i18n from '@/i18n';
 
 export type { ServiceCategory, ServiceStatus };
 
@@ -52,39 +53,50 @@ export interface FeatureFlagItem {
 	services: Record<string, FeatureStatus>;
 }
 
-const SERVICE_DESCRIPTIONS: Record<string, string> = {
-	'identity-service': '身份认证与用户管理',
-	'profile-service': '用户资料管理',
-	'tenant-service': '多租户管理',
-	'session-service': '会话管理',
-	'mfa-service': '多因素认证',
-	'oauth-service': 'OAuth 2.0 / OIDC 认证',
-	'wallet-service': '钱包与余额管理',
-	'point-service': '积分管理',
-	'audit-service': '审计日志与合规',
-	'notification-service': '通知推送中心',
-	'communication-service': '邮件/短信发送',
-	'storage-service': '文件存储管理',
-	'billing-service': '计费与订阅',
-	'compliance-service': '合规框架管理',
-	'status-service': '服务状态页',
-	'secret-service': '密钥管理',
-	'pay-service': '支付处理',
-	'saml-service': 'SAML 2.0 联合认证',
+// 键映射 + 调用时求值（模块级无组件作用域）：映射表存 i18n 键名，调用点在函数体内 i18n.t。
+const SERVICE_DESCRIPTION_KEYS: Record<string, string> = {
+	'identity-service': 'systemConfig.serviceDesc.identityService',
+	'profile-service': 'systemConfig.serviceDesc.profileService',
+	'tenant-service': 'systemConfig.serviceDesc.tenantService',
+	'session-service': 'systemConfig.serviceDesc.sessionService',
+	'mfa-service': 'systemConfig.serviceDesc.mfaService',
+	'oauth-service': 'systemConfig.serviceDesc.oauthService',
+	'wallet-service': 'systemConfig.serviceDesc.walletService',
+	'point-service': 'systemConfig.serviceDesc.pointService',
+	'audit-service': 'systemConfig.serviceDesc.auditService',
+	'notification-service': 'systemConfig.serviceDesc.notificationService',
+	'communication-service': 'systemConfig.serviceDesc.communicationService',
+	'storage-service': 'systemConfig.serviceDesc.storageService',
+	'billing-service': 'systemConfig.serviceDesc.billingService',
+	'compliance-service': 'systemConfig.serviceDesc.complianceService',
+	'status-service': 'systemConfig.serviceDesc.statusService',
+	'secret-service': 'systemConfig.serviceDesc.secretService',
+	'pay-service': 'systemConfig.serviceDesc.payService',
+	'saml-service': 'systemConfig.serviceDesc.samlService',
 };
 
 export const INFRA_TYPE_LABELS: Record<InfraType, string> = {
-	database: '数据库',
-	cache: '缓存',
-	message_queue: '消息队列',
-	object_storage: '对象存储',
-	document_db: '文档数据库',
+	get database() {
+		return i18n.t('systemConfig.infraType.database');
+	},
+	get cache() {
+		return i18n.t('systemConfig.infraType.cache');
+	},
+	get message_queue() {
+		return i18n.t('systemConfig.infraType.messageQueue');
+	},
+	get object_storage() {
+		return i18n.t('systemConfig.infraType.objectStorage');
+	},
+	get document_db() {
+		return i18n.t('systemConfig.infraType.documentDb');
+	},
 };
 
-const STATUS_LABELS: Record<ServiceStatus, string> = {
-	healthy: '健康',
-	unhealthy: '异常',
-	unknown: '未知',
+const STATUS_LABEL_KEYS: Record<ServiceStatus, string> = {
+	healthy: 'systemConfig.status.healthy',
+	unhealthy: 'systemConfig.status.unhealthy',
+	unknown: 'systemConfig.status.unknown',
 };
 
 const FEATURE_LABELS: Record<FeatureStatus, string> = {
@@ -94,53 +106,56 @@ const FEATURE_LABELS: Record<FeatureStatus, string> = {
 };
 
 // 静态配置参考：中间件健康探针未接入（无数据源），状态一律不在表中呈现
-export const infraComponents: InfraComponent[] = [
-	{
-		key: 'postgres',
-		name: 'PostgreSQL',
-		hostPort: 'postgres:5432',
-		credentialLocation: '.env / POSTGRES_PASSWORD',
-		type: 'database',
-		typeLabel: '数据库',
-		description: '关系型数据库，PgBouncer 连接池 :6432',
-	},
-	{
-		key: 'redis',
-		name: 'Redis',
-		hostPort: 'redis:6379',
-		credentialLocation: '.env / REDIS_PASSWORD',
-		type: 'cache',
-		typeLabel: '缓存',
-		description: '缓存与会话存储',
-	},
-	{
-		key: 'rabbitmq',
-		name: 'RabbitMQ',
-		hostPort: 'rabbitmq:5672 / :15672 (管理)',
-		credentialLocation: '.env / RABBITMQ_PASSWORD',
-		type: 'message_queue',
-		typeLabel: '消息队列',
-		description: '事件总线与消息队列',
-	},
-	{
-		key: 'mongodb',
-		name: 'MongoDB',
-		hostPort: 'mongodb:27018',
-		credentialLocation: '.env / MONGO_PASSWORD',
-		type: 'document_db',
-		typeLabel: '文档数据库',
-		description: '审计日志存储',
-	},
-	{
-		key: 'minio',
-		name: 'MinIO',
-		hostPort: 'minio:9000 / :9001 (控制台)',
-		credentialLocation: '.env / MINIO_ROOT_PASSWORD',
-		type: 'object_storage',
-		typeLabel: '对象存储',
-		description: 'S3 兼容对象存储',
-	},
-];
+// 展示文案按调用时构造（模块级无组件作用域）：组件内调用本函数，语言切换随渲染刷新
+export function getInfraComponents(): InfraComponent[] {
+	return [
+		{
+			key: 'postgres',
+			name: 'PostgreSQL',
+			hostPort: 'postgres:5432',
+			credentialLocation: '.env / POSTGRES_PASSWORD',
+			type: 'database',
+			typeLabel: INFRA_TYPE_LABELS.database,
+			description: i18n.t('systemConfig.infraDesc.postgres'),
+		},
+		{
+			key: 'redis',
+			name: 'Redis',
+			hostPort: 'redis:6379',
+			credentialLocation: '.env / REDIS_PASSWORD',
+			type: 'cache',
+			typeLabel: INFRA_TYPE_LABELS.cache,
+			description: i18n.t('systemConfig.infraDesc.redis'),
+		},
+		{
+			key: 'rabbitmq',
+			name: 'RabbitMQ',
+			hostPort: i18n.t('systemConfig.hostPort.rabbitmq'),
+			credentialLocation: '.env / RABBITMQ_PASSWORD',
+			type: 'message_queue',
+			typeLabel: INFRA_TYPE_LABELS.message_queue,
+			description: i18n.t('systemConfig.infraDesc.rabbitmq'),
+		},
+		{
+			key: 'mongodb',
+			name: 'MongoDB',
+			hostPort: 'mongodb:27018',
+			credentialLocation: '.env / MONGO_PASSWORD',
+			type: 'document_db',
+			typeLabel: INFRA_TYPE_LABELS.document_db,
+			description: i18n.t('systemConfig.infraDesc.mongodb'),
+		},
+		{
+			key: 'minio',
+			name: 'MinIO',
+			hostPort: i18n.t('systemConfig.hostPort.minio'),
+			credentialLocation: '.env / MINIO_ROOT_PASSWORD',
+			type: 'object_storage',
+			typeLabel: INFRA_TYPE_LABELS.object_storage,
+			description: i18n.t('systemConfig.infraDesc.minio'),
+		},
+	];
+}
 
 export function useServiceList() {
 	const { data, isLoading, error, refetch } = useSystemServices();
@@ -154,7 +169,9 @@ export function useServiceList() {
 				category: svc.category,
 				categoryLabel: CATEGORY_LABELS[svc.category],
 				status: svc.status,
-				description: SERVICE_DESCRIPTIONS[svc.name] ?? '',
+				description: SERVICE_DESCRIPTION_KEYS[svc.name]
+					? i18n.t(SERVICE_DESCRIPTION_KEYS[svc.name])
+					: '',
 			}),
 		),
 		isLoading,
@@ -181,7 +198,7 @@ export function useEnvVars() {
 			const res = await adminEnvVars();
 			const payload = extractItem<EnvVarsPayload>(res);
 			if (!payload || !Array.isArray(payload.variables)) {
-				throw new Error('环境变量数据缺失');
+				throw new Error(i18n.t('systemConfig.envVarsMissing'));
 			}
 			return payload.variables.map((v) => ({
 				key: v.key ?? '',
@@ -210,7 +227,7 @@ export function useFeatureFlags() {
 			const res = await adminFeatureFlags();
 			const payload = extractItem<FeatureFlagsPayload>(res);
 			if (!payload || !Array.isArray(payload.services)) {
-				throw new Error('功能标志数据缺失');
+				throw new Error(i18n.t('systemConfig.flagsMissing'));
 			}
 			const services = payload.services;
 
@@ -253,7 +270,7 @@ export function useFeatureFlags() {
 }
 
 export function getStatusLabel(status: ServiceStatus): string {
-	return STATUS_LABELS[status];
+	return i18n.t(STATUS_LABEL_KEYS[status]);
 }
 
 export function getFeatureLabel(status: FeatureStatus): string {

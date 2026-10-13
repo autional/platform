@@ -5,6 +5,7 @@ import { extractItem } from '@autional/shared';
 import { adminSystemRuntime, developerStatus } from '@autional/shared/generated/api';
 import { getTenantStats } from '@/lib/api.generated';
 import { queryKeys } from '@/lib/query-keys';
+import i18n from '@/i18n';
 
 export type ServiceCategory =
 	| 'authentication'
@@ -15,13 +16,27 @@ export type ServiceCategory =
 	| 'infrastructure';
 export type ServiceStatus = 'healthy' | 'unhealthy' | 'unknown';
 
+// 键映射 + 调用时求值（模块级无组件作用域）：消费方（system/overview 页）按 CATEGORY_LABELS[cat]
+// 索引取展示文案，故以访问器（getter）承载 —— 取值时才 i18n.t，语言切换随渲染刷新。
 export const CATEGORY_LABELS: Record<ServiceCategory, string> = {
-	authentication: '认证',
-	'user-data': '用户数据',
-	'business-platform': '业务平台',
-	operations: '运营',
-	'access-control': '访问控制',
-	infrastructure: '基础设施',
+	get authentication() {
+		return i18n.t('systemOverview.category.authentication');
+	},
+	get 'user-data'() {
+		return i18n.t('systemOverview.category.userData');
+	},
+	get 'business-platform'() {
+		return i18n.t('systemOverview.category.businessPlatform');
+	},
+	get operations() {
+		return i18n.t('systemOverview.category.operations');
+	},
+	get 'access-control'() {
+		return i18n.t('systemOverview.category.accessControl');
+	},
+	get infrastructure() {
+		return i18n.t('systemOverview.category.infrastructure');
+	},
 };
 
 export interface ServiceInfo {
@@ -92,7 +107,7 @@ export function useSystemServices() {
 			const runtimeData = await adminSystemRuntime();
 			const extracted = extractItem<RuntimeResponse>(runtimeData);
 			if (!extracted || !Array.isArray(extracted.services)) {
-				throw new Error('系统运行时数据缺失');
+				throw new Error(i18n.t('systemOverview.runtimeDataMissing'));
 			}
 
 			const healthMap: Record<string, string> = {};
@@ -133,7 +148,7 @@ export function useSystemTenants() {
 			const statsRes = await getTenantStats();
 			const data = extractItem<{ stats: TenantOverview }>(statsRes);
 			if (!data?.stats) {
-				throw new Error('租户统计数据缺失');
+				throw new Error(i18n.t('systemOverview.tenantStatsMissing'));
 			}
 
 			const tenants: TenantOverview = {

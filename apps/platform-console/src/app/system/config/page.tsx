@@ -18,7 +18,7 @@ import {
 	useServiceList,
 	useEnvVars,
 	useFeatureFlags,
-	infraComponents,
+	getInfraComponents,
 	getStatusLabel,
 	getFeatureLabel,
 	type InfraComponent,
@@ -31,43 +31,50 @@ import {
 const { Search: SearchInput } = Input;
 
 function ServicesTab() {
+	const { t } = useTranslation();
 	const { data: serviceList, isLoading, error, refetch } = useServiceList();
 
 	if (error) {
-		return <ApiErrorState error={error} title="加载服务列表失败" onRetry={() => refetch()} />;
+		return (
+			<ApiErrorState
+				error={error}
+				title={t('systemConfig.servicesLoadError')}
+				onRetry={() => refetch()}
+			/>
+		);
 	}
 
 	const columns = [
 		{
-			title: '服务名称',
+			title: t('systemConfig.colServiceName'),
 			dataIndex: 'name',
 			key: 'name',
 			width: 200,
 			render: (text: string) => <span className="font-mono text-sm">{text}</span>,
 		},
 		{
-			title: 'HTTP 端口',
+			title: t('systemConfig.colHttpPort'),
 			dataIndex: 'httpPort',
 			key: 'httpPort',
 			width: 100,
 			render: (v: number) => <code>{v}</code>,
 		},
 		{
-			title: 'gRPC 端口',
+			title: t('systemConfig.colGrpcPort'),
 			dataIndex: 'grpcPort',
 			key: 'grpcPort',
 			width: 100,
 			render: (v: number) => <code>{v || '—'}</code>,
 		},
 		{
-			title: '分类',
+			title: t('systemConfig.colCategory'),
 			dataIndex: 'categoryLabel',
 			key: 'categoryLabel',
 			width: 100,
 			render: (text: string) => <Tag>{text}</Tag>,
 		},
 		{
-			title: '状态',
+			title: t('common.status'),
 			dataIndex: 'status',
 			key: 'status',
 			width: 100,
@@ -79,7 +86,7 @@ function ServicesTab() {
 			),
 		},
 		{
-			title: '描述',
+			title: t('systemConfig.colDescription'),
 			dataIndex: 'description',
 			key: 'description',
 		},
@@ -93,15 +100,16 @@ function ServicesTab() {
 			loading={isLoading}
 			pagination={false}
 			size="middle"
-			locale={{ emptyText: '暂无服务数据' }}
+			locale={{ emptyText: t('systemConfig.servicesEmpty') }}
 		/>
 	);
 }
 
 function InfrastructureTab() {
+	const { t } = useTranslation();
 	const columns = [
 		{
-			title: '组件名称',
+			title: t('systemConfig.colComponentName'),
 			dataIndex: 'name',
 			key: 'name',
 			width: 140,
@@ -122,7 +130,7 @@ function InfrastructureTab() {
 			},
 		},
 		{
-			title: '类型',
+			title: t('systemConfig.colType'),
 			dataIndex: 'typeLabel',
 			key: 'typeLabel',
 			width: 100,
@@ -136,7 +144,7 @@ function InfrastructureTab() {
 			render: (text: string) => <code className="text-xs">{text}</code>,
 		},
 		{
-			title: '凭证位置',
+			title: t('systemConfig.colCredentialLocation'),
 			dataIndex: 'credentialLocation',
 			key: 'credentialLocation',
 			width: 240,
@@ -147,7 +155,7 @@ function InfrastructureTab() {
 			),
 		},
 		{
-			title: '说明',
+			title: t('systemConfig.colNotes'),
 			dataIndex: 'description',
 			key: 'description',
 		},
@@ -157,15 +165,15 @@ function InfrastructureTab() {
 		<div>
 			<Alert
 				variant="warning"
-				title="未接入"
+				title={t('systemOverview.notConnected')}
 				className="mb-4"
 			>
-				中间件健康数据源尚未接入；下表为静态配置参考，非实时状态。
+				{t('systemConfig.infraAlertDetail')}
 			</Alert>
 			<DataTable
 				rowKey="key"
 				columns={columns}
-				dataSource={infraComponents}
+				dataSource={getInfraComponents()}
 				pagination={false}
 				size="middle"
 			/>
@@ -174,6 +182,7 @@ function InfrastructureTab() {
 }
 
 function EnvironmentVariablesTab() {
+	const { t } = useTranslation();
 	const [searchText, setSearchText] = useState('');
 	const { data: envVarList, isLoading, error, refetch } = useEnvVars();
 
@@ -190,19 +199,25 @@ function EnvironmentVariablesTab() {
 	}, [searchText, envVarList]);
 
 	if (error) {
-		return <ApiErrorState error={error} title="加载环境变量失败" onRetry={() => refetch()} />;
+		return (
+			<ApiErrorState
+				error={error}
+				title={t('systemConfig.envVarsLoadError')}
+				onRetry={() => refetch()}
+			/>
+		);
 	}
 
 	const columns = [
 		{
-			title: '变量名',
+			title: t('systemConfig.colVarName'),
 			dataIndex: 'name',
 			key: 'name',
 			width: 240,
 			render: (text: string) => <code className="text-xs">{text}</code>,
 		},
 		{
-			title: '当前值',
+			title: t('systemConfig.colCurrentValue'),
 			dataIndex: 'value',
 			key: 'value',
 			width: 300,
@@ -216,24 +231,28 @@ function EnvironmentVariablesTab() {
 				),
 		},
 		{
-			title: '分类',
+			title: t('systemConfig.colCategory'),
 			dataIndex: 'category',
 			key: 'category',
 			width: 100,
 			render: (text: string) => <Tag>{text}</Tag>,
 		},
 		{
-			title: '来源',
+			title: t('systemConfig.colSource'),
 			dataIndex: 'source',
 			key: 'source',
 		},
 		{
-			title: '敏感',
+			title: t('systemConfig.sensitive'),
 			dataIndex: 'masked',
 			key: 'masked',
 			width: 80,
 			render: (masked: boolean) =>
-				masked ? <Tag color="red">敏感</Tag> : <Tag color="green">公开</Tag>,
+				masked ? (
+					<Tag color="red">{t('systemConfig.sensitive')}</Tag>
+				) : (
+					<Tag color="green">{t('systemConfig.public')}</Tag>
+				),
 		},
 	];
 
@@ -241,7 +260,7 @@ function EnvironmentVariablesTab() {
 		<div>
 			<div className="mb-4">
 				<SearchInput
-					placeholder="搜索环境变量名称、来源或分类..."
+					placeholder={t('systemConfig.envVarsSearchPlaceholder')}
 					allowClear
 					onChange={(e) => setSearchText(e.target.value)}
 					value={searchText}
@@ -257,16 +276,17 @@ function EnvironmentVariablesTab() {
 				pagination={{
 					pageSize: 20,
 					showSizeChanger: true,
-					showTotal: (total) => `共 ${total} 个变量`,
+					showTotal: (total) => t('systemConfig.envVarsTotal', { total }),
 				}}
 				size="middle"
-				locale={{ emptyText: '未找到匹配的环境变量' }}
+				locale={{ emptyText: t('systemConfig.envVarsEmptyFiltered') }}
 			/>
 		</div>
 	);
 }
 
 function FeatureFlagsTab() {
+	const { t } = useTranslation();
 	const { data: flags, isLoading: flagsLoading, error: flagsError, refetch: refetchFlags } = useFeatureFlags();
 	const { data: serviceList, isLoading: svcLoading, error: svcError, refetch: refetchServices } = useServiceList();
 
@@ -279,7 +299,7 @@ function FeatureFlagsTab() {
 
 		return [
 			{
-				title: '功能特性',
+				title: t('systemConfig.colFeature'),
 				dataIndex: 'name',
 				key: 'name',
 				width: 180,
@@ -312,7 +332,13 @@ function FeatureFlagsTab() {
 					return (
 						<span
 							style={{ color, fontSize: 16 }}
-							title={status === 'enabled' ? '已启用' : status === 'disabled' ? '未启用' : '不适用'}
+							title={
+								status === 'enabled'
+									? t('systemConfig.enabled')
+									: status === 'disabled'
+										? t('systemConfig.disabled')
+										: t('systemConfig.notApplicable')
+							}
 						>
 							{label}
 						</span>
@@ -320,14 +346,14 @@ function FeatureFlagsTab() {
 				},
 			})),
 		];
-	}, [serviceList]);
+	}, [serviceList, t]);
 
 	const error = flagsError ?? svcError;
 	if (error) {
 		return (
 			<ApiErrorState
 				error={error}
-				title="加载功能标志失败"
+				title={t('systemConfig.flagsLoadError')}
 				onRetry={() => {
 					refetchFlags();
 					refetchServices();
@@ -340,7 +366,7 @@ function FeatureFlagsTab() {
 		<div>
 			<Alert
 				variant="info"
-				title="功能标志矩阵列出了各服务中功能的启用状态。此数据仅供查看，不在本页面提供启停操作。"
+				title={t('systemConfig.flagsAlertDetail')}
 				className="mb-4"
 			 />
 			<DataTable
@@ -351,12 +377,12 @@ function FeatureFlagsTab() {
 				pagination={false}
 				size="small"
 				scroll={{ x: 'max-content' }}
-				locale={{ emptyText: '暂无功能标志数据' }}
+				locale={{ emptyText: t('systemConfig.flagsEmpty') }}
 			/>
 			<div className="mt-3 text-xs text-neutral-600 flex gap-4">
-				<span>✅ 已启用</span>
-				<span>❌ 未启用</span>
-				<span>— 不适用</span>
+				<span>✅ {t('systemConfig.enabled')}</span>
+				<span>❌ {t('systemConfig.disabled')}</span>
+				<span>— {t('systemConfig.notApplicable')}</span>
 			</div>
 		</div>
 	);
@@ -371,7 +397,7 @@ export default function SystemConfigPage() {
 			label: (
 				<span>
 					<Cloud size="1em" />
-					服务列表
+					{t('systemConfig.tabServices')}
 				</span>
 			),
 			children: <ServicesTab />,
@@ -381,7 +407,7 @@ export default function SystemConfigPage() {
 			label: (
 				<span>
 					<Database size="1em" />
-					基础设施
+					{t('systemOverview.infrastructure')}
 				</span>
 			),
 			children: <InfrastructureTab />,
@@ -391,7 +417,7 @@ export default function SystemConfigPage() {
 			label: (
 				<span>
 					<MapPin size="1em" />
-					环境变量
+					{t('systemConfig.tabEnvVars')}
 				</span>
 			),
 			children: <EnvironmentVariablesTab />,
@@ -401,7 +427,7 @@ export default function SystemConfigPage() {
 			label: (
 				<span>
 					<FlaskConical size="1em" />
-					功能标志
+					{t('systemConfig.tabFeatureFlags')}
 				</span>
 			),
 			children: <FeatureFlagsTab />,
