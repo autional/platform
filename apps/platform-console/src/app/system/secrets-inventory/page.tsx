@@ -153,7 +153,7 @@ export default function SystemSecretsInventoryPage() {
 	const handleConfirmReveal = useCallback(async () => {
 		if (!revealTarget) return;
 		if (!revealReason.trim()) {
-			message.warning('请填写操作原因，以便审计。');
+			message.warning(t('secretsInventory.reasonRequired', '请填写操作原因，以便审计。'));
 			return;
 		}
 		setRevealing(true);
@@ -162,19 +162,19 @@ export default function SystemSecretsInventoryPage() {
 				key: revealTarget.key,
 				version: revealTarget.version,
 			});
-			setRevealedValue(result?.value ?? '[值不可用]');
+			setRevealedValue(result?.value ?? t('secretsInventory.valueUnavailable', '[值不可用]'));
 			setTimeout(() => {
 				setRevealedValue(null);
-				message.info('值的显示时间已结束。');
+				message.info(t('secretsInventory.revealExpired', '值的显示时间已结束。'));
 			}, 30000);
 		} catch (err: any) {
 			message.error(
-				err?.response?.data?.message || err?.message || '获取密钥值失败',
+				err?.response?.data?.message || err?.message || t('secretsInventory.revealFailed', '获取密钥值失败'),
 			);
 		} finally {
 			setRevealing(false);
 		}
-	}, [revealTarget, revealReason, revealValueMutation]);
+	}, [revealTarget, revealReason, revealValueMutation, t]);
 
 	const handleRotate = (record: SecretKVRecord) => {
 		setRotateTarget(record);
@@ -185,54 +185,54 @@ export default function SystemSecretsInventoryPage() {
 	const handleRevoke = useCallback(
 		(record: SecretKVRecord) => {
 			modal.confirm({
-				title: `确认吊销「${record.key}」？`,
-				content: '已吊销的密钥不能再用于新操作，现有调用方将失败。',
-				okText: '吊销',
+				title: t('secretsInventory.revokeConfirmTitle', { name: record.key }),
+				content: t('secretsInventory.revokeConfirmContent'),
+				okText: t('secretsInventory.actionRevoke', '吊销'),
 				okType: 'danger',
 				onOk: async () => {
 					try {
 						await revokeMutation.mutateAsync(record.key);
-						message.success(`已吊销 ${record.key}`);
+						message.success(t('secretsInventory.revokedSuccess', { name: record.key }));
 						refetchKv();
 					} catch (err: any) {
 						message.error(
-							err?.response?.data?.message || err?.message || `吊销 ${record.key} 失败`,
+							err?.response?.data?.message || err?.message || t('secretsInventory.revokeFailed', { name: record.key }),
 						);
 					}
 				},
 			});
 		},
-		[revokeMutation, refetchKv],
+		[revokeMutation, refetchKv, t],
 	);
 
 	const handleDelete = useCallback(
 		(record: SecretKVRecord) => {
 			modal.confirm({
-				title: `确认删除「${record.key}」？`,
-				content: '此操作不可撤销，所有版本将被永久删除。',
-				okText: '删除',
+				title: t('secretsInventory.deleteConfirmTitle', { name: record.key }),
+				content: t('secretsInventory.deleteConfirmContent'),
+				okText: t('common.delete', '删除'),
 				okType: 'danger',
 				okButtonProps: { disabled: record.isSystem },
 				onOk: async () => {
 					try {
 						await deleteMutation.mutateAsync(record.key);
-						message.success(`已删除 ${record.key}`);
+						message.success(t('secretsInventory.deletedSuccess', { name: record.key }));
 						refetchKv();
 					} catch (err: any) {
 						message.error(
-							err?.response?.data?.message || err?.message || `删除 ${record.key} 失败`,
+							err?.response?.data?.message || err?.message || t('secretsInventory.deleteFailed', { name: record.key }),
 						);
 					}
 				},
 			});
 		},
-		[deleteMutation, refetchKv],
+		[deleteMutation, refetchKv, t],
 	);
 
 	const handleConfirmRotate = useCallback(async () => {
 		if (!rotateTarget) return;
 		if (!rotateNewValue.trim()) {
-			message.warning('请填写新的密钥值。');
+			message.warning(t('secretsInventory.newValueRequired', '请填写新的密钥值。'));
 			return;
 		}
 		try {
@@ -240,17 +240,17 @@ export default function SystemSecretsInventoryPage() {
 				key: rotateTarget.key,
 				data: { value: rotateNewValue },
 			});
-			message.success(`已轮换 ${rotateTarget.key}`);
+			message.success(t('secretsInventory.rotatedSuccess', { name: rotateTarget.key }));
 			setRotateModalVisible(false);
 			setRotateTarget(null);
 			setRotateNewValue('');
 			refetchKv();
 		} catch (err: any) {
 			message.error(
-				err?.response?.data?.message || err?.message || `轮换 ${rotateTarget.key} 失败`,
+				err?.response?.data?.message || err?.message || t('secretsInventory.rotateFailed', { name: rotateTarget.key }),
 			);
 		}
-	}, [rotateTarget, rotateNewValue, rotateMutation, refetchKv]);
+	}, [rotateTarget, rotateNewValue, rotateMutation, refetchKv, t]);
 
 	// PL-63：OAuth 客户端密钥轮换（新密钥仅此一次返回；失败走统一错误处理）
 	const handleRotateOAuth = useCallback(
@@ -260,27 +260,27 @@ export default function SystemSecretsInventoryPage() {
 			try {
 				const result = await rotateOAuthMutation.mutateAsync(record.clientId);
 				setOauthNewSecret(result?.newSecret ?? '');
-				message.success('OAuth 客户端密钥已轮换，请立即保存新密钥');
+				message.success(t('secretsInventory.oauthRotatedSuccess', 'OAuth 客户端密钥已轮换，请立即保存新密钥'));
 			} catch (err) {
-				handleApiError(err, `轮换 ${record.clientId} 密钥失败`);
+				handleApiError(err, t('secretsInventory.oauthRotateFailed', { id: record.clientId }));
 			}
 		},
-		[rotateOAuthMutation],
+		[rotateOAuthMutation, t],
 	);
 
 	const handleCopyOAuthSecret = useCallback(async () => {
 		if (!oauthNewSecret) return;
 		try {
 			await navigator.clipboard.writeText(oauthNewSecret);
-			message.success('已复制到剪贴板');
+			message.success(t('secretsInventory.copiedToClipboard', '已复制到剪贴板'));
 		} catch {
-			message.error('复制失败，请手动选择并复制');
+			message.error(t('secretsInventory.copyFailed', '复制失败，请手动选择并复制'));
 		}
-	}, [oauthNewSecret]);
+	}, [oauthNewSecret, t]);
 
 	const kvColumns = [
 		{
-			title: '键',
+			title: t('secretsInventory.colKey', '键'),
 			dataIndex: 'key',
 			key: 'key',
 			render: (v: string) => (
@@ -288,15 +288,15 @@ export default function SystemSecretsInventoryPage() {
 			),
 		},
 		{
-			title: '租户',
+			title: t('secretsInventory.colTenant', '租户'),
 			dataIndex: 'tenantId',
 			key: 'tenantId',
 			width: 130,
 			render: (v: string) => <Tag>{v}</Tag>,
 		},
-		{ title: '版本', dataIndex: 'version', key: 'version', width: 80, align: 'center' as const },
+		{ title: t('secretsInventory.colVersion', '版本'), dataIndex: 'version', key: 'version', width: 80, align: 'center' as const },
 		{
-			title: '状态',
+			title: t('common.status', '状态'),
 			dataIndex: 'status',
 			key: 'status',
 			width: 100,
@@ -314,15 +314,15 @@ export default function SystemSecretsInventoryPage() {
 			),
 		},
 		{
-			title: '过期时间',
+			title: t('secretsInventory.colExpires', '过期时间'),
 			dataIndex: 'expires',
 			key: 'expires',
 			width: 130,
 			render: (v: string | null) =>
-				v ? new Date(v).toLocaleDateString() : <Text type="secondary">永不过期</Text>,
+				v ? new Date(v).toLocaleDateString() : <Text type="secondary">{t('secretsInventory.neverExpires', '永不过期')}</Text>,
 		},
 		{
-			title: '操作',
+			title: t('common.actions', '操作'),
 			key: 'actions',
 			width: 260,
 			render: (_: unknown, record: SecretKVRecord) => (
@@ -333,7 +333,7 @@ export default function SystemSecretsInventoryPage() {
 						icon={<Eye size="1em" />}
 						onClick={() => handleRevealValue(record)}
 					>
-						显示
+						{t('secretsInventory.actionReveal', '显示')}
 					</Button>
 					<Button
 						type="link"
@@ -341,7 +341,7 @@ export default function SystemSecretsInventoryPage() {
 						icon={<RefreshCw size="1em" />}
 						onClick={() => handleRotate(record)}
 					>
-						轮换
+						{t('secretsInventory.actionRotate', '轮换')}
 					</Button>
 					<Button
 						type="link"
@@ -351,9 +351,9 @@ export default function SystemSecretsInventoryPage() {
 						disabled={record.status === 'revoked'}
 						onClick={() => handleRevoke(record)}
 					>
-						吊销
+						{t('secretsInventory.actionRevoke', '吊销')}
 					</Button>
-					<Tooltip title={record.isSystem ? '系统密钥不可删除' : ''}>
+					<Tooltip title={record.isSystem ? t('secretsInventory.systemKeyNotDeletable', '系统密钥不可删除') : ''}>
 						<Button
 							type="link"
 							size="small"
@@ -362,7 +362,7 @@ export default function SystemSecretsInventoryPage() {
 							disabled={record.isSystem}
 							onClick={() => handleDelete(record)}
 						>
-							删除
+							{t('common.delete', '删除')}
 						</Button>
 					</Tooltip>
 				</Space>
@@ -372,20 +372,20 @@ export default function SystemSecretsInventoryPage() {
 
 	const kvExpandedRender = (record: SecretKVRecord) => (
 		<Descriptions bordered size="small" column={2} className="p-4">
-			<Descriptions.Item label="描述">{record.description}</Descriptions.Item>
-			<Descriptions.Item label="分类">{record.category}</Descriptions.Item>
-			<Descriptions.Item label="创建时间">
+			<Descriptions.Item label={t('secretsInventory.detailDescription', '描述')}>{record.description}</Descriptions.Item>
+			<Descriptions.Item label={t('secretsInventory.detailCategory', '分类')}>{record.category}</Descriptions.Item>
+			<Descriptions.Item label={t('secretsInventory.colCreated', '创建时间')}>
 				{record.created ? new Date(record.created).toLocaleString() : '—'}
 			</Descriptions.Item>
-			<Descriptions.Item label="最后修改">
+			<Descriptions.Item label={t('secretsInventory.detailLastModified', '最后修改')}>
 				{record.lastModified ? new Date(record.lastModified).toLocaleString() : '—'}
 			</Descriptions.Item>
-			<Descriptions.Item label="系统密钥">
-				{record.isSystem ? <Tag color="red">是</Tag> : '否'}
+			<Descriptions.Item label={t('secretsInventory.detailIsSystem', '系统密钥')}>
+				{record.isSystem ? <Tag color="red">{t('common.yes', '是')}</Tag> : t('common.no', '否')}
 			</Descriptions.Item>
-			<Descriptions.Item label="版本历史">
+			<Descriptions.Item label={t('secretsInventory.detailVersionHistory', '版本历史')}>
 				<Button type="link" size="small">
-					查看 {record.version} 个版本
+					{t('secretsInventory.viewVersions', { n: record.version })}
 				</Button>
 			</Descriptions.Item>
 		</Descriptions>
@@ -393,23 +393,23 @@ export default function SystemSecretsInventoryPage() {
 
 	const encKeyColumns = [
 		{
-			title: '密钥 ID',
+			title: t('secretsInventory.colKeyId', '密钥 ID'),
 			dataIndex: 'keyId',
 			key: 'keyId',
 			render: (v: string) => (
 				<code className="text-xs bg-neutral-200 dark:bg-neutral-900 px-2 py-0.5 rounded-xs">{v}</code>
 			),
 		},
-		{ title: '算法', dataIndex: 'algorithm', key: 'algorithm' },
+		{ title: t('secretsInventory.colAlgorithm', '算法'), dataIndex: 'algorithm', key: 'algorithm' },
 		{
-			title: '状态',
+			title: t('common.status', '状态'),
 			dataIndex: 'status',
 			key: 'status',
 			width: 100,
 			render: (v: string) => <Tag color={STATUS_COLORS[v]}>{v}</Tag>,
 		},
 		{
-			title: '使用服务',
+			title: t('secretsInventory.colServicesUsing', '使用服务'),
 			dataIndex: 'servicesUsing',
 			key: 'servicesUsing',
 			render: (v: string[]) =>
@@ -420,42 +420,42 @@ export default function SystemSecretsInventoryPage() {
 						</Tag>
 					))
 				) : (
-					<Text type="secondary">无</Text>
+					<Text type="secondary">{t('secretsInventory.none', '无')}</Text>
 				),
 		},
 	];
 
 	const jwtKeyColumns = [
-		{ title: '密钥名称', dataIndex: 'keyName', key: 'keyName' },
-		{ title: '算法', dataIndex: 'algorithm', key: 'algorithm', width: 100 },
+		{ title: t('secretsInventory.colKeyName', '密钥名称'), dataIndex: 'keyName', key: 'keyName' },
+		{ title: t('secretsInventory.colAlgorithm', '算法'), dataIndex: 'algorithm', key: 'algorithm', width: 100 },
 		{
-			title: '密钥 ID',
+			title: t('secretsInventory.colKeyId', '密钥 ID'),
 			dataIndex: 'keyId',
 			key: 'keyId',
 			render: (v: string) => <code className="text-xs">{v}</code>,
 		},
 		{
-			title: '状态',
+			title: t('common.status', '状态'),
 			dataIndex: 'status',
 			key: 'status',
 			width: 100,
 			render: (v: string) => <Tag color={STATUS_COLORS[v] || 'default'}>{v}</Tag>,
 		},
 		{
-			title: '上次轮换',
+			title: t('secretsInventory.colLastRotated', '上次轮换'),
 			dataIndex: 'lastRotated',
 			key: 'lastRotated',
 			render: (v: string) => (v ? new Date(v).toLocaleDateString() : '—'),
 		},
 		{
-			title: '备注',
+			title: t('secretsInventory.colNote', '备注'),
 			dataIndex: 'inMemoryOnly',
 			key: 'inMemoryOnly',
 			width: 200,
 			render: (v: boolean) =>
 				v ? (
 					<Tag icon={<Lock size="1em" />} color="processing">
-						仅存于内存（RSA 2048）
+						{t('secretsInventory.inMemoryOnly', '仅存于内存（RSA 2048）')}
 					</Tag>
 				) : null,
 		},
@@ -463,7 +463,7 @@ export default function SystemSecretsInventoryPage() {
 
 	const infraColumns = [
 		{
-			title: '凭证名称',
+			title: t('secretsInventory.colCredentialName', '凭证名称'),
 			dataIndex: 'credentialName',
 			key: 'credentialName',
 			render: (v: string) => (
@@ -471,13 +471,13 @@ export default function SystemSecretsInventoryPage() {
 			),
 		},
 		{
-			title: '位置',
+			title: t('secretsInventory.colLocation', '位置'),
 			dataIndex: 'location',
 			key: 'location',
 			render: (v: string) => <Tag color="default">{v}</Tag>,
 		},
 		{
-			title: '类型',
+			title: t('secretsInventory.colType', '类型'),
 			dataIndex: 'type',
 			key: 'type',
 			width: 100,
@@ -493,18 +493,18 @@ export default function SystemSecretsInventoryPage() {
 			},
 		},
 		{
-			title: '由密钥服务托管',
+			title: t('secretsInventory.colManagedBySecretService', '由密钥服务托管'),
 			dataIndex: 'managedBySecretService',
 			key: 'managedBySecretService',
 			width: 180,
 			render: (v: boolean) =>
 				v ? (
 					<Tag icon={<CheckCircle2 size="1em" />} color="success">
-						是
+						{t('common.yes', '是')}
 					</Tag>
 				) : (
 					<Tag icon={<AlertCircle size="1em" />} color="warning">
-						否
+						{t('common.no', '否')}
 					</Tag>
 				),
 		},
@@ -512,19 +512,19 @@ export default function SystemSecretsInventoryPage() {
 
 	const apiKeyColumns = [
 		{
-			title: '前缀',
+			title: t('secretsInventory.colPrefix', '前缀'),
 			dataIndex: 'prefix',
 			key: 'prefix',
 			render: (v: string) => (v ? <code className="text-xs">{v}</code> : '—'),
 		},
 		{
-			title: '租户',
+			title: t('secretsInventory.colTenant', '租户'),
 			dataIndex: 'tenantId',
 			key: 'tenantId',
 			render: (v: string) => <Tag>{v}</Tag>,
 		},
 		{
-			title: '类型',
+			title: t('secretsInventory.colType', '类型'),
 			dataIndex: 'type',
 			key: 'type',
 			width: 90,
@@ -533,13 +533,13 @@ export default function SystemSecretsInventoryPage() {
 			),
 		},
 		{
-			title: '创建时间',
+			title: t('secretsInventory.colCreated', '创建时间'),
 			dataIndex: 'created',
 			key: 'created',
 			render: (v: string) => (v ? new Date(v).toLocaleDateString() : '—'),
 		},
 		{
-			title: '状态',
+			title: t('common.status', '状态'),
 			dataIndex: 'status',
 			key: 'status',
 			width: 100,
@@ -560,10 +560,10 @@ export default function SystemSecretsInventoryPage() {
 
 	const apiKeyExpandedRender = (record: ApiKeySummaryRecord) => (
 		<Descriptions bordered size="small" column={2} className="p-4">
-			<Descriptions.Item label="最后使用">
+			<Descriptions.Item label={t('secretsInventory.colLastUsed', '最后使用')}>
 				{record.lastUsed ? new Date(record.lastUsed).toLocaleString() : '-'}
 			</Descriptions.Item>
-			<Descriptions.Item label="授权范围">
+			<Descriptions.Item label={t('secretsInventory.detailScopes', '授权范围')}>
 				{record.scopes.map((s) => (
 					<Tag key={s}>{s}</Tag>
 				))}
@@ -572,9 +572,9 @@ export default function SystemSecretsInventoryPage() {
 	);
 
 	const oauthColumns = [
-		{ title: '提供方', dataIndex: 'provider', key: 'provider' },
+		{ title: t('secretsInventory.colProvider', '提供方'), dataIndex: 'provider', key: 'provider' },
 		{
-			title: '客户端 ID',
+			title: t('secretsInventory.colClientId', '客户端 ID'),
 			dataIndex: 'clientId',
 			key: 'clientId',
 			render: (v: string) => (
@@ -587,27 +587,27 @@ export default function SystemSecretsInventoryPage() {
 			),
 		},
 		{
-			title: '状态',
+			title: t('common.status', '状态'),
 			dataIndex: 'status',
 			key: 'status',
 			width: 100,
 			render: (v: string) => <Tag color={STATUS_COLORS[v]}>{v}</Tag>,
 		},
 		{
-			title: '最后使用',
+			title: t('secretsInventory.colLastUsed', '最后使用'),
 			dataIndex: 'lastUsed',
 			key: 'lastUsed',
 			render: (v: string) => (v ? new Date(v).toLocaleDateString() : '—'),
 		},
 		{
-			title: '操作',
+			title: t('common.actions', '操作'),
 			key: 'actions',
 			width: 140,
 			render: (_: unknown, record: OAuthSecretRecord) => (
 				<Popconfirm
-					title={`确认轮换「${record.clientId}」的密钥？`}
-					description="旧密钥立即失效（历史密钥 4 小时内仍可用于校验）；新密钥仅显示一次，请立即保存。"
-					okText="确认轮换"
+					title={t('secretsInventory.oauthRotateConfirmTitle', { id: record.clientId })}
+					description={t('secretsInventory.oauthRotateConfirmDesc')}
+					okText={t('secretsInventory.oauthRotateConfirmOk', '确认轮换')}
 					okButtonProps={{ danger: true }}
 					onConfirm={() => handleRotateOAuth(record)}
 				>
@@ -617,7 +617,7 @@ export default function SystemSecretsInventoryPage() {
 						icon={<RefreshCw size="1em" />}
 						loading={rotateOAuthMutation.isPending}
 					>
-						轮换密钥
+						{t('secretsInventory.rotateKeyButton', '轮换密钥')}
 					</Button>
 				</Popconfirm>
 			),
@@ -629,7 +629,7 @@ export default function SystemSecretsInventoryPage() {
 			key: 'overview',
 			label: (
 				<span>
-					<CheckCircle2 size="1em" /> 概览
+					<CheckCircle2 size="1em" /> {t('secretsInventory.tabOverview', '概览')}
 				</span>
 			),
 			children: (
@@ -645,17 +645,17 @@ export default function SystemSecretsInventoryPage() {
 			key: 'kv',
 			label: (
 				<span>
-					<KeyRound size="1em" /> 密钥 KV（{kvData.length}）
+					<KeyRound size="1em" /> {t('secretsInventory.tabKv', { n: kvData.length })}
 				</span>
 			),
 			children: (
 				<div>
 					{kvError && (
-						<PageError message="加载密钥 KV 数据失败" retry={refetchKv} className="mb-4" />
+						<PageError message={t('secretsInventory.kvLoadError', '加载密钥 KV 数据失败')} retry={refetchKv} className="mb-4" />
 					)}
 					<div className="flex gap-4 mb-4 flex-wrap">
 						<Input.Search
-							placeholder="搜索密钥…"
+							placeholder={t('secretsInventory.searchPlaceholder', '搜索密钥…')}
 							allowClear
 							value={kvKeyword}
 							onChange={(e) => setKvKeyword(e.target.value)}
@@ -667,10 +667,10 @@ export default function SystemSecretsInventoryPage() {
 							onChange={setKvStatusFilter}
 							className="w-36"
 							options={[
-								{ label: '全部', value: 'all' },
-								{ label: '活跃', value: 'active' },
-								{ label: '已过期', value: 'expired' },
-								{ label: '已吊销', value: 'revoked' },
+								{ label: t('secretsInventory.filterAll', '全部'), value: 'all' },
+								{ label: t('secretsInventory.active', '活跃'), value: 'active' },
+								{ label: t('secretsInventory.expired', '已过期'), value: 'expired' },
+								{ label: t('secretsInventory.revoked', '已吊销'), value: 'revoked' },
 							]}
 						/>
 					</div>
@@ -693,21 +693,21 @@ export default function SystemSecretsInventoryPage() {
 			key: 'encryption-keys',
 			label: (
 				<span>
-					<ShieldCheck size="1em" /> 加密密钥（{encKeys.length}）
+					<ShieldCheck size="1em" /> {t('secretsInventory.tabEncryptionKeys', { n: encKeys.length })}
 				</span>
 			),
 			children: (
 				<div>
 					{encKeysError && (
 						<PageError
-							message="加载加密密钥失败"
+							message={t('secretsInventory.encKeysLoadError', '加载加密密钥失败')}
 							retry={refetchEncKeys}
 							className="mb-4"
 						/>
 					)}
 					<Alert
 						variant="info"
-						title="密钥值仅通过环境变量管理"
+						title={t('secretsInventory.envOnlyAlert', '密钥值仅通过环境变量管理')}
 						className="mb-4"
 					 />
 					<DataTable
@@ -724,17 +724,17 @@ export default function SystemSecretsInventoryPage() {
 			key: 'jwt-keys',
 			label: (
 				<span>
-					<Lock size="1em" /> JWT 密钥（{jwtKeys.length}）
+					<Lock size="1em" /> {t('secretsInventory.tabJwtKeys', { n: jwtKeys.length })}
 				</span>
 			),
 			children: (
 				<div>
 					{jwtError && (
-						<PageError message="加载 JWT 密钥失败" retry={refetchJwt} className="mb-4" />
+						<PageError message={t('secretsInventory.jwtLoadError', '加载 JWT 密钥失败')} retry={refetchJwt} className="mb-4" />
 					)}
 					<Alert
 						variant="info"
-						title="JWT 私钥仅保存在内存中，公钥通过 JWKS 端点分发。"
+						title={t('secretsInventory.jwtMemoryAlert')}
 						className="mb-4"
 					 />
 					<DataTable
@@ -751,21 +751,21 @@ export default function SystemSecretsInventoryPage() {
 			key: 'infrastructure',
 			label: (
 				<span>
-					<Cloud size="1em" /> 基础设施（{infra.length}）
+					<Cloud size="1em" /> {t('secretsInventory.tabInfrastructure', { n: infra.length })}
 				</span>
 			),
 			children: (
 				<div>
 					{infraError && (
 						<PageError
-							message="加载基础设施数据失败"
+							message={t('secretsInventory.infraLoadError', '加载基础设施数据失败')}
 							retry={refetchInfra}
 							className="mb-4"
 						/>
 					)}
 					<Alert
 						variant="warning"
-						title="这些凭证在密钥服务之外管理，建议迁移。"
+						title={t('secretsInventory.infraWarning', '这些凭证在密钥服务之外管理，建议迁移。')}
 						className="mb-4"
 					 />
 					<DataTable
@@ -782,13 +782,13 @@ export default function SystemSecretsInventoryPage() {
 			key: 'api-keys',
 			label: (
 				<span>
-					<Plug size="1em" /> API 密钥（{apiKeys.length}）
+					<Plug size="1em" /> {t('secretsInventory.tabApiKeys', { n: apiKeys.length })}
 				</span>
 			),
 			children: (
 				<div>
 					{apiKeysError && (
-						<PageError message="加载 API 密钥失败" retry={refetchApiKeys} className="mb-4" />
+						<PageError message={t('secretsInventory.apiKeysLoadError', '加载 API 密钥失败')} retry={refetchApiKeys} className="mb-4" />
 					)}
 					<DataTable
 						rowKey="id"
@@ -809,21 +809,21 @@ export default function SystemSecretsInventoryPage() {
 			key: 'oauth',
 			label: (
 				<span>
-					<Globe size="1em" /> OAuth（{oauth.length}）
+					<Globe size="1em" /> {t('secretsInventory.tabOauth', { n: oauth.length })}
 				</span>
 			),
 			children: (
 				<div>
 					{oauthError && (
 						<PageError
-							message="加载 OAuth 密钥失败"
+							message={t('secretsInventory.oauthLoadError', '加载 OAuth 密钥失败')}
 							retry={refetchOauth}
 							className="mb-4"
 						/>
 					)}
 					<Alert
 						variant="info"
-						title="密钥值已脱敏、不在列表展示；如需更换密钥，可在下方「轮换密钥」直接操作（新密钥仅显示一次）。"
+						title={t('secretsInventory.oauthMaskedAlert')}
 						className="mb-4"
 					 />
 					<DataTable
@@ -846,7 +846,7 @@ export default function SystemSecretsInventoryPage() {
 			/>
 
 			{overviewLoading ? (
-				<PageLoading tip="正在加载密钥清单…" />
+				<PageLoading tip={t('secretsInventory.loading', '正在加载密钥清单…')} />
 			) : (
 				<Tabs
 					activeKey={activeTab}
@@ -858,7 +858,7 @@ export default function SystemSecretsInventoryPage() {
 			)}
 
 			<Modal
-				title={`显示值 — ${revealTarget?.key ?? ''}`}
+				title={t('secretsInventory.revealModalTitle', { name: revealTarget?.key ?? '' })}
 				open={revealModalVisible}
 				onCancel={() => {
 					setRevealModalVisible(false);
@@ -874,7 +874,7 @@ export default function SystemSecretsInventoryPage() {
 								setRevealedValue(null);
 							}}
 						>
-							关闭
+							{t('common.close', '关闭')}
 						</Button>
 					) : null
 				}
@@ -885,11 +885,11 @@ export default function SystemSecretsInventoryPage() {
 					<div>
 						<Alert
 							variant="warning"
-							title="此操作将被审计，请填写原因。"
+							title={t('secretsInventory.revealAuditWarning', '此操作将被审计，请填写原因。')}
 							className="mb-4"
 						 />
 						<Input.TextArea
-							placeholder="查看密钥值的原因…"
+							placeholder={t('secretsInventory.revealReasonPlaceholder', '查看密钥值的原因…')}
 							value={revealReason}
 							onChange={(e) => setRevealReason(e.target.value)}
 							rows={3}
@@ -902,21 +902,21 @@ export default function SystemSecretsInventoryPage() {
 							onClick={handleConfirmReveal}
 							loading={revealing}
 						>
-							显示值（记录审计）
+							{t('secretsInventory.revealSubmit', '显示值（记录审计）')}
 						</Button>
 					</div>
 				) : (
 					<div>
 						<Alert
 							variant="success"
-							title="值已显示，将在 30 秒后自动隐藏。"
+							title={t('secretsInventory.revealShownAlert', '值已显示，将在 30 秒后自动隐藏。')}
 							className="mb-4"
 						 />
 						<Input.TextArea value={revealedValue} readOnly rows={4} className="font-mono" />
 						<div className="mt-2 text-right">
 							<Text type="secondary">
 								<Clock size="1em" className="mr-1" />
-								30 秒后自动隐藏
+								{t('secretsInventory.revealAutoHide', '30 秒后自动隐藏')}
 							</Text>
 						</div>
 					</div>
@@ -924,7 +924,7 @@ export default function SystemSecretsInventoryPage() {
 			</Modal>
 
 			<Modal
-				title={`轮换密钥 — ${rotateTarget?.key ?? ''}`}
+				title={t('secretsInventory.rotateModalTitle', { name: rotateTarget?.key ?? '' })}
 				open={rotateModalVisible}
 				onCancel={() => {
 					setRotateModalVisible(false);
@@ -937,11 +937,11 @@ export default function SystemSecretsInventoryPage() {
 			>
 				<Alert
 					variant="info"
-					title="这将创建该密钥的新版本；现有引用仍可继续使用当前版本。"
+					title={t('secretsInventory.rotateModalAlert', '这将创建该密钥的新版本；现有引用仍可继续使用当前版本。')}
 					className="mb-4"
 				 />
 				<Input.TextArea
-					placeholder="请输入新的密钥值…"
+					placeholder={t('secretsInventory.rotateValuePlaceholder', '请输入新的密钥值…')}
 					value={rotateNewValue}
 					onChange={(e) => setRotateNewValue(e.target.value)}
 					rows={4}
@@ -954,7 +954,7 @@ export default function SystemSecretsInventoryPage() {
 						onClick={handleConfirmRotate}
 						loading={rotateMutation.isPending}
 					>
-						轮换
+						{t('secretsInventory.actionRotate', '轮换')}
 					</Button>
 					<Button
 						onClick={() => {
@@ -963,13 +963,13 @@ export default function SystemSecretsInventoryPage() {
 							setRotateNewValue('');
 						}}
 					>
-						取消
+						{t('common.cancel', '取消')}
 					</Button>
 				</Space>
 			</Modal>
 
 			<Modal
-				title={`OAuth 密钥已轮换 — ${oauthRotateTarget?.clientId ?? ''}`}
+				title={t('secretsInventory.oauthRotatedModalTitle', { id: oauthRotateTarget?.clientId ?? '' })}
 				open={oauthNewSecret !== null}
 				onCancel={() => {
 					setOauthNewSecret(null);
@@ -982,7 +982,7 @@ export default function SystemSecretsInventoryPage() {
 							setOauthRotateTarget(null);
 						}}
 					>
-						关闭
+						{t('common.close', '关闭')}
 					</Button>
 				}
 				destroyOnHidden
@@ -990,13 +990,13 @@ export default function SystemSecretsInventoryPage() {
 			>
 				<Alert
 					variant="warning"
-					title="旧密钥已立即失效（历史密钥 4 小时内仍可用于校验）；新密钥仅显示一次，请立即复制并妥善保存。"
+					title={t('secretsInventory.oauthRotatedAlert')}
 					className="mb-4"
 				 />
 				<Input.TextArea value={oauthNewSecret ?? ''} readOnly rows={3} className="font-mono" />
 				<div className="mt-3 text-right">
 					<Button type="primary" icon={<Copy size="1em" />} onClick={handleCopyOAuthSecret}>
-						复制新密钥
+						{t('secretsInventory.copyNewSecret', '复制新密钥')}
 					</Button>
 				</div>
 			</Modal>
@@ -1015,7 +1015,8 @@ function OverviewTab({
 	error: Error | null;
 	retry: () => void;
 }) {
-	if (error) return <ApiErrorState error={error} title="加载总览失败" onRetry={retry} />;
+	const { t } = useTranslation();
+	if (error) return <ApiErrorState error={error} title={t('secretsInventory.overviewLoadError', '加载总览失败')} onRetry={retry} />;
 	if (!overview) return <PageLoading />;
 
 	const statusColors: Record<string, string> = {
@@ -1030,7 +1031,7 @@ function OverviewTab({
 				<Col xs={24} sm={12} md={6}>
 					<Card hoverable>
 						<Statistic
-							title="密钥总数"
+							title={t('secretsInventory.totalSecrets', '密钥总数')}
 							value={overview.totalSecrets}
 							prefix={<KeyRound size="1em" />}
 						/>
@@ -1039,7 +1040,7 @@ function OverviewTab({
 				<Col xs={24} sm={12} md={6}>
 					<Card hoverable styles={{ body: { borderLeft: '3px solid var(--color-success)' } }}>
 						<Statistic
-							title="活跃"
+							title={t('secretsInventory.active', '活跃')}
 							value={overview.activeCount}
 							styles={{ content: { color: 'var(--color-success)' } }}
 							prefix={<CheckCircle2 size="1em" />}
@@ -1049,7 +1050,7 @@ function OverviewTab({
 				<Col xs={24} sm={12} md={6}>
 					<Card hoverable styles={{ body: { borderLeft: '3px solid var(--color-warning)' } }}>
 						<Statistic
-							title="已过期"
+							title={t('secretsInventory.expired', '已过期')}
 							value={overview.expiredCount}
 							styles={{ content: { color: 'var(--color-warning)' } }}
 							prefix={<Clock size="1em" />}
@@ -1059,7 +1060,7 @@ function OverviewTab({
 				<Col xs={24} sm={12} md={6}>
 					<Card hoverable styles={{ body: { borderLeft: '3px solid var(--color-danger)' } }}>
 						<Statistic
-							title="已吊销"
+							title={t('secretsInventory.revoked', '已吊销')}
 							value={overview.revokedCount}
 							styles={{ content: { color: 'var(--color-danger)' } }}
 							prefix={<Ban size="1em" />}
@@ -1068,7 +1069,7 @@ function OverviewTab({
 				</Col>
 			</Row>
 
-			<Card title="分类分布" className="mb-6">
+			<Card title={t('secretsInventory.categoryBreakdown', '分类分布')} className="mb-6">
 				<Row gutter={[16, 16]}>
 					{Object.entries(overview.categoryBreakdown).map(([cat, count]) => (
 						<Col xs={24} sm={12} md={8} key={cat}>
@@ -1077,20 +1078,20 @@ function OverviewTab({
 									<div>
 										<Text strong className="capitalize">
 											{cat === 'kv'
-												? '密钥 KV'
+												? t('secretsInventory.catKv', '密钥 KV')
 												: cat === 'encryptionKeys'
-													? '加密密钥'
+													? t('secretsInventory.catEncryptionKeys', '加密密钥')
 													: cat === 'jwtKeys'
-														? 'JWT 密钥'
+														? t('secretsInventory.catJwtKeys', 'JWT 密钥')
 														: cat === 'infrastructure'
-															? '基础设施'
+															? t('secretsInventory.catInfrastructure', '基础设施')
 															: cat === 'apiKeys'
-																? 'API 密钥'
-																: 'OAuth'}
+																? t('secretsInventory.catApiKeys', 'API 密钥')
+																: t('secretsInventory.catOauth', 'OAuth')}
 										</Text>
 										<div className="mt-1">
 											<Text type="secondary" className="text-sm">
-												{((count / overview.totalSecrets) * 100).toFixed(1)}%（占总数）
+												{t('secretsInventory.percentOfTotal', { p: ((count / overview.totalSecrets) * 100).toFixed(1) })}
 											</Text>
 										</div>
 									</div>
@@ -1104,10 +1105,10 @@ function OverviewTab({
 
 			<Alert
 				variant="info"
-				title="安全配置检测未接入"
+				title={t('secretsInventory.securityChecksTitle', '安全配置检测未接入')}
 				className="mb-4"
 			>
-				PASSWORD_PEPPER 与 HIBP 的启用状态暂无平台侧数据源；接入后将在此展示。
+				{t('secretsInventory.securityChecksDesc')}
 			</Alert>
 		</div>
 	);

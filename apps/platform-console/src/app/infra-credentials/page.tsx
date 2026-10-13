@@ -30,15 +30,6 @@ interface CredentialRecord {
 	type?: string;
 }
 
-const TYPE_LABELS: Record<string, string> = {
-	database: '数据库',
-	cache: '缓存',
-	mq: '消息队列',
-	storage: '存储',
-	monitoring: '监控',
-	security: '安全',
-};
-
 const TYPE_ICONS: Record<string, React.ReactNode> = {
 	database: <Database size="1em" />,
 	cache: <HardDrive size="1em" />,
@@ -123,10 +114,7 @@ export default function InfraCredentialsPage() {
 		<div>
 			<AppPageHeader
 				title={t('infraCredentials.title', '基础设施凭证')}
-				description={t(
-					'infraCredentials.description',
-					'数据库、缓存、消息队列、存储与 API 服务的基础设施凭证总览。',
-				)}
+				description={t('infraCredentials.description')}
 			/>
 
 			<div className="mt-6">
@@ -157,7 +145,7 @@ export default function InfraCredentialsPage() {
 					<div className="space-y-6">
 						{sortedTypes.map((type) => {
 							const items = groupedByType[type];
-							const label = t(`infraCredentials.type.${type}`, TYPE_LABELS[type] || type);
+							const label = t(`infraCredentials.type.${type}`, type);
 							const icon = TYPE_ICONS[type] || <Globe size="1em" />;
 							const color = TYPE_COLORS[type] || 'default';
 
