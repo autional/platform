@@ -142,7 +142,7 @@ export default function FeatureFlagsPage() {
 			<div className="mb-6">
 				<AppPageHeader
 					title="功能开关"
-					description="跨服务功能开关配置矩阵 —— 全部 21 个服务总览"
+					description="跨服务功能开关配置矩阵 —— 全部服务总览"
 				/>
 			</div>
 
