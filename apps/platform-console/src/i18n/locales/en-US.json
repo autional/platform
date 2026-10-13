@@ -217,6 +217,7 @@
   "ops.title": "Operations View",
   "tenants.title": "Tenant Management",
   "announcements.title": "Platform Announcements",
+  "compliancePolicy.title": "Compliance Policy Management",
   "complianceMinors.title": "Minors Protection",
   "complianceMinors.description": "Configure anti-addiction policies, view minor users, and manage parental consent",
   "secretsInventory.title": "Secrets Inventory",

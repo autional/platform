@@ -217,6 +217,7 @@
   "ops.title": "运维视图",
   "tenants.title": "租户管理",
   "announcements.title": "平台公告",
+  "compliancePolicy.title": "合规策略管理",
   "complianceMinors.title": "未成年人保护",
   "complianceMinors.description": "配置防沉迷策略、查看未成年用户、管理家长同意",
   "secretsInventory.title": "密钥清单",
