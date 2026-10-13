@@ -6,6 +6,8 @@ import { useParams, useNavigate } from 'react-router';
 import { Button, Tag, Form, Input, Select, Skeleton, Descriptions } from 'antd';
 import { ArrowLeft, Pencil } from 'lucide-react';
 import { usePageTitle, useTenantSlug } from '@autional/shared';
+import { useTranslation } from 'react-i18next';
+import i18n from '@/i18n';
 import { ApiErrorState } from '@/components/ApiErrorState';
 import { ROUTE } from '@/lib/route-paths';
 import { buildNavHref } from '@/lib/nav';
@@ -67,11 +69,18 @@ interface PermissionRecord {
 	effect?: string;
 }
 
-const SUBTYPE_LABELS: Record<string, string> = {
-	agent: 'Agent',
-	service_account: '服务账号',
-	automation: '自动化',
+const SUBTYPE_LABEL_KEYS: Record<string, string> = {
+	agent: 'agents.subtype.agent',
+	service_account: 'agents.subtype.service_account',
+	automation: 'agents.subtype.automation',
 };
+
+// 键映射 + 调用时求值（模块级无组件作用域）：未知子类型回退原始值，语义同旧版映射兜底。
+function subtypeLabel(s: string | undefined): string {
+	if (!s) return '-';
+	const key = SUBTYPE_LABEL_KEYS[s];
+	return key ? i18n.t(key) : s;
+}
 
 const SUBTYPE_COLORS: Record<string, string> = {
 	agent: 'blue',
@@ -118,6 +127,7 @@ async function updateAgent(id: string, values: Record<string, unknown>): Promise
 
 export default function AgentDetailPage() {
 	const { id } = useParams<{ id: string }>();
+	const { t } = useTranslation();
 	const navigate = useNavigate();
 	const tenantSlug = useTenantSlug();
 	const queryClient = useQueryClient();
@@ -166,7 +176,7 @@ export default function AgentDetailPage() {
 		},
 	});
 
-	usePageTitle(agent?.name ? `${agent.name} - Agent` : 'Agent 详情');
+	usePageTitle(agent?.name ? `${agent.name} - Agent` : t('agents.detailTitle', 'Agent 详情'));
 
 	// 后端 UpdateAgentRequest.rotation_days/jit_ttl 为 *int；antd Input 产出 string，
 	// 直接提交 422 —— 提交前归一为 number，空/非法值剔除（omitempty 走后端默认）。
@@ -181,10 +191,10 @@ export default function AgentDetailPage() {
 		}
 		try {
 			await updateMut.mutateAsync({ id, values: payload });
-			message.success('Agent 更新成功');
+			message.success(t('agents.updateSuccess', 'Agent 更新成功'));
 			setEditVisible(false);
 		} catch (err) {
-			handleApiError(err, '更新失败');
+			handleApiError(err, t('agents.updateFailed', '更新失败'));
 		}
 	};
 
@@ -208,21 +218,21 @@ export default function AgentDetailPage() {
 
 	// 列绑定后端真字段（旧版绑 type/last_used_at/expires_at/timestamp —— 后端不存在，整列恒 '-'）
 	const credentialColumns = [
-		{ title: '名称', dataIndex: 'name', key: 'name' },
+		{ title: t('agents.name', '名称'), dataIndex: 'name', key: 'name' },
 		{
-			title: '前缀',
+			title: t('agents.prefix', '前缀'),
 			dataIndex: 'keyPrefix',
 			key: 'keyPrefix',
 			render: (v: string) => (v ? <code className="text-xs">{v}</code> : '-'),
 		},
 		{
-			title: '类型',
+			title: t('agents.type', '类型'),
 			dataIndex: 'credType',
 			key: 'credType',
 			render: (v: string) => <Tag>{v || '-'}</Tag>,
 		},
 		{
-			title: '状态',
+			title: t('common.status', '状态'),
 			dataIndex: 'status',
 			key: 'status',
 			render: (v: string) => (
@@ -230,7 +240,7 @@ export default function AgentDetailPage() {
 			),
 		},
 		{
-			title: '创建时间',
+			title: t('agents.createdAt', '创建时间'),
 			dataIndex: 'createdAt',
 			key: 'createdAt',
 			render: (v: string) => formatDate(v),
@@ -238,10 +248,10 @@ export default function AgentDetailPage() {
 	];
 
 	const activityColumns = [
-		{ title: '动作', dataIndex: 'action', key: 'action', render: (v: string) => <Tag>{v}</Tag> },
-		{ title: '详情', dataIndex: 'detail', key: 'detail', ellipsis: true },
+		{ title: t('agents.action', '动作'), dataIndex: 'action', key: 'action', render: (v: string) => <Tag>{v}</Tag> },
+		{ title: t('common.details', '详情'), dataIndex: 'detail', key: 'detail', ellipsis: true },
 		{
-			title: '时间',
+			title: t('agents.time', '时间'),
 			dataIndex: 'createdAt',
 			key: 'createdAt',
 			render: (v: string) => formatDate(v),
@@ -249,9 +259,9 @@ export default function AgentDetailPage() {
 	];
 
 	const permissionColumns = [
-		{ title: '资源', dataIndex: 'resource', key: 'resource' },
+		{ title: t('agents.resource', '资源'), dataIndex: 'resource', key: 'resource' },
 		{
-			title: '动作',
+			title: t('agents.action', '动作'),
 			dataIndex: 'action',
 			key: 'action',
 			render: (v: string) => <Tag color="blue">{v}</Tag>,
@@ -261,7 +271,10 @@ export default function AgentDetailPage() {
 	if (!id) {
 		return (
 			<div>
-				<ErrorState title="Agent 无效" message="未提供 Agent ID。" />
+				<ErrorState
+					title={t('agents.invalidTitle', 'Agent 无效')}
+					message={t('agents.invalidMessage', '未提供 Agent ID。')}
+				/>
 			</div>
 		);
 	}
@@ -275,16 +288,16 @@ export default function AgentDetailPage() {
 					onClick={() => navigate(buildNavHref(ROUTE.AGENTS, tenantSlug))}
 					className="mb-4 pl-0"
 				>
-					返回 Agent 列表
+					{t('agents.backToList', '返回 Agent 列表')}
 				</Button>
 				<div className="flex items-center justify-between">
 					<AppPageHeader
-						title={agent?.name || 'Agent 详情'}
-						description={agent?.description || (isLoading ? '加载中…' : '')}
+						title={agent?.name || t('agents.detailTitle', 'Agent 详情')}
+						description={agent?.description || (isLoading ? t('agents.loading', '加载中…') : '')}
 					/>
 					{agent && (
 						<Button icon={<Pencil size="1em" />} onClick={openEdit}>
-							编辑 Agent
+							{t('agents.editAgent', '编辑 Agent')}
 						</Button>
 					)}
 				</div>
@@ -301,49 +314,49 @@ export default function AgentDetailPage() {
 			{!isLoading && error && (
 				<ApiErrorState
 					error={error}
-					title="加载 Agent 详情失败"
+					title={t('agents.loadDetailError', '加载 Agent 详情失败')}
 					onRetry={() => refetch()}
 				/>
 			)}
 
 			{!isLoading && !error && agent && (
 				<>
-					<SectionCard title="Agent 信息" className="mb-6">
+					<SectionCard title={t('agents.infoSection', 'Agent 信息')} className="mb-6">
 						<Descriptions column={2} bordered size="small">
-							<Descriptions.Item label="名称">{agent.name}</Descriptions.Item>
-							<Descriptions.Item label="状态">
+							<Descriptions.Item label={t('agents.name', '名称')}>{agent.name}</Descriptions.Item>
+							<Descriptions.Item label={t('common.status', '状态')}>
 								<StatusBadge variant={statusVariant(agent.status)}>
 								{statusLabel(agent.status)}
 							</StatusBadge>
 							</Descriptions.Item>
-							<Descriptions.Item label="工作负载子类型">
+							<Descriptions.Item label={t('agents.workloadSubtype', '工作负载子类型')}>
 								<Tag color={SUBTYPE_COLORS[subtype] || 'default'}>
-									{SUBTYPE_LABELS[subtype] || subtype || '-'}
+									{subtypeLabel(subtype)}
 								</Tag>
 							</Descriptions.Item>
-							<Descriptions.Item label="所有者">{ownerDisplay || '-'}</Descriptions.Item>
-							<Descriptions.Item label="轮换周期（天）">
+							<Descriptions.Item label={t('agents.owner', '所有者')}>{ownerDisplay || '-'}</Descriptions.Item>
+							<Descriptions.Item label={t('agents.rotationDays', '轮换周期（天）')}>
 								{rotationDays ?? '-'}
 							</Descriptions.Item>
 							<Descriptions.Item label="JIT TTL">
-								{jitTtl ? `${jitTtl} 秒` : '-'}
+								{jitTtl ? t('agents.jitTtlSeconds', { n: jitTtl }) : '-'}
 							</Descriptions.Item>
-							<Descriptions.Item label="创建时间">
+							<Descriptions.Item label={t('agents.createdAt', '创建时间')}>
 								{formatDate(agent.createdAt ?? agent.created_at ?? '')}
 							</Descriptions.Item>
-							<Descriptions.Item label="更新时间">
+							<Descriptions.Item label={t('agents.updatedAt', '更新时间')}>
 								{formatDate(agent.updatedAt ?? agent.updated_at ?? '')}
 							</Descriptions.Item>
 						</Descriptions>
 					</SectionCard>
 
-					<SectionCard title="凭证" className="mb-6">
+					<SectionCard title={t('agents.credentialsSection', '凭证')} className="mb-6">
 						{credLoading ? (
 							<Skeleton active paragraph={{ rows: 2 }} />
 						) : credentials.length === 0 ? (
 							<EmptyState
-								title="暂无凭证"
-								description="该 Agent 尚未签发任何凭证。"
+								title={t('agents.credentialsEmptyTitle', '暂无凭证')}
+								description={t('agents.credentialsEmptyDesc', '该 Agent 尚未签发任何凭证。')}
 							/>
 						) : (
 							<DataTable
@@ -356,11 +369,14 @@ export default function AgentDetailPage() {
 						)}
 					</SectionCard>
 
-					<SectionCard title="近期活动" className="mb-6">
+					<SectionCard title={t('agents.activitySection', '近期活动')} className="mb-6">
 						{actLoading ? (
 							<Skeleton active paragraph={{ rows: 3 }} />
 						) : activity.length === 0 ? (
-							<EmptyState title="暂无活动" description="该 Agent 近期没有活动。" />
+							<EmptyState
+								title={t('agents.activityEmptyTitle', '暂无活动')}
+								description={t('agents.activityEmptyDesc', '该 Agent 近期没有活动。')}
+							/>
 						) : (
 							<DataTable
 								// 后端 AgentActivityInfo 无 id —— 复合键防 React key 塌陷
@@ -375,13 +391,13 @@ export default function AgentDetailPage() {
 						)}
 					</SectionCard>
 
-					<SectionCard title="权限" className="mb-6">
+					<SectionCard title={t('agents.permissionsSection', '权限')} className="mb-6">
 						{permLoading ? (
 							<Skeleton active paragraph={{ rows: 2 }} />
 						) : permissions.length === 0 ? (
 							<EmptyState
-								title="暂无权限"
-								description="该 Agent 未分配任何权限。"
+								title={t('agents.permissionsEmptyTitle', '暂无权限')}
+								description={t('agents.permissionsEmptyDesc', '该 Agent 未分配任何权限。')}
 							/>
 						) : (
 							<DataTable
@@ -400,7 +416,7 @@ export default function AgentDetailPage() {
 			)}
 
 			<Modal
-				title="编辑 Agent"
+				title={t('agents.editAgent', '编辑 Agent')}
 				open={editVisible}
 				onCancel={() => {
 					setEditVisible(false);
@@ -413,26 +429,26 @@ export default function AgentDetailPage() {
 				forceRender
 			>
 				<Form form={form} layout="vertical" onFinish={handleEdit}>
-					<Form.Item name="name" label="名称" rules={[{ required: true }]}>
-						<Input placeholder="例如：deploy-bot、ci-runner" />
+					<Form.Item name="name" label={t('agents.name', '名称')} rules={[{ required: true }]}>
+						<Input placeholder={t('agents.namePlaceholder', '例如：deploy-bot、ci-runner')} />
 					</Form.Item>
-					<Form.Item name="description" label="描述">
-						<Input.TextArea rows={3} placeholder="描述该 Agent 的用途" />
+					<Form.Item name="description" label={t('agents.descriptionLabel', '描述')}>
+						<Input.TextArea rows={3} placeholder={t('agents.descriptionPlaceholder', '描述该 Agent 的用途')} />
 					</Form.Item>
-					<Form.Item name="workload_subtype" label="工作负载子类型" rules={[{ required: true }]}>
+					<Form.Item name="workload_subtype" label={t('agents.workloadSubtype', '工作负载子类型')} rules={[{ required: true }]}>
 						<Select
 							options={[
-								{ value: 'agent', label: 'Agent' },
-								{ value: 'service_account', label: '服务账号' },
-								{ value: 'automation', label: '自动化' },
+								{ value: 'agent', label: t('agents.subtype.agent', 'Agent') },
+								{ value: 'service_account', label: t('agents.subtype.service_account', '服务账号') },
+								{ value: 'automation', label: t('agents.subtype.automation', '自动化') },
 							]}
 						/>
 					</Form.Item>
-					<Form.Item name="rotation_days" label="轮换周期（天）">
+					<Form.Item name="rotation_days" label={t('agents.rotationDays', '轮换周期（天）')}>
 						<Input type="number" placeholder="90" />
 					</Form.Item>
-					<Form.Item name="jit_ttl" label="JIT TTL（秒）">
-						<Input type="number" placeholder="例如 3600" />
+					<Form.Item name="jit_ttl" label={t('agents.jitTtl', 'JIT TTL（秒）')}>
+						<Input type="number" placeholder={t('agents.jitTtlPlaceholder', '例如 3600')} />
 					</Form.Item>
 				</Form>
 			</Modal>

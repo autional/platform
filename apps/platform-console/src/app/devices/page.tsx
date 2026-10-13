@@ -12,6 +12,8 @@ import {
 	type PageResult,
 } from '@autional/shared';
 import { AppPageHeader, EmptyState, ErrorState, StatusBadge } from '@autional/ui';
+import { useTranslation } from 'react-i18next';
+import i18n from '@/i18n';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminIots, adminIotsPost, adminIotsByIotsDelete } from '@autional/shared/generated/api';
 import { useNavigate } from 'react-router';
@@ -52,12 +54,19 @@ function typeVariant(s: string): 'success' | 'warning' | 'danger' | 'info' | 'ne
 	return TYPE_VARIANT[s] || 'neutral';
 }
 
-const TYPE_LABELS: Record<string, string> = {
-	pet: '宠物',
-	smart_home: '智能家居',
-	office: '办公',
-	sensor: '传感器',
+const TYPE_LABEL_KEYS: Record<string, string> = {
+	pet: 'devices.subtype.pet',
+	smart_home: 'devices.subtype.smart_home',
+	office: 'devices.subtype.office',
+	sensor: 'devices.subtype.sensor',
 };
+
+// 键映射 + 调用时求值（模块级无组件作用域）：未知类型回退原始值，语义同旧版映射兜底。
+function typeLabel(s: string | undefined): string {
+	if (!s) return '-';
+	const key = TYPE_LABEL_KEYS[s];
+	return key ? i18n.t(key) : s;
+}
 
 function formatDate(iso: string): string {
 	if (!iso) return '-';
@@ -84,7 +93,8 @@ async function deleteDevice(id: string): Promise<void> {
 }
 
 export default function DevicesPage() {
-	usePageTitle('Device 管理');
+	const { t } = useTranslation();
+	usePageTitle(t('devices.title', 'Device 管理'));
 	const navigate = useNavigate();
 	const tenantSlug = useTenantSlug();
 	const queryClient = useQueryClient();
@@ -119,26 +129,26 @@ export default function DevicesPage() {
 	const handleCreate = async (values: Record<string, unknown>) => {
 		try {
 			await createMut.mutateAsync(values);
-			message.success('Device 创建成功');
+			message.success(t('devices.createSuccess', 'Device 创建成功'));
 			setModalVisible(false);
 			form.resetFields();
 		} catch (err) {
-			handleApiError(err, '创建失败');
+			handleApiError(err, t('devices.createFailed', '创建失败'));
 		}
 	};
 
 	const handleDelete = async (id: string) => {
 		try {
 			await deleteMut.mutateAsync(id);
-			message.success('删除成功');
+			message.success(t('common.deleteSuccess', '删除成功'));
 		} catch (err) {
-			handleApiError(err, '删除失败');
+			handleApiError(err, t('common.deleteFailed', '删除失败'));
 		}
 	};
 
 	const columns = [
 		{
-			title: '名称',
+			title: t('devices.name', '名称'),
 			dataIndex: 'name',
 			key: 'name',
 			render: (v: string, record: DeviceRecord) => (
@@ -158,23 +168,23 @@ export default function DevicesPage() {
 			),
 		},
 		{
-			title: '类型',
+			title: t('devices.type', '类型'),
 			key: 'type',
 			render: (_: unknown, r: DeviceRecord) => {
 				const v = (r.workloadSubtype ?? r.workload_subtype) || '';
 				return (
-					<StatusBadge variant={typeVariant(v)}>{TYPE_LABELS[v] || v || '-'}</StatusBadge>
+					<StatusBadge variant={typeVariant(v)}>{typeLabel(v)}</StatusBadge>
 				);
 			},
 		},
 		{
-			title: '所有者',
+			title: t('devices.owner', '所有者'),
 			key: 'owner',
 			render: (_: unknown, r: DeviceRecord) =>
 				(r.ownerName ?? r.owner_name ?? r.ownerId ?? r.owner_id) || '-',
 		},
 		{
-			title: '硬件 ID',
+			title: t('devices.hardwareId', '硬件 ID'),
 			key: 'hardware_id',
 			render: (_: unknown, r: DeviceRecord) => {
 				const v = (r.hardwareId ?? r.hardware_id) || '';
@@ -182,18 +192,18 @@ export default function DevicesPage() {
 			},
 		},
 		{
-			title: '固件',
+			title: t('devices.firmware', '固件'),
 			key: 'firmware_ver',
 			render: (_: unknown, r: DeviceRecord) => (r.firmwareVer ?? r.firmware_ver) || '-',
 		},
 		{
-			title: '创建时间',
+			title: t('devices.createdAt', '创建时间'),
 			key: 'created_at',
 			render: (_: unknown, r: DeviceRecord) =>
 				formatDate((r.createdAt ?? r.created_at ?? '') as string),
 		},
 		{
-			title: '操作',
+			title: t('common.actions', '操作'),
 			key: 'action',
 			render: (_: unknown, record: DeviceRecord) => (
 				<Space size="small">
@@ -210,15 +220,15 @@ export default function DevicesPage() {
 							);
 						}}
 					>
-						编辑
+						{t('common.edit', '编辑')}
 					</Button>
 					<Popconfirm
-						title="确认删除该 Device？"
-						description="此操作不可撤销。"
+						title={t('devices.confirmDelete', '确认删除该 Device？')}
+						description={t('devices.deleteIrreversible', '此操作不可撤销。')}
 						onConfirm={() => handleDelete(recordId(record))}
-						okText="删除"
+						okText={t('common.delete', '删除')}
 						okButtonProps={{ danger: true }}
-						cancelText="取消"
+						cancelText={t('common.cancel', '取消')}
 					>
 						<Button
 							type="link"
@@ -226,7 +236,7 @@ export default function DevicesPage() {
 							icon={<Trash2 size="1em" />}
 							onClick={(e) => e.stopPropagation()}
 						>
-							删除
+							{t('common.delete', '删除')}
 						</Button>
 					</Popconfirm>
 				</Space>
@@ -237,8 +247,8 @@ export default function DevicesPage() {
 	return (
 		<div>
 			<AppPageHeader
-				title="Device 管理"
-				description="管理 IoT 与边缘设备身份。"
+				title={t('devices.title', 'Device 管理')}
+				description={t('devices.subtitle', '管理 IoT 与边缘设备身份。')}
 				actions={
 					<Button
 						type="primary"
@@ -248,7 +258,7 @@ export default function DevicesPage() {
 							setModalVisible(true);
 						}}
 					>
-						新建 Device
+						{t('devices.create', '新建 Device')}
 					</Button>
 				}
 			/>
@@ -263,15 +273,18 @@ export default function DevicesPage() {
 
 			{!isLoading && error && (
 				<ErrorState
-					title="加载 Device 列表失败"
-					message="请检查网络连接后重试。"
+					title={t('devices.loadError', '加载 Device 列表失败')}
+					message={t('devices.retryHint', '请检查网络连接后重试。')}
 					onRetry={() => refetch()}
 				/>
 			)}
 
 			{!isLoading && !error && total === 0 && (
 				<div className="flex flex-col items-center gap-4">
-					<EmptyState title="暂无 Device" description="创建第一个 Device 以开始使用。" />
+					<EmptyState
+						title={t('devices.emptyTitle', '暂无 Device')}
+						description={t('devices.emptyDesc', '创建第一个 Device 以开始使用。')}
+					/>
 					<Button
 						type="primary"
 						icon={<Plus size="1em" />}
@@ -280,7 +293,7 @@ export default function DevicesPage() {
 							setModalVisible(true);
 						}}
 					>
-						新建 Device
+						{t('devices.create', '新建 Device')}
 					</Button>
 				</div>
 			)}
@@ -295,7 +308,7 @@ export default function DevicesPage() {
 						pageSize,
 						total,
 						showSizeChanger: true,
-						showTotal: (t: number) => `共 ${t} 条 Device`,
+						showTotal: (n: number) => t('devices.total', { n }),
 						onChange: (p: number, ps: number) => {
 							setPage(p);
 							setPageSize(ps);
@@ -315,7 +328,7 @@ export default function DevicesPage() {
 			)}
 
 			<Modal
-				title="新建 Device"
+				title={t('devices.create', '新建 Device')}
 				open={modalVisible}
 				onCancel={() => {
 					setModalVisible(false);
@@ -328,32 +341,32 @@ export default function DevicesPage() {
 				forceRender
 			>
 				<Form form={form} layout="vertical" onFinish={handleCreate}>
-					<Form.Item name="name" label="名称" rules={[{ required: true }]}>
-						<Input placeholder="例如：temp-sensor-1、smart-lock-front" />
+					<Form.Item name="name" label={t('devices.name', '名称')} rules={[{ required: true }]}>
+						<Input placeholder={t('devices.namePlaceholder', '例如：temp-sensor-1、smart-lock-front')} />
 					</Form.Item>
 					<Form.Item
 						name="workload_subtype"
-						label="工作负载子类型"
+						label={t('devices.workloadSubtype', '工作负载子类型')}
 						rules={[{ required: true }]}
 						initialValue="sensor"
 					>
 						<Select
 							options={[
-								{ value: 'pet', label: '宠物' },
-								{ value: 'smart_home', label: '智能家居' },
-								{ value: 'office', label: '办公' },
-								{ value: 'sensor', label: '传感器' },
+								{ value: 'pet', label: t('devices.subtype.pet', '宠物') },
+								{ value: 'smart_home', label: t('devices.subtype.smart_home', '智能家居') },
+								{ value: 'office', label: t('devices.subtype.office', '办公') },
+								{ value: 'sensor', label: t('devices.subtype.sensor', '传感器') },
 							]}
 						/>
 					</Form.Item>
-					<Form.Item name="hardware_id" label="硬件 ID">
-						<Input placeholder="例如：HW-001、ESP32-A4" />
+					<Form.Item name="hardware_id" label={t('devices.hardwareId', '硬件 ID')}>
+						<Input placeholder={t('devices.hardwareIdPlaceholder', '例如：HW-001、ESP32-A4')} />
 					</Form.Item>
-					<Form.Item name="firmware_ver" label="固件版本">
-						<Input placeholder="例如：v1.2.3" />
+					<Form.Item name="firmware_ver" label={t('devices.firmwareVer', '固件版本')}>
+						<Input placeholder={t('devices.firmwareVerPlaceholder', '例如：v1.2.3')} />
 					</Form.Item>
-					<Form.Item name="manufacturer" label="制造商">
-						<Input placeholder="例如：Bosch、Xiaomi" />
+					<Form.Item name="manufacturer" label={t('devices.manufacturer', '制造商')}>
+						<Input placeholder={t('devices.manufacturerPlaceholder', '例如：Bosch、Xiaomi')} />
 					</Form.Item>
 				</Form>
 			</Modal>

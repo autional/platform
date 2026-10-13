@@ -12,6 +12,8 @@ import {
 	type PageResult,
 } from '@autional/shared';
 import { AppPageHeader, EmptyState, ErrorState, StatusBadge } from '@autional/ui';
+import { useTranslation } from 'react-i18next';
+import i18n from '@/i18n';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
 	adminAgents,
@@ -46,11 +48,18 @@ interface AgentRecord {
 	created_at?: string;
 }
 
-const SUBTYPE_LABELS: Record<string, string> = {
-	agent: 'Agent',
-	service_account: '服务账号',
-	automation: '自动化',
+const SUBTYPE_LABEL_KEYS: Record<string, string> = {
+	agent: 'agents.subtype.agent',
+	service_account: 'agents.subtype.service_account',
+	automation: 'agents.subtype.automation',
 };
+
+// 键映射 + 调用时求值（模块级无组件作用域）：未知子类型回退原始值，语义同旧版映射兜底。
+function subtypeLabel(s: string | undefined): string {
+	if (!s) return '-';
+	const key = SUBTYPE_LABEL_KEYS[s];
+	return key ? i18n.t(key) : s;
+}
 
 const SUBTYPE_COLORS: Record<string, string> = {
 	agent: 'blue',
@@ -84,7 +93,8 @@ async function deleteAgent(id: string): Promise<void> {
 }
 
 export default function AgentsPage() {
-	usePageTitle('AI 智能体');
+	const { t } = useTranslation();
+	usePageTitle(t('agents.title', 'AI 智能体'));
 	const navigate = useNavigate();
 	const tenantSlug = useTenantSlug();
 	const queryClient = useQueryClient();
@@ -128,26 +138,26 @@ export default function AgentsPage() {
 		}
 		try {
 			await createMut.mutateAsync(payload);
-			message.success('Agent 创建成功');
+			message.success(t('agents.createSuccess', 'Agent 创建成功'));
 			setModalVisible(false);
 			form.resetFields();
 		} catch (err) {
-			handleApiError(err, '创建失败');
+			handleApiError(err, t('agents.createFailed', '创建失败'));
 		}
 	};
 
 	const handleDelete = async (id: string) => {
 		try {
 			await deleteMut.mutateAsync(id);
-			message.success('删除成功');
+			message.success(t('common.deleteSuccess', '删除成功'));
 		} catch (err) {
-			handleApiError(err, '删除失败');
+			handleApiError(err, t('common.deleteFailed', '删除失败'));
 		}
 	};
 
 	const columns = [
 		{
-			title: '名称',
+			title: t('agents.name', '名称'),
 			dataIndex: 'name',
 			key: 'name',
 			render: (v: string, record: AgentRecord) => (
@@ -167,17 +177,17 @@ export default function AgentsPage() {
 			),
 		},
 		{
-			title: '子类型',
+			title: t('agents.subtype', '子类型'),
 			key: 'subtype',
 			render: (_: unknown, r: AgentRecord) => {
 				const v = (r.workloadSubtype ?? r.workload_subtype) || '';
 				return (
-					<Tag color={SUBTYPE_COLORS[v] || 'default'}>{SUBTYPE_LABELS[v] || v || '-'}</Tag>
+					<Tag color={SUBTYPE_COLORS[v] || 'default'}>{subtypeLabel(v)}</Tag>
 				);
 			},
 		},
 		{
-			title: '状态',
+			title: t('common.status', '状态'),
 			dataIndex: 'status',
 			key: 'status',
 			render: (v: string) => (
@@ -185,19 +195,19 @@ export default function AgentsPage() {
 			),
 		},
 		{
-			title: '所有者',
+			title: t('agents.owner', '所有者'),
 			key: 'owner',
 			render: (_: unknown, r: AgentRecord) =>
 				(r.ownerName ?? r.owner_name ?? r.ownerId ?? r.owner_id) || '-',
 		},
 		{
-			title: '创建时间',
+			title: t('agents.createdAt', '创建时间'),
 			key: 'created',
 			render: (_: unknown, r: AgentRecord) =>
 				formatDate(r.createdAt ?? r.created_at ?? ''),
 		},
 		{
-			title: '操作',
+			title: t('common.actions', '操作'),
 			key: 'action',
 			render: (_: unknown, record: AgentRecord) => (
 				<Space size="small">
@@ -214,15 +224,15 @@ export default function AgentsPage() {
 							);
 						}}
 					>
-						编辑
+						{t('common.edit', '编辑')}
 					</Button>
 					<Popconfirm
-						title="确认删除该 Agent？"
-						description="此操作不可撤销。"
+						title={t('agents.confirmDelete', '确认删除该 Agent？')}
+						description={t('agents.deleteIrreversible', '此操作不可撤销。')}
 						onConfirm={() => handleDelete(recordId(record))}
-						okText="删除"
+						okText={t('common.delete', '删除')}
 						okButtonProps={{ danger: true }}
-						cancelText="取消"
+						cancelText={t('common.cancel', '取消')}
 					>
 						<Button
 							type="link"
@@ -230,7 +240,7 @@ export default function AgentsPage() {
 							icon={<Trash2 size="1em" />}
 							onClick={(e) => e.stopPropagation()}
 						>
-							删除
+							{t('common.delete', '删除')}
 						</Button>
 					</Popconfirm>
 				</Space>
@@ -241,8 +251,8 @@ export default function AgentsPage() {
 	return (
 		<div>
 			<AppPageHeader
-				title="AI 智能体"
-				description="管理机器身份与工作负载凭证。"
+				title={t('agents.title', 'AI 智能体')}
+				description={t('agents.subtitle', '管理机器身份与工作负载凭证。')}
 				actions={
 					<Button
 						type="primary"
@@ -252,7 +262,7 @@ export default function AgentsPage() {
 							setModalVisible(true);
 						}}
 					>
-						新建 Agent
+						{t('agents.create', '新建 Agent')}
 					</Button>
 				}
 			/>
@@ -267,15 +277,18 @@ export default function AgentsPage() {
 
 			{!isLoading && error && (
 				<ErrorState
-					title="加载 Agent 列表失败"
-					message="请检查网络连接后重试。"
+					title={t('agents.loadError', '加载 Agent 列表失败')}
+					message={t('agents.retryHint', '请检查网络连接后重试。')}
 					onRetry={() => refetch()}
 				/>
 			)}
 
 			{!isLoading && !error && total === 0 && (
 				<div className="flex flex-col items-center gap-4">
-					<EmptyState title="暂无 Agent" description="创建第一个 AI 智能体以开始使用。" />
+					<EmptyState
+						title={t('agents.emptyTitle', '暂无 Agent')}
+						description={t('agents.emptyDesc', '创建第一个 AI 智能体以开始使用。')}
+					/>
 					<Button
 						type="primary"
 						icon={<Plus size="1em" />}
@@ -284,7 +297,7 @@ export default function AgentsPage() {
 							setModalVisible(true);
 						}}
 					>
-						新建 Agent
+						{t('agents.create', '新建 Agent')}
 					</Button>
 				</div>
 			)}
@@ -299,7 +312,7 @@ export default function AgentsPage() {
 						pageSize,
 						total,
 						showSizeChanger: true,
-						showTotal: (t: number) => `共 ${t} 条 Agent`,
+						showTotal: (n: number) => t('agents.total', { n }),
 						onChange: (p: number, ps: number) => {
 							setPage(p);
 							setPageSize(ps);
@@ -319,7 +332,7 @@ export default function AgentsPage() {
 			)}
 
 			<Modal
-				title="新建 Agent"
+				title={t('agents.create', '新建 Agent')}
 				open={modalVisible}
 				onCancel={() => {
 					setModalVisible(false);
@@ -332,31 +345,31 @@ export default function AgentsPage() {
 				forceRender
 			>
 				<Form form={form} layout="vertical" onFinish={handleCreate}>
-					<Form.Item name="name" label="名称" rules={[{ required: true }]}>
-						<Input placeholder="例如：deploy-bot、ci-runner" />
+					<Form.Item name="name" label={t('agents.name', '名称')} rules={[{ required: true }]}>
+						<Input placeholder={t('agents.namePlaceholder', '例如：deploy-bot、ci-runner')} />
 					</Form.Item>
-					<Form.Item name="description" label="描述">
-						<Input.TextArea rows={3} placeholder="描述该 Agent 的用途" />
+					<Form.Item name="description" label={t('agents.descriptionLabel', '描述')}>
+						<Input.TextArea rows={3} placeholder={t('agents.descriptionPlaceholder', '描述该 Agent 的用途')} />
 					</Form.Item>
 					<Form.Item
 						name="workload_subtype"
-						label="工作负载子类型"
+						label={t('agents.workloadSubtype', '工作负载子类型')}
 						rules={[{ required: true }]}
 						initialValue="agent"
 					>
 						<Select
 							options={[
-								{ value: 'agent', label: 'Agent' },
-								{ value: 'service_account', label: '服务账号' },
-								{ value: 'automation', label: '自动化' },
+								{ value: 'agent', label: t('agents.subtype.agent', 'Agent') },
+								{ value: 'service_account', label: t('agents.subtype.service_account', '服务账号') },
+								{ value: 'automation', label: t('agents.subtype.automation', '自动化') },
 							]}
 						/>
 					</Form.Item>
-					<Form.Item name="rotation_days" label="轮换周期（天）" initialValue={90}>
+					<Form.Item name="rotation_days" label={t('agents.rotationDays', '轮换周期（天）')} initialValue={90}>
 						<Input type="number" placeholder="90" />
 					</Form.Item>
-					<Form.Item name="jit_ttl" label="JIT TTL（秒）" initialValue={3600}>
-						<Input type="number" placeholder="例如 3600" />
+					<Form.Item name="jit_ttl" label={t('agents.jitTtl', 'JIT TTL（秒）')} initialValue={3600}>
+						<Input type="number" placeholder={t('agents.jitTtlPlaceholder', '例如 3600')} />
 					</Form.Item>
 				</Form>
 			</Modal>
