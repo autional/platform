@@ -12,6 +12,9 @@
  *
  * ③ 合规评分 grade（A+/A/B/C/D，score API 已下发）接渲染：策略页圆环旁文本直读源码锁。
  *    （compliance 仪表盘 page 已按孤儿页清理删除，原仪表盘 Tag 行为锁/源码锁随页移除。）
+ *    i18n 迁移（2026-10-14）：原锁断言中文字面量，与「文案一律 t() + 双 bundle」终态结构性
+ *    互斥 —— 锁随构成进化：断言该渲染点的 t('compliancePolicy.scoreLine'…) +
+ *    t('compliancePolicy.scoreGradeSuffix'…) 调用形态，保护语义（圆环旁分数+grade 直读）不变。
  */
 
 import { describe, it, expect, vi } from 'vitest';
@@ -138,7 +141,7 @@ describe('U414①③ 源码扫描锁', () => {
 
 	it('compliance/policy 圆环旁有分数文本直读 + grade', () => {
 		const text = readFileSync(join(APP_DIR, 'compliance', 'policy', 'page.tsx'), 'utf8');
-		expect(text).toMatch(/合规评分 \{Math\.round\(score\)\}\/100/);
-		expect(text).toMatch(/\$\{scoreGrade\}/);
+		expect(text).toMatch(/t\('compliancePolicy\.scoreLine',\s*\{\s*score:\s*Math\.round\(score\)\s*\}\s*\)/);
+		expect(text).toMatch(/t\('compliancePolicy\.scoreGradeSuffix',\s*\{\s*grade:\s*scoreGrade\s*\}\s*\)/);
 	});
 });

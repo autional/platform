@@ -12,6 +12,7 @@ import {
 } from '@autional/shared/generated/api';
 import { message } from '@/lib/antd-app';
 import { handleApiError } from '@/lib/error-handler';
+import { useTranslation } from 'react-i18next';
 import type { StatusVariant } from '@autional/ui';
 
 interface ErasureRequest {
@@ -37,16 +38,18 @@ const STATUS_VARIANT: Record<ErasureRequest['status'], StatusVariant> = {
 	rejected: 'danger',
 };
 
-const STATUS_LABEL: Record<ErasureRequest['status'], string> = {
-	pending: '待处理',
-	approved: '已批准',
-	executing: '执行中',
-	completed: '已完成',
-	rejected: '已拒绝',
+// 键映射 + 调用时求值（组件内渲染处用组件 t）
+const STATUS_LABEL_KEYS: Record<ErasureRequest['status'], string> = {
+	pending: 'gdprErasure.status.pending',
+	approved: 'gdprErasure.status.approved',
+	executing: 'gdprErasure.status.executing',
+	completed: 'gdprErasure.status.completed',
+	rejected: 'gdprErasure.status.rejected',
 };
 
 export default function GdprErasurePage() {
-	usePageTitle('GDPR 被遗忘权');
+	const { t } = useTranslation();
+	usePageTitle(t('gdprErasure.title'));
 	const queryClient = useQueryClient();
 	const [statusFilter, setStatusFilter] = useState<ErasureRequest['status'] | undefined>();
 	const [executionResults, setExecutionResults] = useState<ExecutionResult[]>([]);
@@ -67,14 +70,14 @@ export default function GdprErasurePage() {
 		},
 		onSuccess: (result) => {
 			queryClient.invalidateQueries({ queryKey: ['gdpr-erasure'] });
-			message.success('擦除执行成功');
+			message.success(t('gdprErasure.executeSuccess'));
 			if (result?.results) {
 				setExecutionResults(result.results);
 				setResultModalOpen(true);
 			}
 		},
 		onError: (err) => {
-			handleApiError(err, '执行擦除失败');
+			handleApiError(err, t('gdprErasure.executeFailed'));
 		},
 	});
 
@@ -85,29 +88,29 @@ export default function GdprErasurePage() {
 
 	const columns = [
 		{
-			title: '用户 ID',
+			title: t('gdprErasure.colUserId'),
 			key: 'user_id',
 			ellipsis: true,
 			render: (_: unknown, r: any) =>
 				(r.userId as string) ?? (r.user_id as string) ?? '-',
 		},
 		{
-			title: '租户 ID',
+			title: t('gdprErasure.colTenantId'),
 			key: 'tenant_id',
 			ellipsis: true,
 			render: (_: unknown, r: any) =>
 				(r.tenantId as string) ?? (r.tenant_id as string) ?? '-',
 		},
 		{
-			title: '状态',
+			title: t('common.status'),
 			dataIndex: 'status',
 			key: 'status',
 			render: (v: ErasureRequest['status']) => (
-				<StatusBadge variant={STATUS_VARIANT[v]}>{STATUS_LABEL[v]}</StatusBadge>
+				<StatusBadge variant={STATUS_VARIANT[v]}>{t(STATUS_LABEL_KEYS[v])}</StatusBadge>
 			),
 		},
 		{
-			title: '请求时间',
+			title: t('gdprErasure.colRequestedAt'),
 			key: 'requested_at',
 			render: (_: unknown, r: any) => {
 				const v = (r.requestedAt as string) ?? (r.requested_at as string) ?? '';
@@ -115,26 +118,28 @@ export default function GdprErasurePage() {
 			},
 		},
 		{
-			title: '原因',
+			title: t('gdprErasure.colReason'),
 			dataIndex: 'reason',
 			key: 'reason',
 			ellipsis: true,
 		},
 		{
-			title: '操作',
+			title: t('common.actions'),
 			key: 'action',
 			render: (_: unknown, record: ErasureRequest) =>
 				record.status === 'approved' ? (
 					<Popconfirm
-						title="确认执行擦除"
-						description={`这将永久擦除用户 ${record.userId ?? record.user_id ?? ''} 在身份、资料、会话、MFA、OAuth、积分与通知服务中的数据。此操作不可撤销。`}
+						title={t('gdprErasure.confirmTitle')}
+						description={t('gdprErasure.confirmDesc', {
+							userId: record.userId ?? record.user_id ?? '',
+						})}
 						onConfirm={() => executeMutation.mutate(record.id)}
-						okText="执行"
+						okText={t('gdprErasure.execute')}
 						okButtonProps={{ danger: true }}
-						cancelText="取消"
+						cancelText={t('common.cancel')}
 					>
 						<Button type="link" danger loading={executeMutation.isPending}>
-							执行
+							{t('gdprErasure.execute')}
 						</Button>
 					</Popconfirm>
 				) : null,
@@ -142,9 +147,9 @@ export default function GdprErasurePage() {
 	];
 
 	const resultColumns = [
-		{ title: '服务', dataIndex: 'service', key: 'service' },
+		{ title: t('gdprErasure.colService'), dataIndex: 'service', key: 'service' },
 		{
-			title: '状态',
+			title: t('common.status'),
 			dataIndex: 'status',
 			key: 'status',
 			render: (v: string) => (
@@ -155,30 +160,30 @@ export default function GdprErasurePage() {
 
 	return (
 		<div>
-			<AppPageHeader title="GDPR 被遗忘权" />
+			<AppPageHeader title={t('gdprErasure.title')} />
 
 			<SectionCard className="mt-6">
 				<Alert
 					variant="warning"
-					title="擦除不可撤销"
+					title={t('gdprErasure.alertTitle')}
 					className="mb-4"
 				>
-					擦除操作不可撤销。执行前请确认已通知用户，且等待期已结束。
+					{t('gdprErasure.alertDesc')}
 				</Alert>
 
 				<div className="flex items-center justify-between mb-4">
 					<Select
-						placeholder="按状态筛选"
+						placeholder={t('gdprErasure.filterPlaceholder')}
 						allowClear
 						value={statusFilter}
 						onChange={setStatusFilter}
 						style={{ width: 200 }}
 						options={[
-							{ value: 'pending', label: '待处理' },
-							{ value: 'approved', label: '已批准' },
-							{ value: 'executing', label: '执行中' },
-							{ value: 'completed', label: '已完成' },
-							{ value: 'rejected', label: '已拒绝' },
+							{ value: 'pending', label: t('gdprErasure.status.pending') },
+							{ value: 'approved', label: t('gdprErasure.status.approved') },
+							{ value: 'executing', label: t('gdprErasure.status.executing') },
+							{ value: 'completed', label: t('gdprErasure.status.completed') },
+							{ value: 'rejected', label: t('gdprErasure.status.rejected') },
 						]}
 					/>
 				</div>
@@ -192,8 +197,8 @@ export default function GdprErasurePage() {
 					locale={{
 						emptyText: (
 							<EmptyState
-								title="暂无擦除请求"
-								description="未找到 GDPR 被遗忘权请求。"
+								title={t('gdprErasure.emptyTitle')}
+								description={t('gdprErasure.emptyDesc')}
 							/>
 						),
 					}}
@@ -201,7 +206,7 @@ export default function GdprErasurePage() {
 			</SectionCard>
 
 			<Modal
-				title="擦除执行结果"
+				title={t('gdprErasure.resultTitle')}
 				open={resultModalOpen}
 				onCancel={() => setResultModalOpen(false)}
 				footer={null}
@@ -216,7 +221,7 @@ export default function GdprErasurePage() {
 						size="small"
 					/>
 				) : (
-					<Empty description="暂无结果" />
+					<Empty description={t('gdprErasure.resultEmpty')} />
 				)}
 			</Modal>
 		</div>

@@ -9,6 +9,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminPoliciesNhi, adminPoliciesNhiPut } from '@autional/shared/generated/api';
 import { message, modal } from '@/lib/antd-app';
 import { handleApiError } from '@/lib/error-handler';
+import { useTranslation } from 'react-i18next';
 import { queryKeys } from '@/lib/query-keys';
 import { diffNhiPolicy, normalizeNhiPolicy, type NhiPolicy } from '@/lib/nhi-policy';
 
@@ -23,7 +24,8 @@ async function saveNhiPolicy(values: NhiPolicy): Promise<NhiPolicy> {
 }
 
 export default function NhiPolicyPage() {
-	usePageTitle('NHI 策略');
+	const { t } = useTranslation();
+	usePageTitle(t('policies.nhi.title'));
 	const queryClient = useQueryClient();
 	const [form] = Form.useForm<NhiPolicy>();
 
@@ -54,20 +56,20 @@ export default function NhiPolicyPage() {
 	const performSave = async (values: NhiPolicy) => {
 		try {
 			await saveMut.mutateAsync(values);
-			message.success('NHI 策略保存成功');
+			message.success(t('policies.nhi.saveSuccess'));
 		} catch (err) {
-			handleApiError(err, '保存失败');
+			handleApiError(err, t('common.saveFailed'));
 		}
 	};
 
 	const handleSave = (values: NhiPolicy) => {
 		const changes = diffNhiPolicy(policy ?? {}, values);
 		if (changes.length === 0) {
-			message.info('策略未变更，未提交');
+			message.info(t('policies.nhi.noChanges'));
 			return;
 		}
 		modal.confirm({
-			title: '确认保存以下变更？',
+			title: t('policies.nhi.confirmSaveTitle'),
 			content: (
 				<div className="space-y-1">
 					{changes.map((c) => (
@@ -77,8 +79,8 @@ export default function NhiPolicyPage() {
 					))}
 				</div>
 			),
-			okText: '保存',
-			cancelText: '取消',
+			okText: t('common.save'),
+			cancelText: t('common.cancel'),
 			onOk: () => performSave(values),
 		});
 	};
@@ -97,8 +99,8 @@ export default function NhiPolicyPage() {
 		return (
 			<div>
 				<ErrorState
-					title="加载 NHI 策略失败"
-					message="请检查网络连接后重试。"
+					title={t('policies.nhi.loadError')}
+					message={t('policies.nhi.retryHint')}
 					onRetry={() => refetch()}
 				/>
 			</div>
@@ -109,62 +111,62 @@ export default function NhiPolicyPage() {
 		<div>
 			<div className="mb-6">
 				<AppPageHeader
-					title="NHI 策略配置"
-					description="配置租户级的非人类身份（NHI）生命周期管理默认值。"
+					title={t('policies.nhi.header')}
+					description={t('policies.nhi.description')}
 				/>
 			</div>
 
 			<Form form={form} layout="vertical" onFinish={handleSave}>
-				<SectionCard title="Agent 默认值">
+				<SectionCard title={t('policies.nhi.agentDefaults')}>
 					<Form.Item
 						name="agentMaxCount"
-						label="Agent 数量上限"
-						rules={[{ required: true, message: '必填' }]}
+						label={t('policies.nhi.field.agentMaxCount')}
+						rules={[{ required: true, message: t('policies.nhi.required') }]}
 					>
 						<InputNumber min={1} max={10000} style={{ width: 200 }} />
 					</Form.Item>
 					<Form.Item
 						name="agentDefaultTtl"
-						label="Agent 默认 TTL"
-						rules={[{ required: true, message: '必填' }]}
+						label={t('policies.nhi.field.agentDefaultTtl')}
+						rules={[{ required: true, message: t('policies.nhi.required') }]}
 					>
 						<Select
 							style={{ width: 200 }}
 							options={[
-								{ value: '5m', label: '5 分钟' },
-								{ value: '15m', label: '15 分钟' },
-								{ value: '30m', label: '30 分钟' },
-								{ value: '1h', label: '1 小时' },
+								{ value: '5m', label: t('policies.nhi.ttl5m') },
+								{ value: '15m', label: t('policies.nhi.ttl15m') },
+								{ value: '30m', label: t('policies.nhi.ttl30m') },
+								{ value: '1h', label: t('policies.nhi.ttl1h') },
 							]}
 						/>
 					</Form.Item>
 				</SectionCard>
 
-				<SectionCard title="Robot 默认值" className="mt-6">
+				<SectionCard title={t('policies.nhi.robotDefaults')} className="mt-6">
 					<Form.Item
 						name="robotMaxCount"
-						label="Robot 数量上限"
-						rules={[{ required: true, message: '必填' }]}
+						label={t('policies.nhi.field.robotMaxCount')}
+						rules={[{ required: true, message: t('policies.nhi.required') }]}
 					>
 						<InputNumber min={1} max={10000} style={{ width: 200 }} />
 					</Form.Item>
 				</SectionCard>
 
-				<SectionCard title="Device 默认值" className="mt-6">
+				<SectionCard title={t('policies.nhi.deviceDefaults')} className="mt-6">
 					<Form.Item
 						name="deviceMaxPerOwner"
-						label="每个所有者 Device 上限"
-						rules={[{ required: true, message: '必填' }]}
+						label={t('policies.nhi.field.deviceMaxPerOwner')}
+						rules={[{ required: true, message: t('policies.nhi.required') }]}
 					>
 						<InputNumber min={1} max={1000} style={{ width: 200 }} />
 					</Form.Item>
 				</SectionCard>
 
-				<SectionCard title="安全默认值" className="mt-6">
+				<SectionCard title={t('policies.nhi.securityDefaults')} className="mt-6">
 					<Form.Item
 						name="rotationDaysDefault"
-						label="默认轮换周期（天）"
-						rules={[{ required: true, message: '必填' }]}
+						label={t('policies.nhi.field.rotationDaysDefault')}
+						rules={[{ required: true, message: t('policies.nhi.required') }]}
 					>
 						<InputNumber min={1} max={365} style={{ width: 200 }} />
 					</Form.Item>
@@ -178,7 +180,7 @@ export default function NhiPolicyPage() {
 						loading={saveMut.isPending}
 						size="large"
 					>
-						保存策略
+						{t('policies.nhi.save')}
 					</Button>
 				</div>
 			</Form>

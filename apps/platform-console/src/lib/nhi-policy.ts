@@ -2,6 +2,8 @@
 // 契约：apiClient 响应拦截器已递归 camel 化，应用层读键一律 camel；
 // 此处保留 snake 兜底，防止后端契约回退时再次断链（曾致 robot 上限显示初始值 50、真值 100 被静默覆盖）。
 
+import i18n from '@/i18n';
+
 export interface NhiPolicy {
 	agentMaxCount?: number;
 	agentDefaultTtl?: string;
@@ -32,12 +34,13 @@ export function normalizeNhiPolicy(raw: RawPolicy | null | undefined): NhiPolicy
 	return out;
 }
 
-export const NHI_POLICY_FIELDS: Array<{ key: keyof NhiPolicy; label: string }> = [
-	{ key: 'agentMaxCount', label: 'Agent 数量上限' },
-	{ key: 'agentDefaultTtl', label: 'Agent 默认 TTL' },
-	{ key: 'robotMaxCount', label: 'Robot 数量上限' },
-	{ key: 'deviceMaxPerOwner', label: '每个所有者 Device 上限' },
-	{ key: 'rotationDaysDefault', label: '默认轮换周期（天）' },
+// 键映射 + 调用时求值（模块级无组件作用域）：diff 时用 i18n.t 解析为展示文案
+export const NHI_POLICY_FIELDS: Array<{ key: keyof NhiPolicy; labelKey: string }> = [
+	{ key: 'agentMaxCount', labelKey: 'policies.nhi.field.agentMaxCount' },
+	{ key: 'agentDefaultTtl', labelKey: 'policies.nhi.field.agentDefaultTtl' },
+	{ key: 'robotMaxCount', labelKey: 'policies.nhi.field.robotMaxCount' },
+	{ key: 'deviceMaxPerOwner', labelKey: 'policies.nhi.field.deviceMaxPerOwner' },
+	{ key: 'rotationDaysDefault', labelKey: 'policies.nhi.field.rotationDaysDefault' },
 ];
 
 export interface NhiPolicyChange {
@@ -49,11 +52,11 @@ export interface NhiPolicyChange {
 
 export function diffNhiPolicy(current: NhiPolicy, next: NhiPolicy): NhiPolicyChange[] {
 	const changes: NhiPolicyChange[] = [];
-	for (const { key, label } of NHI_POLICY_FIELDS) {
+	for (const { key, labelKey } of NHI_POLICY_FIELDS) {
 		const to = next[key];
 		if (to === undefined) continue;
 		const from = current[key];
-		if (from !== to) changes.push({ field: key, label, from, to });
+		if (from !== to) changes.push({ field: key, label: i18n.t(labelKey), from, to });
 	}
 	return changes;
 }
