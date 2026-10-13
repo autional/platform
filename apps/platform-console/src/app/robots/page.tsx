@@ -12,6 +12,7 @@ import {
 	type PageResult,
 } from '@autional/shared';
 import { AppPageHeader, EmptyState, ErrorState, StatusBadge } from '@autional/ui';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
 	adminRobots,
@@ -70,7 +71,8 @@ async function deleteRobot(id: string): Promise<void> {
 }
 
 export default function RobotsPage() {
-	usePageTitle('Robot 管理');
+	const { t } = useTranslation();
+	usePageTitle(t('robots.title', 'Robot 管理'));
 	const navigate = useNavigate();
 	const tenantSlug = useTenantSlug();
 	const queryClient = useQueryClient();
@@ -105,26 +107,26 @@ export default function RobotsPage() {
 	const handleCreate = async (values: Record<string, unknown>) => {
 		try {
 			await createMut.mutateAsync(values);
-			message.success('Robot 创建成功');
+			message.success(t('robots.createSuccess', 'Robot 创建成功'));
 			setModalVisible(false);
 			form.resetFields();
 		} catch (err) {
-			handleApiError(err, '创建失败');
+			handleApiError(err, t('robots.createFailed', '创建失败'));
 		}
 	};
 
 	const handleDelete = async (id: string) => {
 		try {
 			await deleteMut.mutateAsync(id);
-			message.success('删除成功');
+			message.success(t('common.deleteSuccess', '删除成功'));
 		} catch (err) {
-			handleApiError(err, '删除失败');
+			handleApiError(err, t('common.deleteFailed', '删除失败'));
 		}
 	};
 
 	const columns = [
 		{
-			title: '名称',
+			title: t('robots.name', '名称'),
 			dataIndex: 'name',
 			key: 'name',
 			render: (v: string, record: RobotRecord) => (
@@ -144,19 +146,19 @@ export default function RobotsPage() {
 			),
 		},
 		{
-			title: '型号',
+			title: t('robots.model', '型号'),
 			dataIndex: 'model',
 			key: 'model',
 			render: (v: string) => v || '-',
 		},
 		{
-			title: '位置',
+			title: t('robots.location', '位置'),
 			dataIndex: 'location',
 			key: 'location',
 			render: (v: string) => v || '-',
 		},
 		{
-			title: '状态',
+			title: t('common.status', '状态'),
 			dataIndex: 'status',
 			key: 'status',
 			render: (v: string) => (
@@ -164,19 +166,19 @@ export default function RobotsPage() {
 			),
 		},
 		{
-			title: '所有者',
+			title: t('robots.owner', '所有者'),
 			key: 'owner',
 			render: (_: unknown, r: RobotRecord) =>
 				(r.ownerName ?? r.owner_name ?? r.ownerId ?? r.owner_id) || '-',
 		},
 		{
-			title: '创建时间',
+			title: t('robots.createdAt', '创建时间'),
 			key: 'created',
 			render: (_: unknown, r: RobotRecord) =>
 				formatDate((r.createdAt ?? r.created_at ?? '') as string),
 		},
 		{
-			title: '操作',
+			title: t('common.actions', '操作'),
 			key: 'action',
 			render: (_: unknown, record: RobotRecord) => (
 				<Space size="small">
@@ -193,15 +195,15 @@ export default function RobotsPage() {
 							);
 						}}
 					>
-						编辑
+						{t('common.edit', '编辑')}
 					</Button>
 					<Popconfirm
-						title="确认删除该 Robot？"
-						description="此操作不可撤销。"
+						title={t('robots.confirmDelete', '确认删除该 Robot？')}
+						description={t('robots.deleteIrreversible', '此操作不可撤销。')}
 						onConfirm={() => handleDelete(recordId(record))}
-						okText="删除"
+						okText={t('common.delete', '删除')}
 						okButtonProps={{ danger: true }}
-						cancelText="取消"
+						cancelText={t('common.cancel', '取消')}
 					>
 						<Button
 							type="link"
@@ -209,7 +211,7 @@ export default function RobotsPage() {
 							icon={<Trash2 size="1em" />}
 							onClick={(e) => e.stopPropagation()}
 						>
-							删除
+							{t('common.delete', '删除')}
 						</Button>
 					</Popconfirm>
 				</Space>
@@ -220,8 +222,8 @@ export default function RobotsPage() {
 	return (
 		<div>
 			<AppPageHeader
-				title="Robot 管理"
-				description="管理物理机器人身份与工作负载凭证。"
+				title={t('robots.title', 'Robot 管理')}
+				description={t('robots.subtitle', '管理物理机器人身份与工作负载凭证。')}
 				actions={
 					<Button
 						type="primary"
@@ -231,7 +233,7 @@ export default function RobotsPage() {
 							setModalVisible(true);
 						}}
 					>
-						新建 Robot
+						{t('robots.create', '新建 Robot')}
 					</Button>
 				}
 			/>
@@ -246,15 +248,18 @@ export default function RobotsPage() {
 
 			{!isLoading && error && (
 				<ErrorState
-					title="加载 Robot 列表失败"
-					message="请检查网络连接后重试。"
+					title={t('robots.loadError', '加载 Robot 列表失败')}
+					message={t('robots.retryHint', '请检查网络连接后重试。')}
 					onRetry={() => refetch()}
 				/>
 			)}
 
 			{!isLoading && !error && total === 0 && (
 				<div className="flex flex-col items-center gap-4">
-					<EmptyState title="暂无 Robot" description="创建第一个 Robot 以开始使用。" />
+					<EmptyState
+						title={t('robots.emptyTitle', '暂无 Robot')}
+						description={t('robots.emptyDesc', '创建第一个 Robot 以开始使用。')}
+					/>
 					<Button
 						type="primary"
 						icon={<Plus size="1em" />}
@@ -263,7 +268,7 @@ export default function RobotsPage() {
 							setModalVisible(true);
 						}}
 					>
-						新建 Robot
+						{t('robots.create', '新建 Robot')}
 					</Button>
 				</div>
 			)}
@@ -278,7 +283,7 @@ export default function RobotsPage() {
 						pageSize,
 						total,
 						showSizeChanger: true,
-						showTotal: (t: number) => `共 ${t} 条 Robot`,
+						showTotal: (n: number) => t('robots.total', { n }),
 						onChange: (p: number, ps: number) => {
 							setPage(p);
 							setPageSize(ps);
@@ -298,7 +303,7 @@ export default function RobotsPage() {
 			)}
 
 			<Modal
-				title="新建 Robot"
+				title={t('robots.create', '新建 Robot')}
 				open={modalVisible}
 				onCancel={() => {
 					setModalVisible(false);
@@ -311,31 +316,31 @@ export default function RobotsPage() {
 				forceRender
 			>
 				<Form form={form} layout="vertical" onFinish={handleCreate}>
-					<Form.Item name="name" label="名称" rules={[{ required: true }]}>
-						<Input placeholder="例如：assembly-bot-1、patrol-drone" />
+					<Form.Item name="name" label={t('robots.name', '名称')} rules={[{ required: true }]}>
+						<Input placeholder={t('robots.namePlaceholder', '例如：assembly-bot-1、patrol-drone')} />
 					</Form.Item>
-					<Form.Item name="model" label="型号">
-						<Input placeholder="例如：UR5e、Phantom 4" />
+					<Form.Item name="model" label={t('robots.model', '型号')}>
+						<Input placeholder={t('robots.modelPlaceholder', '例如：UR5e、Phantom 4')} />
 					</Form.Item>
-					<Form.Item name="location" label="位置">
-						<Input placeholder="例如：Warehouse-A、Floor-3" />
+					<Form.Item name="location" label={t('robots.location', '位置')}>
+						<Input placeholder={t('robots.locationPlaceholder', '例如：Warehouse-A、Floor-3')} />
 					</Form.Item>
 					<Form.Item
 						name="workload_subtype"
-						label="工作负载子类型"
+						label={t('robots.workloadSubtype', '工作负载子类型')}
 						rules={[{ required: true }]}
 						initialValue="industrial"
 					>
 						<Select
 							options={[
-								{ value: 'industrial', label: '工业' },
-								{ value: 'vehicle', label: '车辆' },
-								{ value: 'drone', label: '无人机' },
+								{ value: 'industrial', label: t('robots.subtype.industrial', '工业') },
+								{ value: 'vehicle', label: t('robots.subtype.vehicle', '车辆') },
+								{ value: 'drone', label: t('robots.subtype.drone', '无人机') },
 							]}
 						/>
 					</Form.Item>
-					<Form.Item name="firmware_ver" label="固件版本">
-						<Input placeholder="例如：v2.1.0" />
+					<Form.Item name="firmware_ver" label={t('robots.firmwareVer', '固件版本')}>
+						<Input placeholder={t('robots.firmwarePlaceholder', '例如：v2.1.0')} />
 					</Form.Item>
 				</Form>
 			</Modal>
