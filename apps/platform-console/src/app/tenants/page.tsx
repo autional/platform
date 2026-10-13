@@ -29,20 +29,23 @@ import { useApplications } from '@/hooks/use-applications';
 import { useNavigate } from 'react-router';
 import { usePageTitle, useTenantSlug } from '@autional/shared';
 import { useTranslation } from 'react-i18next';
+import i18n from '@/i18n';
 import { buildNavHref } from '@/lib/nav';
 import { ROUTE } from '@/lib/route-paths';
 
 const { Option } = Select;
 
-const TENANT_STATUS_MAP: Record<string, { label: string; color: string }> = {
-	active: { label: '正常', color: 'success' },
-	suspended: { label: '已暂停', color: 'error' },
-	pending: { label: '待激活', color: 'warning' },
+const TENANT_STATUS_MAP: Record<string, { labelKey: string; color: string }> = {
+	active: { labelKey: 'tenants.statusActive', color: 'success' },
+	suspended: { labelKey: 'tenants.statusSuspended', color: 'error' },
+	pending: { labelKey: 'tenants.statusPending', color: 'warning' },
 };
 
 const renderTenantStatus = (status?: string) => {
-	const meta = TENANT_STATUS_MAP[status ?? ''] ?? { label: status || '-', color: 'default' };
-	return <Tag color={meta.color}>{meta.label}</Tag>;
+	// 键映射 + 调用时求值（模块级无组件作用域）：未知状态回退原始值，语义同旧版 MAP[s] || s
+	const meta = TENANT_STATUS_MAP[status ?? ''];
+	const label = meta ? i18n.t(meta.labelKey) : status || '-';
+	return <Tag color={meta?.color ?? 'default'}>{label}</Tag>;
 };
 
 export default function TenantsPage() {
@@ -93,47 +96,47 @@ export default function TenantsPage() {
 		try {
 			if (editing) {
 				await updateTenantMutation.mutateAsync({ id: editing.id, data: values });
-				message.success('租户更新成功');
+				message.success(t('tenants.updateSuccess', '租户更新成功'));
 			} else {
 				await createTenantMutation.mutateAsync(values);
-				message.success('租户创建成功');
+				message.success(t('tenants.createSuccess', '租户创建成功'));
 			}
 			setModalVisible(false);
 			setEditing(null);
 			form.resetFields();
 			refetch();
 		} catch (err) {
-			handleApiError(err, '保存失败');
+			handleApiError(err, t('common.saveFailed', '保存失败'));
 		}
 	};
 
 	const handleDelete = async (id: string) => {
 		try {
 			await deleteTenantMutation.mutateAsync(id);
-			message.success('删除成功');
+			message.success(t('common.deleteSuccess', '删除成功'));
 			refetch();
 		} catch (err) {
-			handleApiError(err, '删除失败');
+			handleApiError(err, t('common.deleteFailed', '删除失败'));
 		}
 	};
 
 	const handleActivate = async (id: string) => {
 		try {
 			await activateTenantMutation.mutateAsync(id);
-			message.success('租户已激活');
+			message.success(t('tenants.activateSuccess', '租户已激活'));
 			refetch();
 		} catch (err) {
-			handleApiError(err, '操作失败');
+			handleApiError(err, t('common.operationFailed', '操作失败'));
 		}
 	};
 
 	const handleSuspend = async (id: string) => {
 		try {
 			await suspendTenantMutation.mutateAsync(id);
-			message.success('租户已暂停');
+			message.success(t('tenants.suspendSuccess', '租户已暂停'));
 			refetch();
 		} catch (err) {
-			handleApiError(err, '操作失败');
+			handleApiError(err, t('common.operationFailed', '操作失败'));
 		}
 	};
 
@@ -150,32 +153,32 @@ export default function TenantsPage() {
 	};
 
 	const columns = [
-		{ title: '租户 ID', dataIndex: 'id', key: 'id', ellipsis: true },
+		{ title: t('tenants.colId', '租户 ID'), dataIndex: 'id', key: 'id', ellipsis: true },
 		// U414②：name 是租户标识（URL slug，见创建表单「租户标识」口径），显示名称单列展示
-		{ title: '租户标识', dataIndex: 'name', key: 'name' },
-		{ title: '显示名称', dataIndex: 'displayName', key: 'displayName', render: (v?: string) => v || '-' },
-		{ title: '域名', dataIndex: 'domain', key: 'domain', render: (v?: string) => v || '-' },
+		{ title: t('tenants.colName', '租户标识'), dataIndex: 'name', key: 'name' },
+		{ title: t('tenants.displayName', '显示名称'), dataIndex: 'displayName', key: 'displayName', render: (v?: string) => v || '-' },
+		{ title: t('tenants.colDomain', '域名'), dataIndex: 'domain', key: 'domain', render: (v?: string) => v || '-' },
 		{
-			title: '状态',
+			title: t('common.status', '状态'),
 			dataIndex: 'status',
 			key: 'status',
 			render: (status: string) => renderTenantStatus(status),
 		},
-		{ title: '套餐', dataIndex: 'plan', key: 'plan', render: (v?: string) => v || '-' },
+		{ title: t('tenants.colPlan', '套餐'), dataIndex: 'plan', key: 'plan', render: (v?: string) => v || '-' },
 		{
-			title: '成员数',
+			title: t('tenants.colMemberCount', '成员数'),
 			dataIndex: 'memberCount',
 			key: 'memberCount',
 			render: (v?: number) => v ?? '-',
 		},
 		{
-			title: '创建时间',
+			title: t('tenants.colCreatedAt', '创建时间'),
 			dataIndex: 'createdAt',
 			key: 'createdAt',
 			render: (v?: string) => (v ? formatDateTime(v) : '-'),
 		},
 		{
-			title: '操作',
+			title: t('common.actions', '操作'),
 			key: 'action',
 			// PL-07：操作列固定到右侧 + 显式宽度不可省——table-layout:fixed 下
 			// pinned 列只分到均摊的 150px，装不下四个按钮（实测内容需 309px）
@@ -189,7 +192,7 @@ export default function TenantsPage() {
 						icon={<Eye size="1em" />}
 						onClick={() => openDetail(record)}
 					>
-						详情
+						{t('common.details', '详情')}
 					</Button>
 					{record.status === 'active' ? (
 						<Button
@@ -198,7 +201,7 @@ export default function TenantsPage() {
 							icon={<PauseCircle size="1em" />}
 							onClick={() => handleSuspend(record.id)}
 						>
-							暂停
+							{t('tenants.suspend', '暂停')}
 						</Button>
 					) : (
 						<Button
@@ -207,7 +210,7 @@ export default function TenantsPage() {
 							icon={<Play size="1em" />}
 							onClick={() => handleActivate(record.id)}
 						>
-							激活
+							{t('tenants.activate', '激活')}
 						</Button>
 					)}
 					<Button
@@ -225,14 +228,14 @@ export default function TenantsPage() {
 							setModalVisible(true);
 						}}
 					>
-						编辑
+						{t('common.edit', '编辑')}
 					</Button>
 					<Popconfirm
-						title="确认删除租户？此操作不可恢复！"
+						title={t('tenants.confirmDelete', '确认删除租户？此操作不可恢复！')}
 						onConfirm={() => handleDelete(record.id)}
 					>
 						<Button type="text" danger size="small" icon={<Trash2 size="1em" />}>
-							删除
+							{t('common.delete', '删除')}
 						</Button>
 					</Popconfirm>
 				</Space>
@@ -255,7 +258,7 @@ export default function TenantsPage() {
 								setModalVisible(true);
 							}}
 						>
-							创建租户
+							{t('tenants.create', '创建租户')}
 						</Button>
 					</>
 				}
@@ -263,15 +266,15 @@ export default function TenantsPage() {
 
 			<Alert
 				variant="warning"
-				title="此页面仅平台管理员可见"
+				title={t('tenants.adminOnlyNotice', '此页面仅平台管理员可见')}
 				className="mb-4"
 			 />
 
-			{error && <PageError message="加载租户列表失败" retry={refetch} className="mb-4" />}
+			{error && <PageError message={t('tenants.loadError', '加载租户列表失败')} retry={refetch} className="mb-4" />}
 
 			<Input.Search
 				allowClear
-				placeholder="按名称 / 域名搜索租户"
+				placeholder={t('tenants.searchPlaceholder', '按名称 / 域名搜索租户')}
 				style={{ width: 320, marginBottom: 16 }}
 				onSearch={(value) => {
 					setPage(1);
@@ -291,17 +294,17 @@ export default function TenantsPage() {
 					pageSize,
 					total,
 					showSizeChanger: true,
-					showTotal: (n: number) => `共 ${n} 条租户`,
+					showTotal: (n: number) => t('tenants.total', { n }),
 					onChange: (p: number, ps: number) => {
 						setPage(p);
 						setPageSize(ps);
 					},
 				}}
-				locale={{ emptyText: '暂无租户数据' }}
+				locale={{ emptyText: t('tenants.empty', '暂无租户数据') }}
 			/>
 
 			<Modal
-				title={editing ? '编辑租户' : '创建租户'}
+				title={editing ? t('tenants.edit', '编辑租户') : t('tenants.create', '创建租户')}
 				open={modalVisible}
 				onCancel={() => {
 					setModalVisible(false);
@@ -314,36 +317,36 @@ export default function TenantsPage() {
 				forceRender
 			>
 				<Form form={form} layout="vertical" onFinish={handleSave}>
-					<Form.Item name="name" label="租户标识" rules={[{ required: true }]} extra="创建后不可修改">
-						<Input placeholder="如：acme-corp" disabled={!!editing} />
+					<Form.Item name="name" label={t('tenants.colName', '租户标识')} rules={[{ required: true }]} extra={t('tenants.nameHint', '创建后不可修改')}>
+						<Input placeholder={t('tenants.namePlaceholder', '如：acme-corp')} disabled={!!editing} />
 					</Form.Item>
-					<Form.Item name="displayName" label="显示名称" rules={[{ required: true }]}>
-						<Input placeholder="如：ACME Corp" />
+					<Form.Item name="displayName" label={t('tenants.displayName', '显示名称')} rules={[{ required: true }]}>
+						<Input placeholder={t('tenants.displayNamePlaceholder', '如：ACME Corp')} />
 					</Form.Item>
-					<Form.Item name="domain" label="域名">
-						<Input placeholder="如：acme.example.com" />
+					<Form.Item name="domain" label={t('tenants.colDomain', '域名')}>
+						<Input placeholder={t('tenants.domainPlaceholder', '如：acme.example.com')} />
 					</Form.Item>
 					{!editing && (
 						<Form.Item
 							name="ownerId"
-							label="所有者用户 ID"
-							rules={[{ required: true }, { pattern: /^[0-9A-HJKMNP-TV-Z]{26}$/, message: '请输入 26 位用户 ULID' }]}
+							label={t('tenants.ownerLabel', '所有者用户 ID')}
+							rules={[{ required: true }, { pattern: /^[0-9A-HJKMNP-TV-Z]{26}$/, message: t('tenants.ownerUlidInvalid', '请输入 26 位用户 ULID') }]}
 						>
-							<Input placeholder="如：01KTKJF63A4RDHHJSHTY1ACP2F" />
+							<Input placeholder={t('tenants.ownerPlaceholder', '如：01KTKJF63A4RDHHJSHTY1ACP2F')} />
 						</Form.Item>
 					)}
-					<Form.Item name="plan" label="套餐" rules={[{ required: true }]} initialValue="free">
-						<Select placeholder="选择套餐">
-							<Option value="free">免费版</Option>
-							<Option value="pro">专业版</Option>
-							<Option value="enterprise">企业版</Option>
+					<Form.Item name="plan" label={t('tenants.colPlan', '套餐')} rules={[{ required: true }]} initialValue="free">
+						<Select placeholder={t('tenants.planPlaceholder', '选择套餐')}>
+							<Option value="free">{t('tenants.planFree', '免费版')}</Option>
+							<Option value="pro">{t('tenants.planPro', '专业版')}</Option>
+							<Option value="enterprise">{t('tenants.planEnterprise', '企业版')}</Option>
 						</Select>
 					</Form.Item>
 				</Form>
 			</Modal>
 
 			<Drawer
-				title={`租户详情: ${selectedTenant?.name}`}
+				title={t('tenants.detailTitle', { name: selectedTenant?.name })}
 				size="lg"
 				open={detailDrawerVisible}
 				onClose={() => setDetailDrawerVisible(false)}
@@ -351,13 +354,13 @@ export default function TenantsPage() {
 					selectedTenant ? (
 						<Space size="small">
 							<Button size="small" onClick={() => goTenantSubPage(ROUTE.TENANT_QUOTA)}>
-								资源配额
+								{t('nav.tenantQuota', '资源配额')}
 							</Button>
 							<Button
 								size="small"
 								onClick={() => goTenantSubPage(ROUTE.TENANT_INVITATION_CONFIG)}
 							>
-								邀请配置
+								{t('nav.tenantInvitationConfig', '邀请配置')}
 							</Button>
 						</Space>
 					) : null
@@ -368,29 +371,29 @@ export default function TenantsPage() {
 					items={[
 						{
 							key: 'info',
-							label: '基本信息',
+							label: t('tenants.tabInfo', '基本信息'),
 							children: (
 								<Card>
 									<Descriptions column={2}>
-										<Descriptions.Item label="租户 ID">
+										<Descriptions.Item label={t('tenants.colId', '租户 ID')}>
 											{detailData.info?.id || selectedTenant?.id}
 										</Descriptions.Item>
-										<Descriptions.Item label="名称">
+										<Descriptions.Item label={t('tenants.detailName', '名称')}>
 											{detailData.info?.name || selectedTenant?.name}
 										</Descriptions.Item>
-										<Descriptions.Item label="显示名称">
+										<Descriptions.Item label={t('tenants.displayName', '显示名称')}>
 											{detailData.info?.displayName || selectedTenant?.displayName || '-'}
 										</Descriptions.Item>
-										<Descriptions.Item label="域名">
+										<Descriptions.Item label={t('tenants.colDomain', '域名')}>
 											{detailData.info?.domain || selectedTenant?.domain || '-'}
 										</Descriptions.Item>
-										<Descriptions.Item label="状态">
+										<Descriptions.Item label={t('common.status', '状态')}>
 											{renderTenantStatus(detailData.info?.status || selectedTenant?.status)}
 										</Descriptions.Item>
-										<Descriptions.Item label="套餐">
+										<Descriptions.Item label={t('tenants.colPlan', '套餐')}>
 											{detailData.info?.plan || selectedTenant?.plan || '-'}
 										</Descriptions.Item>
-										<Descriptions.Item label="创建时间">
+										<Descriptions.Item label={t('tenants.colCreatedAt', '创建时间')}>
 											{detailCreatedAt ? formatDateTime(detailCreatedAt) : '-'}
 										</Descriptions.Item>
 									</Descriptions>
@@ -399,18 +402,18 @@ export default function TenantsPage() {
 						},
 						{
 							key: 'members',
-							label: '成员列表',
+							label: t('tenants.tabMembers', '成员列表'),
 							children: (
 								<DataTable
 									rowKey="userId"
 									dataSource={detailMembers}
 									pagination={{ pageSize: 5 }}
 									columns={[
-										{ title: '用户 ID', dataIndex: 'userId', key: 'userId' },
-										{ title: '用户名', dataIndex: 'username', key: 'username' },
-										{ title: '邮箱', dataIndex: 'email', key: 'email' },
+										{ title: t('tenants.colUserId', '用户 ID'), dataIndex: 'userId', key: 'userId' },
+										{ title: t('tenants.colUsername', '用户名'), dataIndex: 'username', key: 'username' },
+										{ title: t('tenants.colEmail', '邮箱'), dataIndex: 'email', key: 'email' },
 										{
-											title: '角色',
+											title: t('tenants.colRole', '角色'),
 											dataIndex: 'role',
 											key: 'role',
 											render: (v: string) => <Tag>{v}</Tag>,
@@ -421,23 +424,23 @@ export default function TenantsPage() {
 						},
 						{
 							key: 'applications',
-							label: '应用列表',
+							label: t('tenants.tabApplications', '应用列表'),
 							children: (
 								<DataTable
 									rowKey="id"
 									dataSource={detailApps}
 									pagination={{ pageSize: 5 }}
 									columns={[
-										{ title: '应用名称', dataIndex: 'name', key: 'name' },
+										{ title: t('tenants.colAppName', '应用名称'), dataIndex: 'name', key: 'name' },
 										{
-											title: '类型',
+											title: t('tenants.colType', '类型'),
 											dataIndex: 'type',
 											key: 'type',
 											render: (v: string) => <Tag>{v?.toUpperCase()}</Tag>,
 										},
 										{ title: 'Client ID', dataIndex: 'clientId', key: 'clientId', ellipsis: true },
 										{
-											title: '状态',
+											title: t('common.status', '状态'),
 											dataIndex: 'status',
 											key: 'status',
 											render: (v: string) => (
@@ -450,21 +453,21 @@ export default function TenantsPage() {
 						},
 						{
 							key: 'stats',
-							label: '统计数据',
+							label: t('tenants.tabStats', '统计数据'),
 							children: (
 								<Card>
 									<Row gutter={16}>
 										<Col span={8}>
 											<Card>
-												<div className="text-neutral-600">成员数</div>
+												<div className="text-neutral-600">{t('tenants.colMemberCount', '成员数')}</div>
 
 												{membersError && (
-													<PageError message="加载失败" retry={membersRefetch} className="mb-4" />
+													<PageError message={t('common.loadFailed', '加载失败')} retry={membersRefetch} className="mb-4" />
 												)}
 
 												{applicationsError && (
 													<PageError
-														message="加载失败"
+														message={t('common.loadFailed', '加载失败')}
 														retry={applicationsRefetch}
 														className="mb-4"
 													/>
@@ -474,7 +477,7 @@ export default function TenantsPage() {
 										</Col>
 										<Col span={8}>
 											<Card>
-												<div className="text-neutral-600">应用数</div>
+												<div className="text-neutral-600">{t('tenants.appCount', '应用数')}</div>
 												<div className="text-2xl font-bold">{detailApps.length}</div>
 											</Card>
 										</Col>
