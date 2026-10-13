@@ -77,7 +77,7 @@ describe('antd 弃用 API / 静态 message 守卫（U412）', () => {
 });
 
 describe('U412① forceRender 预挂载锁（弹窗位点删除 prop 即红）', () => {
-	// 位点清单 = 11 文件 13 弹窗（含 Form 实例且在首开前被调用）
+	// 位点清单 = 10 文件 11 弹窗（含 Form 实例且在首开前被调用；compliance/page.tsx 已按孤儿页清理随页移除）
 	const SITES: Array<[string, number]> = [
 		['status/incidents/page.tsx', 1],
 		['status/maintenances/page.tsx', 1],
@@ -89,7 +89,6 @@ describe('U412① forceRender 预挂载锁（弹窗位点删除 prop 即红）',
 		['robots/[id]/page.tsx', 2],
 		['devices/page.tsx', 1],
 		['devices/[id]/page.tsx', 1],
-		['compliance/page.tsx', 2],
 	];
 	it.each(SITES)('%s 的 forceRender 独立属性行 ≥ %i', (rel, min) => {
 		const text = readFileSync(join(APP_DIR, rel), 'utf8');

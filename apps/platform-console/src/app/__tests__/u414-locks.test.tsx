@@ -10,8 +10,8 @@
  *    列头不得再错挂「租户名称」；display_name 由 wire 下发（ListTenants 恒定返回，无 omitempty），
  *    单列展示。锁法：渲染断言（列头 + 显示名称实际值）。
  *
- * ③ 合规评分 grade（A+/A/B/C/D，score API 已下发）接渲染：仪表盘 Tag 行为锁（含数据链断言，
- *    fetch 捕获 grade 后渲染「评级 B」）+ 策略页圆环旁文本直读源码锁。
+ * ③ 合规评分 grade（A+/A/B/C/D，score API 已下发）接渲染：策略页圆环旁文本直读源码锁。
+ *    （compliance 仪表盘 page 已按孤儿页清理删除，原仪表盘 Tag 行为锁/源码锁随页移除。）
  */
 
 import { describe, it, expect, vi } from 'vitest';
@@ -107,7 +107,6 @@ vi.mock('@autional/shared/generated/api', () => ({
 }));
 
 import TenantsPage from '@/app/tenants/page';
-import CompliancePage from '@/app/compliance/page';
 
 describe('U414② 租户列表双字段口径', () => {
 	it('列头为「租户标识/显示名称」，显示名称渲染 wire 的 display_name 值', async () => {
@@ -125,14 +124,6 @@ describe('U414② 租户列表双字段口径', () => {
 	}, 20000);
 });
 
-describe('U414③ 合规评分 grade 接渲染', () => {
-	it('仪表盘：score API 的 grade 被捕获并渲染（评级 B）', async () => {
-		render(<CompliancePage />);
-		expect(await screen.findByText('评级 B')).toBeInTheDocument();
-		expect(screen.getByText('83')).toBeInTheDocument();
-	}, 20000);
-});
-
 describe('U414①③ 源码扫描锁', () => {
 	it('api-keys 表 rowKey 不回退 prefix', () => {
 		const text = readFileSync(join(APP_DIR, 'system', 'secrets-inventory', 'page.tsx'), 'utf8');
@@ -143,11 +134,6 @@ describe('U414①③ 源码扫描锁', () => {
 	it('mapApiKeyRecord 保留 id 映射（rowKey="id" 的数据前提）', () => {
 		const text = readFileSync(join(process.cwd(), 'src', 'hooks', 'use-secrets-inventory.ts'), 'utf8');
 		expect(text).toMatch(/id: item\.id \?\? ''/);
-	});
-
-	it('compliance 仪表盘 grade Tag 渲染在位', () => {
-		const text = readFileSync(join(APP_DIR, 'compliance', 'page.tsx'), 'utf8');
-		expect(text).toMatch(/评级 \{complianceGrade\}/);
 	});
 
 	it('compliance/policy 圆环旁有分数文本直读 + grade', () => {
