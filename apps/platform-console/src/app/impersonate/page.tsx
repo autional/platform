@@ -109,10 +109,7 @@ export default function ImpersonatePage() {
 		// 旧「我确认」checkbox 由提交前二次确认替代（见下方 modal.confirm）
 		modal.confirm({
 			title: t('impersonate.confirmTitle', '确认发起模拟会话？'),
-			content: t('impersonate.confirmContent', {
-				label,
-				defaultValue: '将以「{{label}}」的身份进入管理控制台。模拟会话 1 小时内有效、全程审计。',
-			}),
+			content: t('impersonate.confirmContent', { label }),
 			okText: t('impersonate.confirmOk', '确认模拟'),
 			cancelText: t('common.cancel', '取消'),
 			onOk: () => {
@@ -157,20 +154,15 @@ export default function ImpersonatePage() {
 									{t('impersonate.targetUserLine', {
 										name: target.label,
 										id: target.userId,
-										defaultValue: '目标用户：{{name}}（{{id}}）',
 									})}
 								</Text>
 								<Text>
 									{t('impersonate.expiresLine', {
 										time: formatExpiresAt(session.expiresAt),
-										defaultValue: '会话有效期至 {{time}}（1 小时后自动过期）',
 									})}
 								</Text>
 								<Text type="secondary">
-									{t(
-										'impersonate.newWindowNote',
-										'模拟会话将在新窗口生效，可在该窗口顶部横幅随时终止。',
-									)}
+									{t('impersonate.newWindowNote')}
 								</Text>
 							</Space>
 						}

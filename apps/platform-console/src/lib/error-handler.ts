@@ -1,5 +1,6 @@
 import { message } from '@/lib/antd-app';
 import { extractApiError } from '@autional/shared';
+import i18n from '@/i18n';
 
 const notify = (msg: string) => message.error(msg);
 
@@ -23,30 +24,32 @@ const REALNAME_I18N_KEY = 'error.realname_verification_required';
 const ENTRY_PLANE_I18N_KEY = 'error.auth.entry_plane_forbidden';
 const FORBIDDEN_CODE = 40000503;
 
-const COPY: Record<Exclude<ApiErrorKind, 'unknown'>, ApiErrorCopy> = {
+// 文案存 i18n 键（模块级无组件作用域）：apiErrorCopy() 调用时经 i18n.t 求值，
+// 不冻结语言（切换语言后新取文案即为新语言；旧版在模块初始化时冻结中文）。
+const COPY_KEYS: Record<Exclude<ApiErrorKind, 'unknown'>, ApiErrorCopy> = {
 	realname: {
-		title: '需要实名认证',
-		description: '该功能要求账号完成实名认证。请联系平台管理员为账号补充认证后重试。',
+		title: 'errorHandler.realname.title',
+		description: 'errorHandler.realname.description',
 	},
 	'entry-plane': {
-		title: '入口受限',
-		description: '当前登录入口无权访问该功能，请从对应门户重新登录。',
+		title: 'errorHandler.entryPlane.title',
+		description: 'errorHandler.entryPlane.description',
 	},
 	forbidden: {
-		title: '无权限访问',
-		description: '当前账号没有该功能的访问权限。如需使用，请联系平台管理员调整授权。',
+		title: 'errorHandler.forbidden.title',
+		description: 'errorHandler.forbidden.description',
 	},
 	'not-found': {
-		title: '资源不存在',
-		description: '请求的资源不存在或已被移除。',
+		title: 'errorHandler.notFound.title',
+		description: 'errorHandler.notFound.description',
 	},
 	network: {
-		title: '网络连接失败',
-		description: '无法连接到服务器，请检查网络连接后重试。',
+		title: 'errorHandler.network.title',
+		description: 'errorHandler.network.description',
 	},
 	server: {
-		title: '服务异常',
-		description: '服务器处理请求时出错，请稍后重试或联系平台运维。',
+		title: 'errorHandler.server.title',
+		description: 'errorHandler.server.description',
 	},
 };
 
@@ -86,7 +89,9 @@ export function classifyApiError(err: unknown): ApiErrorKind {
 }
 
 export function apiErrorCopy(kind: ApiErrorKind): ApiErrorCopy | null {
-	return kind === 'unknown' ? null : COPY[kind];
+	if (kind === 'unknown') return null;
+	const keys = COPY_KEYS[kind];
+	return { title: i18n.t(keys.title), description: i18n.t(keys.description) };
 }
 
 export function extractApiErrorMessage(

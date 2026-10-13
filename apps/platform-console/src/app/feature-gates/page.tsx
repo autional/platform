@@ -70,15 +70,17 @@ export default function FeatureGatesPage() {
 	}, [overrides]);
 
 	const planColumns = [
-		{ title: '门控键', dataIndex: 'key', key: 'key' },
-		{ title: '名称', dataIndex: 'name', key: 'name' },
+		{ title: t('featureGates.colKey', '门控键'), dataIndex: 'key', key: 'key' },
+		{ title: t('featureGates.colName', '名称'), dataIndex: 'name', key: 'name' },
 		{
-			title: '套餐默认',
+			title: t('featureGates.colPlanDefault', '套餐默认'),
 			dataIndex: 'enabled',
 			key: 'enabled',
 			render: (v: boolean) => (
 				<Space>
-					<Tag color={v ? 'green' : 'red'}>{v ? '启用' : '禁用'}</Tag>
+					<Tag color={v ? 'green' : 'red'}>
+						{v ? t('common.enabled', '启用') : t('common.disabled', '禁用')}
+					</Tag>
 					<Lock size={12} style={{ color: '#999' }} />
 				</Space>
 			),
@@ -86,15 +88,19 @@ export default function FeatureGatesPage() {
 	];
 
 	const overrideColumns = [
-		{ title: '门控键', dataIndex: 'key', key: 'key' },
+		{ title: t('featureGates.colKey', '门控键'), dataIndex: 'key', key: 'key' },
 		{
-			title: '套餐默认',
+			title: t('featureGates.colPlanDefault', '套餐默认'),
 			dataIndex: 'enabled',
 			key: 'enabled',
-			render: (v: boolean) => <Tag color={v ? 'green' : 'red'}>{v ? '开' : '关'}</Tag>,
+			render: (v: boolean) => (
+				<Tag color={v ? 'green' : 'red'}>
+					{v ? t('featureGates.tagOn', '开') : t('featureGates.tagOff', '关')}
+				</Tag>
+			),
 		},
 		{
-			title: '租户覆盖',
+			title: t('featureGates.tenantOverride', '租户覆盖'),
 			key: 'override',
 			render: (_: unknown, record: { key: string; enabled: boolean }) => {
 				const currentOverride = overrideMap.get(record.key);
@@ -109,15 +115,14 @@ export default function FeatureGatesPage() {
 							loading={overrideMutation.isPending}
 						/>
 						<Tag color={currentOverride !== undefined ? 'blue' : 'default'}>
-							{currentOverride !== undefined ? '自定义' : '默认'}
+							{currentOverride !== undefined
+								? t('featureGates.custom', '自定义')
+								: t('featureGates.default', '默认')}
 						</Tag>
 						{currentOverride !== undefined && (
 							<Popconfirm
 								title={t('featureGates.clearOverrideTitle', '清除该门控的租户覆盖？')}
-								description={t(
-									'featureGates.clearOverrideDesc',
-									'清除后将恢复为套餐默认权益。'
-								)}
+								description={t('featureGates.clearOverrideDesc', '清除后将恢复为套餐默认权益。')}
 								onConfirm={() => overrideClearMutation.mutate(record.key)}
 								okText={t('featureGates.clearOverrideOk', '清除')}
 								okButtonProps={{ danger: true }}
@@ -151,13 +156,17 @@ export default function FeatureGatesPage() {
 			{/* PL-55：标明生效范围，避免误以为改的是平台全局（判定为「当前租户」） */}
 			<Alert
 				variant="info"
-				title={`生效范围：当前租户${tenantId ? `（${tenantId}）` : ''}`}
+				title={
+					tenantId
+						? t('featureGates.scopeTitle', { tenantId })
+						: t('featureGates.scopeTitleNoTenant')
+				}
 				className="mb-4"
 			>
-				门控判定按当前租户生效：先取套餐默认权益，存在租户覆盖时以覆盖为准。
+				{t('featureGates.scopeDesc')}
 			</Alert>
 			<Space orientation="vertical" size="large" style={{ width: '100%' }}>
-				<Card title="套餐能力">
+				<Card title={t('featureGates.planCapabilities', '套餐能力')}>
 					<DataTable
 						dataSource={planGates}
 						columns={planColumns}
@@ -166,7 +175,7 @@ export default function FeatureGatesPage() {
 						size="small"
 					/>
 				</Card>
-				<Card title="租户覆盖">
+				<Card title={t('featureGates.tenantOverride', '租户覆盖')}>
 					<DataTable
 						dataSource={planGates}
 						columns={overrideColumns}
