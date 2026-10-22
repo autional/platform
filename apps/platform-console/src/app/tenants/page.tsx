@@ -22,7 +22,7 @@ import {
 } from '@/hooks/use-tenants';
 import { handleApiError } from '@/lib/error-handler';
 import { formatDateTime } from '@/lib/format';
-import { DataTable, Drawer, Modal, PageError } from '@autional/ui/antd';
+import { DataTable, Drawer, Modal, PageError, type DataTableColumns } from '@autional/ui/antd';
 import { Alert, AppPageHeader } from '@autional/ui';
 import { useMembers } from '@/hooks/use-members';
 import { useApplications } from '@/hooks/use-applications';
@@ -78,11 +78,15 @@ export default function TenantsPage() {
 	const [page, setPage] = useState(1);
 	const [pageSize, setPageSize] = useState(10);
 	const [keyword, setKeyword] = useState('');
+	// PL-06：服务端排序（白名单 name/created_at）；清空排序回默认 created_at DESC。
+	const [sort, setSort] = useState<{ by?: 'name' | 'created_at'; order?: 'asc' | 'desc' }>({});
 
 	const { data, isLoading, refetch, error } = useTenants({
 		page,
 		pageSize,
 		search: keyword || undefined,
+		sortBy: sort.by,
+		sortOrder: sort.order,
 	});
 	const tenants = data?.items ?? [];
 	const total = data?.total ?? 0;
@@ -152,10 +156,16 @@ export default function TenantsPage() {
 		navigate(buildNavHref(route.replace(':id', selectedTenant.id), tenantSlug));
 	};
 
-	const columns = [
+	const columns: DataTableColumns<TenantRecord> = [
 		{ title: t('tenants.colId', '租户 ID'), dataIndex: 'id', key: 'id', ellipsis: true },
 		// U414②：name 是租户标识（URL slug，见创建表单「租户标识」口径），显示名称单列展示
-		{ title: t('tenants.colName', '租户标识'), dataIndex: 'name', key: 'name' },
+		{
+			title: t('tenants.colName', '租户标识'),
+			dataIndex: 'name',
+			key: 'name',
+			sorter: true,
+			sortOrder: sort.by === 'name' ? (sort.order === 'asc' ? 'ascend' : 'descend') : null,
+		},
 		{ title: t('tenants.displayName', '显示名称'), dataIndex: 'displayName', key: 'displayName', render: (v?: string) => v || '-' },
 		{ title: t('tenants.colDomain', '域名'), dataIndex: 'domain', key: 'domain', render: (v?: string) => v || '-' },
 		{
@@ -175,6 +185,9 @@ export default function TenantsPage() {
 			title: t('tenants.colCreatedAt', '创建时间'),
 			dataIndex: 'createdAt',
 			key: 'createdAt',
+			sorter: true,
+			sortOrder:
+				sort.by === 'created_at' ? (sort.order === 'asc' ? 'ascend' : 'descend') : null,
 			render: (v?: string) => (v ? formatDateTime(v) : '-'),
 		},
 		{
@@ -289,6 +302,16 @@ export default function TenantsPage() {
 				loading={isLoading}
 				/* PL-07：配合操作列 fixed:'right' 提供横向滚动容器 */
 				scroll={{ x: 1200 }}
+				onChange={(_pagination, _filters, sorter) => {
+					const s = Array.isArray(sorter) ? sorter[0] : sorter;
+					const field = typeof s?.field === 'string' ? s.field : '';
+					const by =
+						field === 'name' ? 'name' : field === 'createdAt' ? 'created_at' : undefined;
+					const order =
+						s?.order === 'ascend' ? 'asc' : s?.order === 'descend' ? 'desc' : undefined;
+					setSort(by && order ? { by, order } : {});
+					setPage(1);
+				}}
 				pagination={{
 					current: page,
 					pageSize,

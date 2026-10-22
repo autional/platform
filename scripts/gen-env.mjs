@@ -49,7 +49,7 @@ ${portalConfig}
   },
   VITE_COOKIE_DOMAIN: ".${buildEnv.rootDomain}",
   VITE_API_BASE_URL: "/bff",
-  VITE_API_NAMESPACE: "dev"
+  VITE_API_NAMESPACE: "${buildEnv.apiNamespace}"
 };
 `,
 );

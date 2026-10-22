@@ -42,6 +42,8 @@ export interface TenantListParams {
 	search?: string;
 	status?: string;
 	plan?: string;
+	sortBy?: 'name' | 'created_at';
+	sortOrder?: 'asc' | 'desc';
 }
 
 // 服务端检索参数真名 = keyword（swagger/generated 里写成 search 是契约漂移）。
@@ -55,6 +57,9 @@ export function useTenants(params?: TenantListParams) {
 				...(params?.search ? { keyword: params.search } : {}),
 				...(params?.status ? { status: params.status } : {}),
 				...(params?.plan ? { plan: params.plan } : {}),
+				...(params?.sortBy
+					? { sort_by: params.sortBy, sort_order: params.sortOrder }
+					: {}),
 			} as any);
 			return fromPageResult<TenantRecord>(res);
 		},
