@@ -74,13 +74,14 @@ describe('RobotDetailPage (PL-38 停用二次确认)', () => {
 
 		// 图标 span（role=img aria-label=pause-circle）会并入按钮 accessible name，
 		// 实际名称为「pause-circle停用」，故用尾部锚定正则匹配文案
-		const decommissionBtn = await screen.findByRole('button', { name: /停用$/ });
+		// 全量并发下首屏渲染可超 1s（findByRole 默认超时），单跑仅 ~1.5s，放宽避免负载型 flake
+		const decommissionBtn = await screen.findByRole('button', { name: /停用$/ }, { timeout: 5000 });
 		await user.click(decommissionBtn);
 
 		expect(mocks.decommission).not.toHaveBeenCalled();
 		expect(screen.getByText(/将产生审计记录/)).toBeInTheDocument();
 
-		const confirmBtn = await screen.findByRole('button', { name: '确认停用' });
+		const confirmBtn = await screen.findByRole('button', { name: '确认停用' }, { timeout: 5000 });
 		await user.click(confirmBtn);
 
 		await waitFor(() => {

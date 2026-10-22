@@ -56,10 +56,19 @@ describe('extractApiErrorMessage', () => {
 		expect(extractApiErrorMessage(err)).toBe('real-name verification required');
 	});
 
-	it('prefers the problem title over detail', () => {
+	// U380: key chain is message → detail → title, matching Problem.GetMessage (detail-first).
+	it('prefers the problem detail over title', () => {
 		const err = {
 			isAxiosError: true,
 			response: { status: 400, data: { title: 'Invalid Request', detail: 'field email is required' } },
+		};
+		expect(extractApiErrorMessage(err)).toBe('field email is required');
+	});
+
+	it('falls back to the problem title when detail is absent', () => {
+		const err = {
+			isAxiosError: true,
+			response: { status: 400, data: { title: 'Invalid Request' } },
 		};
 		expect(extractApiErrorMessage(err)).toBe('Invalid Request');
 	});
