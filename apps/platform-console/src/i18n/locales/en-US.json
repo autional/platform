@@ -276,6 +276,7 @@
   "forbidden.title": "403 Forbidden",
   "forbidden.description": "Sorry, you do not have permission to access this page.",
   "forbidden.back": "Back to Dashboard",
+  "forbidden.switchAccount": "Switch Account",
   "featureGates.title": "Feature Gates",
   "featureGates.overrideUpdated": "Feature gate override updated",
   "featureGates.overrideFailed": "Failed to update override",

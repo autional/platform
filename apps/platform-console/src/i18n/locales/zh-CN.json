@@ -276,6 +276,7 @@
   "forbidden.title": "403 禁止访问",
   "forbidden.description": "抱歉，你没有权限访问此页面。",
   "forbidden.back": "返回仪表盘",
+  "forbidden.switchAccount": "切换账号",
   "featureGates.title": "功能门控",
   "featureGates.overrideUpdated": "功能门控覆盖已更新",
   "featureGates.overrideFailed": "更新覆盖失败",
