@@ -41,6 +41,11 @@ vi.mock('@autional/shared', () => ({
 	useAuth: () => ({ user: mockUser, currentTenantId: 'platform-tenant', isAuthenticated: true }),
 	useTenantSlug: () => mockSlug.value,
 	getPortalUrl: mockGetPortalUrl,
+	// 2026-11-02：控制台用户菜单新增「文档 / 状态 / 官网」三项，白名单 mock 必须同步，
+	// 否则 HeaderActions import 到 undefined 会直接抛 "is not a function"。
+	getDEVELOPER_PORTAL_URL: () => 'https://developer.example.com',
+	getSTATUS_PAGE_URL: () => 'https://status.example.com',
+	getLANDING_SITE_URL: () => 'https://www.example.com',
 	useLogout: () => mockLogout,
 	usePortalCatalog: () => mockCatalog.value,
 }));
@@ -129,5 +134,57 @@ describe('HeaderActions', () => {
 		render(<HeaderActions />);
 
 		expect(screen.queryByLabelText('切换门户')).not.toBeInTheDocument();
+	});
+
+	// 2026-11-02（W2）：控制台此前只有「退出」，登录后回不到官网/文档/状态页。
+	// 三条站外出口必须存在于用户菜单，且指向 shared 解析出的门户 host。
+	it('user menu exposes docs / status / official-site exits', async () => {
+		const user = userEvent.setup();
+		render(<HeaderActions />);
+		await user.click(screen.getByLabelText('用户菜单'));
+
+		expect(screen.getByRole('menuitem', { name: 'nav.docs' })).toHaveAttribute(
+			'href',
+			'https://developer.example.com',
+		);
+		expect(screen.getByRole('menuitem', { name: 'nav.statusPage' })).toHaveAttribute(
+			'href',
+			'https://status.example.com',
+		);
+		expect(screen.getByRole('menuitem', { name: 'nav.officialSite' })).toHaveAttribute(
+			'href',
+			'https://www.example.com',
+		);
+
+		// 登出恒为末项（UserMenu 内置排序契约）
+		const items = screen.getAllByRole('menuitem');
+		expect(items[items.length - 1]).toHaveTextContent('退出登录');
+	});
+
+	// 2026-11-02（W3）：切换器只列同类控制台。目录里混入内容站时必须被过滤掉，
+	// 否则从平台控制台点「状态页」会整页甩出工作上下文。
+	it('portal switcher drops content portals and keeps only consoles', async () => {
+		mockCatalog.value = {
+			portals: [
+				{ code: 'admin', url: 'https://admin.example.com/demo' },
+				{ code: 'user', url: 'https://user.example.com/demo' },
+				{ code: 'status', url: 'https://status.example.com' },
+				{ code: 'trust', url: 'https://trust.example.com' },
+				{ code: 'developer', url: 'https://developer.example.com' },
+				{ code: 'brand', url: 'https://brand.example.com' },
+			],
+			isError: false,
+			isLoading: false,
+		};
+		const user = userEvent.setup();
+		render(<HeaderActions />);
+
+		await user.click(screen.getByLabelText('切换门户'));
+
+		expect(screen.getByRole('menuitem', { name: '管理后台' })).toBeInTheDocument();
+		expect(screen.getByRole('menuitem', { name: '用户中心' })).toBeInTheDocument();
+		expect(screen.queryByRole('menuitem', { name: '状态页' })).not.toBeInTheDocument();
+		expect(screen.queryByRole('menuitem', { name: '信任中心' })).not.toBeInTheDocument();
+		expect(screen.queryByRole('menuitem', { name: '开发者门户' })).not.toBeInTheDocument();
 	});
 });

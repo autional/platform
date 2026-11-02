@@ -1,5 +1,5 @@
 import { lazy } from 'react';
-import { Routes, Route, Outlet, Navigate, useParams, useLocation } from 'react-router';
+import { Routes, Route, Outlet, Navigate, Link, useParams, useLocation } from 'react-router';
 import { Spin } from 'antd';
 import { Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -88,7 +88,16 @@ function LayoutWrapper() {
 	return (
 		<TenantSlugProvider value={tenantSlug}>
 			<AppShell
-				brand={<span className="truncate text-lg font-bold">{t('app.brand')}</span>}
+				brand={
+					// 品牌区可点回本门户首页（2026-11-02）：此前是纯 <span>。必须带租户段，
+					// 裸 `/` 会命中站内 404。
+					<Link
+						to={tenantSlug ? `/${tenantSlug}` : '/'}
+						className="truncate text-lg font-bold transition-opacity hover:opacity-80"
+					>
+						{t('app.brand')}
+					</Link>
+				}
 				nav={<NavMenu />}
 				headerLeft={<Breadcrumb />}
 				headerRight={<HeaderActions />}

@@ -28,6 +28,10 @@ vi.mock('@autional/shared', () => ({
 		isAuthenticated: true,
 	}),
 	getPortalUrl: () => 'http://localhost:13002/admin',
+	// 2026-11-02：控制台用户菜单新增三项站外出口，白名单 mock 必须同步补齐。
+	getDEVELOPER_PORTAL_URL: () => 'https://developer.example.com',
+	getSTATUS_PAGE_URL: () => 'https://status.example.com',
+	getLANDING_SITE_URL: () => 'https://www.example.com',
 	useTenantSlug: () => undefined,
 	apiClient: { get: vi.fn() },
 	usePageTitle: vi.fn(),
