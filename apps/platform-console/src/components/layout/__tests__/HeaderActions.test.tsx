@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { HeaderActions } from '@/components/layout/HeaderActions';
+import zhCN from '@/i18n/locales/zh-CN.json';
+import enUS from '@/i18n/locales/en-US.json';
 
 const mockUser = vi.hoisted(() => ({
 	email: 'test@example.com' as string | null,
@@ -138,6 +140,14 @@ describe('HeaderActions', () => {
 
 	// 2026-11-02（W2）：控制台此前只有「退出」，登录后回不到官网/文档/状态页。
 	// 三条站外出口必须存在于用户菜单，且指向 shared 解析出的门户 host。
+	it('portal menu i18n keys are flat top-level keys (keySeparator:false)', () => {
+		// 本仓 locale 同时存在嵌套 "nav": {} 与平铺 "nav.*"；只有平铺键可解析。
+		for (const key of ['nav.docs', 'nav.statusPage', 'nav.officialSite']) {
+			expect(Object.prototype.hasOwnProperty.call(zhCN, key)).toBe(true);
+			expect(Object.prototype.hasOwnProperty.call(enUS, key)).toBe(true);
+		}
+	});
+
 	it('user menu exposes docs / status / official-site exits', async () => {
 		const user = userEvent.setup();
 		render(<HeaderActions />);
