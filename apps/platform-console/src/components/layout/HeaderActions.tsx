@@ -16,6 +16,7 @@ import {
 	UserMenu,
 	type PortalLink,
 } from '@autional/ui';
+import { SlidersHorizontal } from 'lucide-react';
 
 // HeaderActions —— 顶栏**右侧**那组控件。
 //
@@ -23,8 +24,11 @@ import {
 // 左右分布、移动端行为）2026-10-04 起归设计系统的 <AppShell>；品牌挪到侧栏顶部（与另外三个
 // 门户一致 —— 原来平台站在顶栏和侧栏各显示了一遍品牌）。这里只剩**内容**。
 
-/** 门户切换器的白名单：只列同类控制台（2026-11-02）。 */
-const CONSOLE_PORTALS = new Set(['admin', 'security', 'user', 'platform']);
+/** 门户切换器的白名单：只列同类控制台（2026-11-02）；
+ *  2026-11 接入配置中心 —— config 同属管理面平面，加入白名单。 */
+const CONSOLE_PORTALS = new Set(['config', 'admin', 'security', 'user', 'platform']);
+/** 目录里的 code → 图标；config 需显式补一个，否则落到 Globe 兜底。 */
+const PORTAL_ICONS = { config: SlidersHorizontal };
 export function HeaderActions() {
 	const { t } = useTranslation();
 	const { user, currentTenantId } = useAuth();
@@ -50,7 +54,7 @@ export function HeaderActions() {
 
 	return (
 		<>
-			<PortalSwitcher portals={portals} currentPortal="platform" />
+			<PortalSwitcher portals={portals} currentPortal="platform" iconForPortal={PORTAL_ICONS} />
 			<LanguageSwitcher />
 			<ThemeToggle />
 			<UserMenu
