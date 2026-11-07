@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { Card, Statistic, Tag, Badge, Input, Select, Row, Col, Tabs, Typography, Space, Button, Descriptions, Tooltip, Popconfirm } from 'antd';
 import { message, modal } from '@/lib/antd-app';
 import {
@@ -73,6 +73,7 @@ export default function SystemSecretsInventoryPage() {
 	const [revealReason, setRevealReason] = useState('');
 	const [revealedValue, setRevealedValue] = useState<string | null>(null);
 	const [revealing, setRevealing] = useState(false);
+	const revealTimer = useRef<number | null>(null);
 	const [apiKeysExpanded, setApiKeysExpanded] = useState<string[]>([]);
 	const [rotateModalVisible, setRotateModalVisible] = useState(false);
 	const [rotateTarget, setRotateTarget] = useState<SecretKVRecord | null>(null);
@@ -150,9 +151,21 @@ export default function SystemSecretsInventoryPage() {
 		setRevealModalVisible(true);
 	};
 
+	const closeReveal = useCallback(() => {
+		if (revealTimer.current !== null) {
+			window.clearTimeout(revealTimer.current);
+			revealTimer.current = null;
+		}
+		setRevealModalVisible(false);
+		setRevealTarget(null);
+		setRevealedValue(null);
+		setRevealReason('');
+	}, []);
+
 	const handleConfirmReveal = useCallback(async () => {
 		if (!revealTarget) return;
-		if (!revealReason.trim()) {
+		const reason = revealReason.trim();
+		if (!reason) {
 			message.warning(t('secretsInventory.reasonRequired', '请填写操作原因，以便审计。'));
 			return;
 		}
@@ -161,9 +174,11 @@ export default function SystemSecretsInventoryPage() {
 			const result = await revealValueMutation.mutateAsync({
 				key: revealTarget.key,
 				version: revealTarget.version,
+				reason,
 			});
 			setRevealedValue(result?.value ?? t('secretsInventory.valueUnavailable', '[值不可用]'));
-			setTimeout(() => {
+			if (revealTimer.current !== null) window.clearTimeout(revealTimer.current);
+			revealTimer.current = window.setTimeout(() => {
 				setRevealedValue(null);
 				message.info(t('secretsInventory.revealExpired', '值的显示时间已结束。'));
 			}, 30000);
@@ -175,6 +190,13 @@ export default function SystemSecretsInventoryPage() {
 			setRevealing(false);
 		}
 	}, [revealTarget, revealReason, revealValueMutation, t]);
+
+	useEffect(
+		() => () => {
+			if (revealTimer.current !== null) window.clearTimeout(revealTimer.current);
+		},
+		[],
+	);
 
 	const handleRotate = (record: SecretKVRecord) => {
 		setRotateTarget(record);
@@ -860,19 +882,11 @@ export default function SystemSecretsInventoryPage() {
 			<Modal
 				title={t('secretsInventory.revealModalTitle', { name: revealTarget?.key ?? '' })}
 				open={revealModalVisible}
-				onCancel={() => {
-					setRevealModalVisible(false);
-					setRevealTarget(null);
-					setRevealedValue(null);
-				}}
+				onCancel={closeReveal}
 				footer={
 					revealedValue ? (
 						<Button
-							onClick={() => {
-								setRevealModalVisible(false);
-								setRevealTarget(null);
-								setRevealedValue(null);
-							}}
+							onClick={closeReveal}
 						>
 							{t('common.close', '关闭')}
 						</Button>

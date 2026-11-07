@@ -25,8 +25,8 @@ import { SlidersHorizontal } from 'lucide-react';
 // 门户一致 —— 原来平台站在顶栏和侧栏各显示了一遍品牌）。这里只剩**内容**。
 
 /** 门户切换器的白名单：只列同类控制台（2026-11-02）；
- *  2026-11 接入配置中心 —— config 同属管理面平面，加入白名单。 */
-const CONSOLE_PORTALS = new Set(['config', 'admin', 'security', 'user', 'platform']);
+ *  2026-11 接入配置中心 / 密钥中心 —— 两者同属管理面平面，加入白名单。 */
+const CONSOLE_PORTALS = new Set(['config', 'secret', 'admin', 'security', 'user', 'platform']);
 /** 目录里的 code → 图标；config 需显式补一个，否则落到 Globe 兜底。 */
 const PORTAL_ICONS = { config: SlidersHorizontal };
 export function HeaderActions() {

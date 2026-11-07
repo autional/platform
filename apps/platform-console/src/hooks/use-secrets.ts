@@ -1,12 +1,12 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiClient } from '@autional/shared';
 import type * as GeneratedTypes from '@autional/shared/generated/types';
 import {
 	adminSecrets,
 	adminSecretsDetail,
 	adminSecretsVersions,
-	adminSecretsVersionsValuePost,
 	adminSecretsPost,
 	adminSecretsUpdatePost,
 	adminSecretsItemKeyByKeyDelete,
@@ -68,8 +68,13 @@ export function useSecretVersions(key: string) {
 
 export function useSecretVersionValue() {
 	return useMutation({
-		mutationFn: async ({ key, version }: { key: string; version: number }) => {
-			const data = await adminSecretsVersionsValuePost({ version } as any, { key });
+		mutationFn: async ({ key, version, reason }: { key: string; version: number; reason: string }) => {
+			const res = await apiClient.post(
+				'/secret/api/v1/admin/secrets/versions/value',
+				{ version },
+				{ params: { key }, headers: { 'X-Change-Reason': reason } },
+			);
+			const data = res.data;
 			return (
 				(data?.data as GeneratedTypes.SecretValueResponse) ??
 				(data as GeneratedTypes.SecretValueResponse)
