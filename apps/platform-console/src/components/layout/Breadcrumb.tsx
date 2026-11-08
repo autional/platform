@@ -32,7 +32,6 @@ const routeLabels: Record<string, string> = {
 	[ROUTE.SYSTEM_OVERVIEW]: 'nav.systemOverview',
 	[ROUTE.SYSTEM_CONFIG]: 'nav.systemConfig',
 	[ROUTE.SYSTEM_SCHEDULERS]: 'nav.systemSchedulers',
-	[ROUTE.SECRETS_INVENTORY]: 'nav.secretsInventory',
 	[ROUTE.RATE_LIMITS]: 'nav.rateLimits',
 	[ROUTE.ENV_VARS]: 'nav.envVars',
 	[ROUTE.INFRA_CREDENTIALS]: 'nav.infraCredentials',

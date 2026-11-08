@@ -250,14 +250,6 @@ export const queryKeys = {
 		services: ['system-overview', 'services'] as const,
 		tenants: ['system-overview', 'tenants'] as const,
 	},
-	secretsInventory: {
-		kv: ['secrets-inventory', 'kv'] as const,
-		encryptionKeys: ['secrets-inventory', 'encryption-keys'] as const,
-		jwtKeys: ['secrets-inventory', 'jwt-keys'] as const,
-		infrastructure: ['secrets-inventory', 'infrastructure'] as const,
-		apiKeys: ['secrets-inventory', 'api-keys'] as const,
-		oauth: ['secrets-inventory', 'oauth'] as const,
-	},
 	systemConfig: {
 		runtime: (serviceKey: string) => ['system-config', 'runtime', serviceKey] as const,
 		all: ['system-config'] as const,

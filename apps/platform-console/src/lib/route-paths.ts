@@ -44,7 +44,6 @@ export const ROUTE = {
 	SYSTEM_OVERVIEW: '/system/overview',
 	SYSTEM_CONFIG: '/system/config',
 	SYSTEM_SCHEDULERS: '/system/schedulers',
-	SECRETS_INVENTORY: '/system/secrets-inventory',
 	RATE_LIMITS: '/system/rate-limits',
 	ENV_VARS: '/env-vars',
 	INFRA_CREDENTIALS: '/infra-credentials',

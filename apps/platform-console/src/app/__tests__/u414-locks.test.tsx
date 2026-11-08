@@ -127,18 +127,7 @@ describe('U414② 租户列表双字段口径', () => {
 	}, 20000);
 });
 
-describe('U414①③ 源码扫描锁', () => {
-	it('api-keys 表 rowKey 不回退 prefix', () => {
-		const text = readFileSync(join(APP_DIR, 'system', 'secrets-inventory', 'page.tsx'), 'utf8');
-		expect(text).not.toMatch(/rowKey="prefix"/);
-		expect(text).toMatch(/rowKey="id"/);
-	});
-
-	it('mapApiKeyRecord 保留 id 映射（rowKey="id" 的数据前提）', () => {
-		const text = readFileSync(join(process.cwd(), 'src', 'hooks', 'use-secrets-inventory.ts'), 'utf8');
-		expect(text).toMatch(/id: item\.id \?\? ''/);
-	});
-
+describe('U414③ 源码扫描锁', () => {
 	it('compliance/policy 圆环旁有分数文本直读 + grade', () => {
 		const text = readFileSync(join(APP_DIR, 'compliance', 'policy', 'page.tsx'), 'utf8');
 		expect(text).toMatch(/t\('compliancePolicy\.scoreLine',\s*\{\s*score:\s*Math\.round\(score\)\s*\}\s*\)/);

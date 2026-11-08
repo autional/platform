@@ -46,7 +46,6 @@ import OpsPage from './app/ops/page';
 import PlatformNotificationsPage from './app/notifications/page';
 import SystemOverviewPage from './app/system/overview/page';
 import SystemConfigPage from './app/system/config/page';
-import SystemSecretsInventoryPage from './app/system/secrets-inventory/page';
 import SystemRateLimitsPage from './app/system/rate-limits/page';
 import SystemSchedulersPage from './app/system/schedulers/page';
 import AgentsPage from './app/agents/page';
@@ -365,14 +364,6 @@ function appRoutes() {
 				element={
 					<PlatformMemberGuard fallback={<ForbiddenRedirect />}>
 						<SystemConfigPage />
-					</PlatformMemberGuard>
-				}
-			/>
-			<Route
-				path="system/secrets-inventory"
-				element={
-					<PlatformMemberGuard fallback={<ForbiddenRedirect />}>
-						<SystemSecretsInventoryPage />
 					</PlatformMemberGuard>
 				}
 			/>
