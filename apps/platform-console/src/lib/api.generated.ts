@@ -537,7 +537,6 @@ export const getFeatureGates = Generated.adminBillingFeatureGates;
 
 // PIM/JIT Role Activations
 export const getRoleActivations = Generated.adminRoleActivations;
-export const approveActivation = Generated.adminRoleActivationsApproveByRoleActivationsPost;
 export const revokeActivation = Generated.adminRoleActivationsRevokeByRoleActivationsPost;
 
 // Reverse Lookup: "谁有此角色" / "谁有此权限"
