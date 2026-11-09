@@ -1,3 +1,4 @@
+import { useSessionActivity } from './hooks/use-session-activity';
 import { lazy } from 'react';
 import { Routes, Route, Outlet, Navigate, Link, useParams, useLocation } from 'react-router';
 import { Spin } from 'antd';
@@ -119,6 +120,7 @@ function LayoutWrapper() {
 }
 
 export default function App() {
+	useSessionActivity();
 	// 文案不再在这里写死：设计系统的 ErrorBoundary 自带中英字典（按 <html lang> 选语言）。
 	// 原先写死的三段与字典的中文只差一个词（「发生意外错误」vs「发生了未知错误」）——
 	// 同一个组件在四个门户显示不同措辞，正是 §2.1 记的那类漂移。这里只留 devMode。
