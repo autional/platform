@@ -168,13 +168,9 @@ export default function OpsPage() {
 					}
 				>
 					{isGrafanaConfigured ? (
-						<iframe
-							src={ops.grafanaOverviewUrl}
-							width="100%"
-							height="500"
-							style={{ border: 'none' }}
-							title={t('ops.grafanaOverviewPanel', 'Grafana 总览面板')}
-						/>
+						<div className="text-sm text-gray-500">
+							{t('ops.grafanaExternal', 'Grafana 已独立部署，请点右上角「新窗口打开」访问')}
+						</div>
 					) : (
 						<Alert
 							variant="info"
@@ -205,13 +201,9 @@ export default function OpsPage() {
 						}
 					>
 						{isGrafanaConfigured ? (
-							<iframe
-								src={ops.grafanaServicesUrl(selectedService)}
-								width="100%"
-								height="400"
-								style={{ border: 'none' }}
-								title={t('ops.grafanaServicePanel', { name: selectedService })}
-							/>
+							<div className="text-sm text-gray-500">
+								{t('ops.grafanaExternal', 'Grafana 已独立部署，请点右上角「新窗口打开」访问')}
+							</div>
 						) : (
 							<Alert
 								variant="info"
