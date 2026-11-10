@@ -43,6 +43,8 @@ export function HeaderActions() {
 	});
 
 	// U94：平台租户打目录端点 403（平台平面守卫）⇒ 目录失败即静态清单兜底 [platform, admin]
+	// portal-literals-ok: 目录不可用时的静态兜底（本门户 + admin），不是可见性策略；
+	// 注册表没有「某站降级时该显示谁」的数据，派生不出等价集合。
 	const fallbackPortals: PortalLink[] = [
 		{ code: 'platform', url: getPortalUrl('platform', tenantSlug ?? undefined) },
 		{ code: 'admin', url: getPortalUrl('admin', tenantSlug ?? undefined) },
