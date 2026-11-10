@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import {
+	isConsolePortal,
 	useAuth,
 	useLogout,
 	usePortalCatalog,
@@ -24,9 +25,8 @@ import { SlidersHorizontal } from 'lucide-react';
 // 左右分布、移动端行为）2026-10-04 起归设计系统的 <AppShell>；品牌挪到侧栏顶部（与另外三个
 // 门户一致 —— 原来平台站在顶栏和侧栏各显示了一遍品牌）。这里只剩**内容**。
 
-/** 门户切换器的白名单：只列同类控制台（2026-11-02）；
- *  2026-11 接入配置中心 / 密钥中心 —— 两者同属管理面平面，加入白名单。 */
-const CONSOLE_PORTALS = new Set(['config', 'secret', 'admin', 'security', 'user', 'platform']);
+/** 门户切换器只列「同类控制台」——清单来自 `@autional/shared` 门户注册表（`isConsolePortal`），
+ *  新增控制台只改共享注册表，本仓无需再动。 */
 /** 目录里的 code → 图标；config 需显式补一个，否则落到 Globe 兜底。 */
 const PORTAL_ICONS = { config: SlidersHorizontal };
 export function HeaderActions() {
@@ -49,7 +49,7 @@ export function HeaderActions() {
 	];
 	// 切换器只列同类控制台（2026-11-02）：目录正常返回时也必须过滤 —— 静态兜底只覆盖
 	// isError 分支，修复前 status/trust/developer/brand 照旧出现在切换器里。
-	const consolePortals = catalogPortals.filter((p) => CONSOLE_PORTALS.has(p.code));
+	const consolePortals = catalogPortals.filter((p) => isConsolePortal(p.code));
 	const portals = isError ? fallbackPortals : consolePortals;
 
 	return (

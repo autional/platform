@@ -39,18 +39,25 @@ vi.mock('react-i18next', () => ({
 	},
 }));
 
-vi.mock('@autional/shared', () => ({
-	useAuth: () => ({ user: mockUser, currentTenantId: 'platform-tenant', isAuthenticated: true }),
-	useTenantSlug: () => mockSlug.value,
-	getPortalUrl: mockGetPortalUrl,
-	// 2026-11-02：控制台用户菜单新增「文档 / 状态 / 官网」三项，白名单 mock 必须同步，
-	// 否则 HeaderActions import 到 undefined 会直接抛 "is not a function"。
-	getDEVELOPER_PORTAL_URL: () => 'https://developer.example.com',
-	getSTATUS_PAGE_URL: () => 'https://status.example.com',
-	getLANDING_SITE_URL: () => 'https://www.example.com',
-	useLogout: () => mockLogout,
-	usePortalCatalog: () => mockCatalog.value,
-}));
+vi.mock('@autional/shared', async () => {
+	// 控制台族判定来自共享注册表（子路径导出，零依赖）——mock 里也用真值，避免测试再造一份清单
+	const { isConsolePortal } = await vi.importActual<typeof import('@autional/shared/portal')>(
+		'@autional/shared/portal',
+	);
+	return {
+		isConsolePortal,
+		useAuth: () => ({ user: mockUser, currentTenantId: 'platform-tenant', isAuthenticated: true }),
+		useTenantSlug: () => mockSlug.value,
+		getPortalUrl: mockGetPortalUrl,
+		// 2026-11-02：控制台用户菜单新增「文档 / 状态 / 官网」三项，mock 必须同步，
+		// 否则 HeaderActions import 到 undefined 会直接抛 "is not a function"。
+		getDEVELOPER_PORTAL_URL: () => 'https://developer.example.com',
+		getSTATUS_PAGE_URL: () => 'https://status.example.com',
+		getLANDING_SITE_URL: () => 'https://www.example.com',
+		useLogout: () => mockLogout,
+		usePortalCatalog: () => mockCatalog.value,
+	};
+});
 
 describe('HeaderActions', () => {
 	beforeEach(() => {
