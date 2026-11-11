@@ -409,6 +409,7 @@
   "ops.openNewWindow": "新窗口打开",
   "ops.grafanaOverviewPanel": "Grafana 总览面板",
   "ops.grafanaNotConnected": "Grafana 未接入",
+  "ops.grafanaExternal": "Grafana 已独立部署，请点右上角「新窗口打开」访问",
   "ops.grafanaDesc": "当前环境未配置 Grafana 面板地址；接入后在此展示服务总览面板。",
   "ops.grafanaServiceTitle": "{{name}} 详情 (Grafana)",
   "ops.grafanaServicePanel": "Grafana {{name}} 面板",

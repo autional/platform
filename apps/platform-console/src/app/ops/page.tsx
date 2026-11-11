@@ -169,7 +169,7 @@ export default function OpsPage() {
 				>
 					{isGrafanaConfigured ? (
 						<div className="text-sm text-gray-500">
-							{t('ops.grafanaExternal', 'Grafana 已独立部署，请点右上角「新窗口打开」访问')}
+							{t('ops.grafanaExternal')}
 						</div>
 					) : (
 						<Alert
@@ -202,7 +202,7 @@ export default function OpsPage() {
 					>
 						{isGrafanaConfigured ? (
 							<div className="text-sm text-gray-500">
-								{t('ops.grafanaExternal', 'Grafana 已独立部署，请点右上角「新窗口打开」访问')}
+								{t('ops.grafanaExternal')}
 							</div>
 						) : (
 							<Alert

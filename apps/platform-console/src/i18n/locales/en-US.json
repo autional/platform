@@ -409,6 +409,7 @@
   "ops.openNewWindow": "Open in new window",
   "ops.grafanaOverviewPanel": "Grafana overview panel",
   "ops.grafanaNotConnected": "Grafana not connected",
+  "ops.grafanaExternal": "Grafana runs separately — use “Open in new window” at the top right",
   "ops.grafanaDesc": "No Grafana dashboard URL is configured for this environment; the service overview panel will appear here once connected.",
   "ops.grafanaServiceTitle": "{{name}} Details (Grafana)",
   "ops.grafanaServicePanel": "Grafana {{name}} panel",

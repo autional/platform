@@ -5,16 +5,20 @@ import { readBuildEnv } from '../../../../../scripts/env.mjs';
 
 // A2-R01 回归锁：部署构建必须下发 prod namespace；区域变量缺失/非法时保持 fail-closed。
 // 严格门要求生产环境带齐区域变量，故 DEPLOY_ENV 必须齐全，否则 readBuildEnv 先抛错。
+// 2026-10-27 起 cn 默认 FRONTEND_API_MODE=direct，直连必须有绝对源站（fail-closed）。
+const API_ORIGIN = 'https://api.autional.cn';
+
 const DEPLOY_ENV = {
 	VERCEL_ENV: 'production',
 	REGION: 'cn',
+	API_ORIGIN,
 	SITE_URL: 'https://platform.autional.cn',
 	CDN_HOST: 'https://cdn.autional.cn',
 };
 
 describe('构建期 API namespace（A2-R01 回归锁）', () => {
 	it('本地无部署变量 → dev', () => {
-		expect(readBuildEnv({}).apiNamespace).toBe('dev');
+		expect(readBuildEnv({ API_ORIGIN }).apiNamespace).toBe('dev');
 	});
 
 	it('production → prod', () => {
@@ -31,6 +35,10 @@ describe('构建期 API namespace（A2-R01 回归锁）', () => {
 
 	it('非法 API_NAMESPACE → 抛错', () => {
 		expect(() => readBuildEnv({ ...DEPLOY_ENV, API_NAMESPACE: 'staging' })).toThrow(/API_NAMESPACE/);
+	});
+
+	it('direct 模式缺 API_ORIGIN → 抛错（fail-closed）', () => {
+		expect(() => readBuildEnv({ ...DEPLOY_ENV, API_ORIGIN: '' })).toThrow(/API_ORIGIN/);
 	});
 
 	it('生产缺区域变量 → 抛错，不回落本机值', () => {
