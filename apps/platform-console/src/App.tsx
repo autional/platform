@@ -44,6 +44,7 @@ import AnnouncementsPage from './app/announcements/page';
 import IncidentsPage from './app/status/incidents/page';
 import MaintenancesPage from './app/status/maintenances/page';
 import OpsPage from './app/ops/page';
+import OpsActionsPage from './app/ops/actions/page';
 import PlatformNotificationsPage from './app/notifications/page';
 import SystemOverviewPage from './app/system/overview/page';
 import SystemConfigPage from './app/system/config/page';
@@ -350,6 +351,14 @@ function appRoutes() {
 				element={
 					<PlatformMemberGuard fallback={<ForbiddenRedirect />}>
 						<OpsPage />
+					</PlatformMemberGuard>
+				}
+			/>
+			<Route
+				path="ops/actions"
+				element={
+					<PlatformMemberGuard fallback={<ForbiddenRedirect />}>
+						<OpsActionsPage />
 					</PlatformMemberGuard>
 				}
 			/>

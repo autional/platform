@@ -41,6 +41,7 @@ export const ROUTE = {
 
 	// ===== 系统 =====
 	OPS: '/ops',
+	OPS_ACTIONS: '/ops/actions',
 	SYSTEM_OVERVIEW: '/system/overview',
 	SYSTEM_CONFIG: '/system/config',
 	SYSTEM_SCHEDULERS: '/system/schedulers',

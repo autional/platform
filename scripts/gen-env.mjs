@@ -35,6 +35,8 @@ const PORTALS = [
   ['developer', 'developer'],
   ['security', 'security'],
   ['platform', 'platform'],
+  // 高风险操作确认 PWA：平台运维面「发起动作」后跳转审批用它拼深链 /c/<id>
+  ['consent', 'consent'],
   ['status', 'status'],
   ['trust', 'trust'],
 ];

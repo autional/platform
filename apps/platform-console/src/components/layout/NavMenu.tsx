@@ -111,6 +111,7 @@ export function NavMenu() {
 				label: t('nav.systemSection'),
 				children: [
 					{ key: ROUTE.OPS, label: t('nav.ops') },
+					{ key: ROUTE.OPS_ACTIONS, label: t('nav.opsActions') },
 					{ key: ROUTE.SYSTEM_OVERVIEW, label: t('nav.systemOverview') },
 					{ key: ROUTE.SYSTEM_CONFIG, label: t('nav.systemConfig') },
 					{ key: ROUTE.SYSTEM_SCHEDULERS, label: t('nav.systemSchedulers') },
