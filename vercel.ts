@@ -21,6 +21,9 @@ if (!rawOrigin) {
 
 const ORIGIN = rawOrigin.replace(/\/+$/, '');
 
+const NO_CACHE = 'public, max-age=0, must-revalidate';
+const IMMUTABLE = 'public, max-age=31536000, immutable';
+
 // SPA 兜底只在浏览器导航（Accept: text/html）时生效：缺的 /assets/*.js、/sitemap.xml 等
 // 返回真 404，不再被兜成 200 的 index.html（软 404 + 错缓存）。与 status 站同一写法。
 const spaFallback: Rewrite = {
@@ -60,8 +63,15 @@ export const config: VercelConfig = {
   installCommand: 'pnpm install --frozen-lockfile',
   buildCommand: 'pnpm --filter @autional/platform-console... build',
   outputDirectory: 'apps/platform-console/dist',
-  // 安全头对所有响应生效；静态资源另加长缓存（此处只补安全头，缓存策略维持现状）。
-  headers: [routes.header('/(.*)', SECURITY_HEADERS)],
+  // 安全头对所有响应生效；hashed 资产一年 immutable，HTML/env 每次回源验证。
+  // 与 auth/secret/status 等同款规则；此前缺失导致每次回访都重新验证全部 chunk。
+  headers: [
+    routes.header('/(.*)', SECURITY_HEADERS),
+    routes.header('/assets/(.*)', [{ key: 'Cache-Control', value: IMMUTABLE }]),
+    routes.header('/', [{ key: 'Cache-Control', value: NO_CACHE }]),
+    routes.header('/index.html', [{ key: 'Cache-Control', value: NO_CACHE }]),
+    routes.header('/env.js', [{ key: 'Cache-Control', value: NO_CACHE }]),
+  ],
   rewrites: [
     routes.rewrite('/bff/:path*', `${ORIGIN}/bff/:path*`),
     routes.rewrite('/api/v1/:path*', `${ORIGIN}/api/v1/:path*`),
